@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth" x-data="{ searchQuery: '{{ $searchQuery ?? '' }}', selectedCategory: '{{ $selectedCategory ?? 'All' }}' }">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,8 +10,13 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
 
+        <!-- Alpine.js -->
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
+
+        <style>[x-cloak] { display: none !important; }</style>
     </head>
     <body class="bg-slate-950 font-sans antialiased text-slate-900 selection:bg-sky-500 selection:text-white">
 
@@ -31,7 +36,7 @@
 
                 <!-- Nav Links (Capsule Pills) -->
                 <nav class="hidden md:flex items-center gap-1 bg-slate-100/90 border border-slate-200/70 rounded-full p-1 backdrop-blur-md">
-                    <a href="#freelancers" class="text-xs font-semibold text-slate-700 hover:text-slate-950 px-4 py-1.5 rounded-full hover:bg-white transition-all shadow-2xs">Find Talent</a>
+                    <a href="{{ url('/talent') }}" class="text-xs font-semibold text-slate-700 hover:text-slate-950 px-4 py-1.5 rounded-full hover:bg-white transition-all shadow-2xs">Find Talent</a>
                     <a href="#how-it-works" class="text-xs font-semibold text-slate-700 hover:text-slate-950 px-4 py-1.5 rounded-full hover:bg-white transition-all shadow-2xs">How It Works</a>
                     <a href="#categories" class="text-xs font-semibold text-slate-700 hover:text-slate-950 px-4 py-1.5 rounded-full hover:bg-white transition-all shadow-2xs">Categories</a>
                     <a href="#testimonials" class="text-xs font-semibold text-slate-700 hover:text-slate-950 px-4 py-1.5 rounded-full hover:bg-white transition-all shadow-2xs">Reviews</a>
@@ -94,7 +99,7 @@
                     </label>
 
                     <!-- Glass Search Input Form -->
-                    <form action="#" method="GET" class="relative flex items-center">
+                    <form action="{{ url('/') }}#freelancers" method="GET" class="relative flex items-center">
                         <div class="relative w-full group/input">
                             <svg class="w-5 h-5 text-white/80 absolute left-4 top-1/2 -translate-y-1/2 transition-colors group-focus-within/input:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -102,13 +107,15 @@
                             <input 
                                 type="text" 
                                 name="query" 
-                                placeholder="Search for a service, trade or skill (e.g. Electrician, Tutor, Painter...)" 
+                                x-model="searchQuery"
+                                value="{{ $searchQuery ?? '' }}"
+                                placeholder="Search by name, skill, service or location (e.g. David, Electrician, Math, Lagos)..." 
                                 class="w-full bg-white/20 border border-white/30 focus:border-white focus:bg-white/25 focus:ring-4 focus:ring-white/20 text-white placeholder-white/80 text-sm sm:text-base rounded-2xl pl-12 pr-32 py-4 outline-none transition-all shadow-inner backdrop-blur-md"
                             />
                             <!-- White Background Button -->
                             <button 
                                 type="submit" 
-                                class="absolute right-2 top-1/2 -translate-y-1/2 bg-white text-slate-950 hover:bg-slate-100 text-sm font-extrabold px-6 py-2.5 rounded-xl transition-all shadow-md hover:scale-105 active:scale-95"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 bg-white text-slate-950 hover:bg-slate-100 text-sm font-extrabold px-6 py-2.5 rounded-xl transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer"
                             >
                                 Search
                             </button>
@@ -117,8 +124,8 @@
 
                     <!-- Glass Filter Tags -->
                     <div class="flex flex-wrap items-center gap-2 mt-4 pt-1">
-                        @foreach(['Home repair', 'Academic tutoring', 'Cleaning', 'Photography', 'Furniture assembly', 'Moving help'] as $tag)
-                            <a href="#categories" class="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/20 hover:bg-white/35 text-white border border-white/30 backdrop-blur-md transition-all shadow-2xs hover:scale-105">
+                        @foreach(['Electrician', 'Mathematics', 'Plumbing', 'Laravel', 'French', 'Photography'] as $tag)
+                            <a href="{{ url('/?query=' . urlencode($tag)) }}#freelancers" @click="searchQuery = '{{ $tag }}'" class="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/20 hover:bg-white/35 text-white border border-white/30 backdrop-blur-md transition-all shadow-2xs hover:scale-105">
                                 {{ $tag }}
                             </a>
                         @endforeach
@@ -127,16 +134,109 @@
             </div>
         </section>
 
-        <!-- Section 2: Find experts for every type of work (With Academic Categories) -->
+        <!-- Section 2: Talent Directory & Categories -->
         <section id="freelancers" class="bg-white py-20 px-4 sm:px-6 lg:px-8 border-b border-slate-100">
-            <div class="max-w-6xl mx-auto">
-                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight mb-10 text-left">
-                    Find experts for every type of work:
-                </h2>                <!-- 12 Categories Grid (Academic + Trade + Professional) -->
+            <div class="max-w-6xl mx-auto space-y-12">
+                
+                <!-- Search Results Block (Visible ONLY when user searches) -->
+                <div x-show="searchQuery && searchQuery.trim() !== ''" x-cloak class="space-y-10">
+                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                        <div>
+                            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-100 border border-slate-300 text-slate-900 font-extrabold text-xs mb-2">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                <span>Verified Marketplace Directory</span>
+                            </div>
+                            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight text-left">
+                                Find Experts & Skilled Professionals
+                            </h2>
+                        </div>
+
+                        <!-- Filter Pill Options -->
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="text-xs font-extrabold text-slate-900 bg-sky-50 border border-sky-300 px-3.5 py-1.5 rounded-full flex items-center gap-2">
+                                Searching: "<span x-text="searchQuery"></span>"
+                                <a href="{{ url('/') }}" @click.prevent="searchQuery = ''" class="text-slate-500 hover:text-slate-900 font-bold">✕ Clear</a>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Live Talent Directory Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        @forelse($professionals as $prof)
+                            <div 
+                                x-show="!searchQuery || '{{ strtolower($prof->display_name . ' ' . $prof->user->name . ' ' . $prof->bio . ' ' . $prof->location . ' ' . optional($prof->category)->name . ' ' . implode(' ', $prof->skills->pluck('name')->toArray())) }}'.includes(searchQuery.toLowerCase())"
+                                class="bg-white border-2 border-slate-200 hover:border-slate-900 rounded-3xl p-6 shadow-xs hover:shadow-lg transition-all space-y-4 flex flex-col justify-between group"
+                            >
+                                <div class="space-y-3">
+                                    <!-- User Top Row -->
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-12 h-12 rounded-2xl bg-slate-900 text-white font-black flex items-center justify-center text-base shadow-xs shrink-0">
+                                                {{ strtoupper(substr($prof->user->name ?? 'U', 0, 1)) }}
+                                            </div>
+                                            <div>
+                                                <h4 class="text-base font-extrabold text-slate-900 group-hover:text-sky-900 transition-colors leading-snug">
+                                                    {{ $prof->display_name ?? $prof->user->name }}
+                                                </h4>
+                                                <span class="text-xs font-bold text-slate-500 block">
+                                                    {{ optional($prof->category)->name ?? 'Skilled Specialist' }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Rating & Location Badge -->
+                                    <div class="flex flex-wrap items-center gap-2 text-xs font-bold pt-1">
+                                        <span class="inline-flex items-center gap-1 text-slate-900 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-xl">
+                                            <svg class="w-3.5 h-3.5 text-amber-500 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                            {{ number_format($prof->average_rating, 1) }} ({{ $prof->reviews_count }})
+                                        </span>
+                                        <span class="inline-flex items-center gap-1 text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-xl">
+                                            📍 {{ $prof->location ?? $prof->user->location }}
+                                        </span>
+                                    </div>
+
+                                    <!-- Bio -->
+                                    <p class="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed line-clamp-3">
+                                        {{ $prof->bio }}
+                                    </p>
+
+                                    <!-- Skills Badges -->
+                                    <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                                        @foreach($prof->skills->take(4) as $skill)
+                                            <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 text-[11px] font-bold border border-slate-200">
+                                                {{ $skill->name }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <!-- Bottom Action Button -->
+                                <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                                    <span class="text-xs font-black text-slate-900">
+                                        ₦{{ number_format($prof->hourly_rate ?? 5000) }} <span class="text-[10px] text-slate-500 font-normal">/ hr</span>
+                                    </span>
+                                    <a href="{{ route('login') }}" class="inline-flex items-center justify-center bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-xs transition-all">
+                                        Connect & Hire →
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="col-span-full bg-slate-50 border-2 border-dashed border-slate-300 rounded-3xl p-10 text-center space-y-3">
+                                <p class="text-base font-bold text-slate-800">No professionals found matching your search term.</p>
+                                <a href="{{ url('/') }}" @click.prevent="searchQuery = ''" class="inline-block text-xs font-extrabold text-sky-600 underline">Clear search and view all categories</a>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+
+                <!-- 12 Categories Grid (Academic + Trade + Professional - ALWAYS VISIBLE) -->
+                <div class="pt-2">
+                    <h3 class="text-xl font-black text-slate-900 mb-6">Explore Categories:</h3>
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5">
                     
                     <!-- 1. Academic & Tutoring -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                    <a href="{{ url('/?category=Education+%26+Tutoring') }}#freelancers" @click="searchQuery = 'Tutoring'" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
                         <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                 <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
@@ -147,7 +247,7 @@
                     </a>
 
                     <!-- 2. Exam Prep & Languages -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                    <a href="{{ url('/?query=Language') }}#freelancers" @click="searchQuery = 'Language'" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
                         <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                 <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
@@ -159,7 +259,7 @@
                     </a>
 
                     <!-- 3. Development & IT -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                    <a href="{{ url('/?category=Creative+%26+Digital+Services') }}#freelancers" @click="searchQuery = 'Development'" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
                         <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                 <rect width="18" height="12" x="3" y="4" rx="2"/>
@@ -170,7 +270,7 @@
                     </a>
 
                     <!-- 4. Design & Creative -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                    <a href="{{ url('/?query=Design') }}#freelancers" @click="searchQuery = 'Design'" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
                         <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                 <path d="M12 19l7-7 3 3-7 7-3-3z"/>
@@ -181,7 +281,7 @@
                     </a>
 
                     <!-- 5. Sales & Marketing -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                    <a href="{{ url('/?query=Marketing') }}#freelancers" @click="searchQuery = 'Marketing'" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
                         <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                 <line x1="12" y1="20" x2="12" y2="10"/>
@@ -193,7 +293,7 @@
                     </a>
 
                     <!-- 6. Writing & Translation -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                    <a href="{{ url('/?query=Writing') }}#freelancers" @click="searchQuery = 'Writing'" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
                         <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                 <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
@@ -203,7 +303,7 @@
                     </a>
 
                     <!-- 7. Admin & Support -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                    <a href="{{ url('/?query=Support') }}#freelancers" @click="searchQuery = 'Support'" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
                         <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
@@ -216,7 +316,7 @@
                     </a>
 
                     <!-- 8. Finance & Accounting -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                    <a href="{{ url('/?query=Accounting') }}#freelancers" @click="searchQuery = 'Accounting'" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
                         <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                 <rect width="20" height="14" x="2" y="5" rx="2"/>
@@ -227,7 +327,7 @@
                     </a>
 
                     <!-- 9. Legal -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                    <a href="{{ url('/?query=Legal') }}#freelancers" @click="searchQuery = 'Legal'" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
                         <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                 <path d="m12 15 8.385-8.415a2.122 2.122 0 0 0-3-3L9 12"/>
@@ -239,7 +339,7 @@
                     </a>
 
                     <!-- 10. HR & Training -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                    <a href="{{ url('/?query=Training') }}#freelancers" @click="searchQuery = 'Training'" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
                         <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
@@ -250,23 +350,23 @@
                     </a>
 
                     <!-- 11. Engineering & Architecture -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                    <a href="{{ url('/?query=Electrical') }}#freelancers" @click="searchQuery = 'Electrical'" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
                         <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                 <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
                             </svg>
                         </div>
-                        <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">Engineering & Architecture</span>
+                        <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">Engineering & Technical</span>
                     </a>
 
                     <!-- 12. AI Services -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                    <a href="{{ url('/?query=Software') }}#freelancers" @click="searchQuery = 'Software'" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
                         <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                 <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                             </svg>
                         </div>
-                        <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">AI Services</span>
+                        <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">AI & Software Services</span>
                     </a>
 
                 </div>
@@ -684,7 +784,7 @@
                 <!-- Testimonials Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
 
-                    <!-- Testimonial 1 -->
+                    <!-- Testimonial 1: Funmi Adewale -->
                     <div class="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-7 flex flex-col justify-between hover:shadow-md transition-all">
                         <div>
                             <!-- Rating Stars -->
@@ -696,19 +796,19 @@
                                 @endfor
                             </div>
                             <p class="text-slate-700 text-sm leading-relaxed mb-6 font-normal">
-                                "I found a fantastic painter in less than an hour. The reviews felt genuine, communication was easy, and the work was beautiful."
+                                "I found a fantastic painter and electrician in Ikeja within an hour. The reviews felt genuine, communication was straightforward, and the quality of work was superb."
                             </p>
                         </div>
                         <div class="flex items-center pt-2">
-                            <img src="{{ asset('images/avatars/olivia.png') }}" alt="Olivia Grant" class="w-10 h-10 rounded-full object-cover mr-3 ring-2 ring-white" />
+                            <img src="{{ asset('images/avatars/funmi.png') }}" alt="Funmi Adewale" class="w-10 h-10 rounded-full object-cover mr-3 ring-2 ring-sky-200" />
                             <div>
-                                <h5 class="text-xs font-bold text-slate-900">Olivia Grant</h5>
-                                <span class="text-[11px] text-slate-500 font-medium">Verified customer</span>
+                                <h5 class="text-xs font-bold text-slate-900">Funmi Adewale</h5>
+                                <span class="text-[11px] text-slate-500 font-medium">Verified customer • Lagos</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Testimonial 2 -->
+                    <!-- Testimonial 2: Emeka Nwosu -->
                     <div class="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-7 flex flex-col justify-between hover:shadow-md transition-all">
                         <div>
                             <!-- Rating Stars -->
@@ -720,19 +820,19 @@
                                 @endfor
                             </div>
                             <p class="text-slate-700 text-sm leading-relaxed mb-6 font-normal">
-                                "The connection process gave me confidence before sharing details. Our carpenter was punctual, thoughtful and incredibly skilled."
+                                "The connection request feature gave me total peace of mind before sharing my home address. Our carpenter was punctual, polite, and extremely skilled."
                             </p>
                         </div>
                         <div class="flex items-center pt-2">
-                            <img src="{{ asset('images/avatars/marcus.png') }}" alt="Marcus Lee" class="w-10 h-10 rounded-full object-cover mr-3 ring-2 ring-white" />
+                            <img src="{{ asset('images/avatars/emeka.png') }}" alt="Emeka Nwosu" class="w-10 h-10 rounded-full object-cover mr-3 ring-2 ring-sky-200" />
                             <div>
-                                <h5 class="text-xs font-bold text-slate-900">Marcus Lee</h5>
-                                <span class="text-[11px] text-slate-500 font-medium">Verified customer</span>
+                                <h5 class="text-xs font-bold text-slate-900">Emeka Nwosu</h5>
+                                <span class="text-[11px] text-slate-500 font-medium">Verified customer • Abuja</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Testimonial 3 -->
+                    <!-- Testimonial 3: Zainab Ibrahim -->
                     <div class="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-7 flex flex-col justify-between hover:shadow-md transition-all">
                         <div>
                             <!-- Rating Stars -->
@@ -744,14 +844,86 @@
                                 @endfor
                             </div>
                             <p class="text-slate-700 text-sm leading-relaxed mb-6 font-normal">
-                                "As a tutor, this platform helps me meet families nearby and build lasting working relationships safely."
+                                "As a WAEC Mathematics tutor, Skill Marketplace helped me connect with serious families nearby and grow my private tutoring practice safely."
                             </p>
                         </div>
                         <div class="flex items-center pt-2">
-                            <img src="{{ asset('images/avatars/sophia.png') }}" alt="Sophia Bennett" class="w-10 h-10 rounded-full object-cover mr-3 ring-2 ring-white" />
+                            <img src="{{ asset('images/avatars/zainab.png') }}" alt="Zainab Ibrahim" class="w-10 h-10 rounded-full object-cover mr-3 ring-2 ring-sky-200" />
                             <div>
-                                <h5 class="text-xs font-bold text-slate-900">Sophia Bennett</h5>
-                                <span class="text-[11px] text-slate-500 font-medium">Verified customer</span>
+                                <h5 class="text-xs font-bold text-slate-900">Zainab Ibrahim</h5>
+                                <span class="text-[11px] text-slate-500 font-medium">Verified tutor • Kano</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Testimonial 4: Tunde Bakare -->
+                    <div class="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-7 flex flex-col justify-between hover:shadow-md transition-all">
+                        <div>
+                            <!-- Rating Stars -->
+                            <div class="flex items-center gap-1 text-amber-400 mb-4">
+                                @for($i = 0; $i < 5; $i++)
+                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                    </svg>
+                                @endfor
+                            </div>
+                            <p class="text-slate-700 text-sm leading-relaxed mb-6 font-normal">
+                                "Hired a Physics tutor for my daughter preparing for her JAMB exams. Her performance improved dramatically within 3 weeks. Highly recommended!"
+                            </p>
+                        </div>
+                        <div class="flex items-center pt-2">
+                            <img src="{{ asset('images/avatars/tunde.png') }}" alt="Tunde Bakare" class="w-10 h-10 rounded-full object-cover mr-3 ring-2 ring-sky-200" />
+                            <div>
+                                <h5 class="text-xs font-bold text-slate-900">Tunde Bakare</h5>
+                                <span class="text-[11px] text-slate-500 font-medium">Verified parent • Port Harcourt</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Testimonial 5: Nneka Eze -->
+                    <div class="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-7 flex flex-col justify-between hover:shadow-md transition-all">
+                        <div>
+                            <!-- Rating Stars -->
+                            <div class="flex items-center gap-1 text-amber-400 mb-4">
+                                @for($i = 0; $i < 5; $i++)
+                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                    </svg>
+                                @endfor
+                            </div>
+                            <p class="text-slate-700 text-sm leading-relaxed mb-6 font-normal">
+                                "Listing my fashion designing and tailoring services brought me verified high-paying clients across Enugu. Payments and connections are seamless."
+                            </p>
+                        </div>
+                        <div class="flex items-center pt-2">
+                            <img src="{{ asset('images/avatars/nneka.png') }}" alt="Nneka Eze" class="w-10 h-10 rounded-full object-cover mr-3 ring-2 ring-sky-200" />
+                            <div>
+                                <h5 class="text-xs font-bold text-slate-900">Nneka Eze</h5>
+                                <span class="text-[11px] text-slate-500 font-medium">Verified professional • Enugu</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Testimonial 6: Babajide Ogundipe -->
+                    <div class="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-7 flex flex-col justify-between hover:shadow-md transition-all">
+                        <div>
+                            <!-- Rating Stars -->
+                            <div class="flex items-center gap-1 text-amber-400 mb-4">
+                                @for($i = 0; $i < 5; $i++)
+                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                    </svg>
+                                @endfor
+                            </div>
+                            <p class="text-slate-700 text-sm leading-relaxed mb-6 font-normal">
+                                "I needed urgent AC repairs and gas refill for my duplex. Found a certified technician in Ibadan who fixed all 3 units on the same day."
+                            </p>
+                        </div>
+                        <div class="flex items-center pt-2">
+                            <img src="{{ asset('images/avatars/babajide.png') }}" alt="Babajide Ogundipe" class="w-10 h-10 rounded-full object-cover mr-3 ring-2 ring-sky-200" />
+                            <div>
+                                <h5 class="text-xs font-bold text-slate-900">Babajide Ogundipe</h5>
+                                <span class="text-[11px] text-slate-500 font-medium">Verified customer • Ibadan</span>
                             </div>
                         </div>
                     </div>

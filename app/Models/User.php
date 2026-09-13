@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -23,10 +23,31 @@ class User extends Authenticatable
         'email',
         'phone',
         'location',
+        'avatar',
         'onboarding_completed',
         'onboarding_intent',
         'password',
     ];
+
+    /**
+     * Get the avatar URL or null.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (!$this->avatar) {
+            return null;
+        }
+
+        if (str_starts_with($this->avatar, 'http://') || str_starts_with($this->avatar, 'https://')) {
+            return $this->avatar;
+        }
+
+        if (str_starts_with($this->avatar, 'images/')) {
+            return asset($this->avatar);
+        }
+
+        return asset('storage/' . $this->avatar);
+    }
 
     /**
      * The attributes that should be hidden for serialization.

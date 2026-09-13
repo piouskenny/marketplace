@@ -30,6 +30,12 @@ class RegisterUserAction
             'password' => Hash::make($data['password']),
         ]);
 
+        try {
+            event(new \Illuminate\Auth\Events\Registered($user));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed to send verification email: ' . $e->getMessage());
+        }
+
         return $user;
     }
 }
