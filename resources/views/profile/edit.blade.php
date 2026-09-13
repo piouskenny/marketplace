@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth" x-data="{ sidebarOpen: false }">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth" x-data="{ pageLoading: true, sidebarOpen: false }" x-init="setTimeout(() => pageLoading = false, 350)">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,6 +23,46 @@
         </style>
     </head>
     <body class="bg-slate-100/70 font-sans antialiased text-slate-900 min-h-full selection:bg-slate-900 selection:text-white">
+
+        <!-- Skeleton Preloader Overlay -->
+        <div 
+            x-show="pageLoading" 
+            x-transition:leave="transition ease-out duration-300"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-98 pointer-events-none"
+            class="fixed inset-0 z-50 bg-slate-100/90 backdrop-blur-md flex p-4 sm:p-6 gap-6 overflow-hidden"
+        >
+            <!-- Left Sidebar Skeleton -->
+            <div class="hidden lg:flex w-64 xl:w-72 shrink-0 bg-white border border-slate-200/80 rounded-2xl p-5 flex-col justify-between h-[calc(100vh-3rem)] space-y-6">
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3 pb-4 border-b border-slate-100">
+                        <div class="w-9 h-9 rounded-xl bg-slate-200 animate-pulse"></div>
+                        <div class="space-y-1.5 flex-1">
+                            <div class="h-4 w-28 bg-slate-200 rounded-md animate-pulse"></div>
+                            <div class="h-3 w-20 bg-slate-100 rounded-md animate-pulse"></div>
+                        </div>
+                    </div>
+                    <div class="h-10 w-full bg-slate-200 rounded-xl animate-pulse"></div>
+                    <div class="space-y-2 pt-2">
+                        <div class="h-3 w-16 bg-slate-100 rounded-md mb-2"></div>
+                        <div class="h-9 w-full bg-slate-200/80 rounded-xl animate-pulse"></div>
+                        <div class="h-9 w-full bg-slate-200/80 rounded-xl animate-pulse"></div>
+                    </div>
+                </div>
+                <div class="h-14 w-full bg-slate-200/80 rounded-xl animate-pulse"></div>
+            </div>
+
+            <!-- Profile Form Skeleton -->
+            <div class="flex-1 bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 space-y-6">
+                <div class="h-8 w-48 bg-slate-200 rounded-md animate-pulse"></div>
+                <div class="h-4 w-72 bg-slate-100 rounded-md animate-pulse"></div>
+                <div class="space-y-4 pt-4">
+                    <div class="h-12 w-full bg-slate-100 rounded-xl animate-pulse"></div>
+                    <div class="h-12 w-full bg-slate-100 rounded-xl animate-pulse"></div>
+                    <div class="h-24 w-full bg-slate-100 rounded-xl animate-pulse"></div>
+                </div>
+            </div>
+        </div>
 
         <!-- Mobile Drawer Overlay -->
         <div 
