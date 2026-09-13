@@ -201,7 +201,7 @@
             <div 
                 x-show="sidebarOpen" 
                 @click="sidebarOpen = false" 
-                class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 lg:hidden" 
+                class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden" 
                 style="display: none;"
             ></div>
 

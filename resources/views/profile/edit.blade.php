@@ -34,12 +34,12 @@
             x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0"
             @click="sidebarOpen = false" 
-            class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 lg:hidden"
+            class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden"
             style="display: none;"
         ></div>
 
         <!-- Main Wrapper Container -->
-        <div class="relative z-10 w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex gap-6 min-h-screen">
+        <div class="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex gap-6 min-h-screen">
 
             <!-- Sidebar Navigation -->
             <aside 
