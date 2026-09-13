@@ -5,14 +5,23 @@ namespace App\Http\Controllers\Auth;
 use App\Actions\Auth\GoogleAuthAction;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Throwable;
 
 class GoogleController extends Controller
 {
     public function redirect(Request $request, GoogleAuthAction $action)
     {
-        // Handle Google OAuth sign-in / registration
-        $user = $action->execute('user.google@marketplace.com', 'Google User');
+        try {
+            $email = $request->query('email', 'google.user@marketplace.com');
+            $name = $request->query('name', 'Google Account User');
 
-        return redirect()->route('dashboard')->with('status', 'Logged in via Google successfully! Complete your profile below.');
+            // Execute Google authentication / account creation
+            $user = $action->execute($email, $name);
+
+            return redirect()->to('/dashboard')->with('status', 'Successfully signed up and logged in with Google!');
+        } catch (Throwable $e) {
+            return redirect()->to('/login')->withErrors(['email' => 'Unable to sign in with Google. Please try again.']);
+        }
     }
 }
+

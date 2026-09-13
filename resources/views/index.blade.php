@@ -136,129 +136,140 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5">
                     
                     <!-- 1. Academic & Tutoring -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-sky-500 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
-                        <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 group-hover:bg-sky-500 group-hover:text-white transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
                             </svg>
                         </div>
                         <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">Academic & Tutoring</span>
                     </a>
 
                     <!-- 2. Exam Prep & Languages -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-sky-500 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
-                        <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 group-hover:bg-sky-500 group-hover:text-white transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
+                                <path d="M6 6h10"/>
+                                <path d="M6 10h10"/>
                             </svg>
                         </div>
                         <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">Exam Prep & Languages</span>
                     </a>
 
                     <!-- 3. Development & IT -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-sky-500 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
-                        <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 group-hover:bg-sky-500 group-hover:text-white transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <rect width="18" height="12" x="3" y="4" rx="2"/>
+                                <path d="M2 20h20"/>
                             </svg>
                         </div>
                         <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">Development & IT</span>
                     </a>
 
                     <!-- 4. Design & Creative -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-sky-500 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
-                        <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 group-hover:bg-sky-500 group-hover:text-white transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M12 19l7-7 3 3-7 7-3-3z"/>
+                                <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
                             </svg>
                         </div>
                         <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">Design & Creative</span>
                     </a>
 
                     <!-- 5. Sales & Marketing -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-sky-500 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
-                        <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 group-hover:bg-sky-500 group-hover:text-white transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <line x1="12" y1="20" x2="12" y2="10"/>
+                                <line x1="18" y1="20" x2="18" y2="4"/>
+                                <line x1="6" y1="20" x2="6" y2="16"/>
                             </svg>
                         </div>
                         <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">Sales & Marketing</span>
                     </a>
 
                     <!-- 6. Writing & Translation -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-sky-500 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
-                        <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 group-hover:bg-sky-500 group-hover:text-white transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
                             </svg>
                         </div>
                         <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">Writing & Translation</span>
                     </a>
 
                     <!-- 7. Admin & Support -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-sky-500 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
-                        <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 group-hover:bg-sky-500 group-hover:text-white transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                             </svg>
                         </div>
                         <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">Admin & Support</span>
                     </a>
 
                     <!-- 8. Finance & Accounting -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-sky-500 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
-                        <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 group-hover:bg-sky-500 group-hover:text-white transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
+                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <rect width="20" height="14" x="2" y="5" rx="2"/>
+                                <line x1="2" y1="10" x2="22" y2="10"/>
                             </svg>
                         </div>
                         <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">Finance & Accounting</span>
                     </a>
 
                     <!-- 9. Legal -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-sky-500 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
-                        <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 group-hover:bg-sky-500 group-hover:text-white transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l9-4 9 4M3 6v14a2 2 0 002-2h14a2 2 0 002-2V6M3 6l9 6 9-6"/>
+                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="m12 15 8.385-8.415a2.122 2.122 0 0 0-3-3L9 12"/>
+                                <path d="M16 5 9 12 5 8"/>
+                                <path d="M19 11v9H5V5h9"/>
                             </svg>
                         </div>
                         <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">Legal</span>
                     </a>
 
                     <!-- 10. HR & Training -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-sky-500 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
-                        <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 group-hover:bg-sky-500 group-hover:text-white transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5 5 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
                             </svg>
                         </div>
                         <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">HR & Training</span>
                     </a>
 
                     <!-- 11. Engineering & Architecture -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-sky-500 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
-                        <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 group-hover:bg-sky-500 group-hover:text-white transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 011 1V4z"/>
+                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
                             </svg>
                         </div>
                         <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">Engineering & Architecture</span>
                     </a>
 
                     <!-- 12. AI Services -->
-                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-sky-500 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
-                        <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 group-hover:bg-sky-500 group-hover:text-white transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="3" stroke-width="2"/>
-                                <ellipse cx="12" cy="12" rx="7" ry="3" stroke-width="1.8" transform="rotate(30 12 12)"/>
-                                <ellipse cx="12" cy="12" rx="7" ry="3" stroke-width="1.8" transform="rotate(-30 12 12)"/>
+                    <a href="#categories" class="bg-white border border-slate-900 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-slate-900 hover:-translate-y-1 transition-all group flex flex-col justify-between h-36">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-900 group-hover:bg-slate-900 group-hover:text-white group-hover:border-slate-900 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                             </svg>
                         </div>
                         <span class="text-sm font-bold text-slate-900 group-hover:text-sky-700 transition-colors leading-tight">AI Services</span>
                     </a>
 
-                </div>v>
+                </div>
             </div>
         </section>
 
