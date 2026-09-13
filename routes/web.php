@@ -32,6 +32,7 @@ Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/talent', [DashboardController::class, 'talent'])->name('dashboard.talent');
+    Route::get('/dashboard/messages', [DashboardController::class, 'messages'])->name('dashboard.messages');
 
     // Email Verification Routes
     Route::get('/email/verify', [VerificationController::class, 'notice'])->name('verification.notice');

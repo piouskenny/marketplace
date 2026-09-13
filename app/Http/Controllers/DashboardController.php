@@ -195,4 +195,155 @@ class DashboardController extends Controller
 
         return view('dashboard.talent', compact('user', 'completionPercentage', 'professionals', 'categories', 'searchQuery', 'selectedCategory', 'selectedLocation'));
     }
+
+    /**
+     * Dashboard Messages & Real-Time Chat Workspace
+     */
+    public function messages(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $user->load([
+            'professionalProfile.category',
+            'professionalProfile.skills',
+        ]);
+
+        $completionPercentage = 35;
+        if (!empty($user->phone)) {
+            $completionPercentage += 15;
+        }
+        if (!empty($user->location)) {
+            $completionPercentage += 15;
+        }
+        if ($user->professionalProfile) {
+            $completionPercentage += 20;
+        }
+        if ($user->onboarding_completed) {
+            $completionPercentage = 100;
+        }
+
+        // Rich Conversation Threads for testing & interactive demo
+        $conversations = [
+            [
+                'id' => 101,
+                'name' => 'Babajide Ogundele',
+                'title' => 'SS2 Mathematics & Physics Tutor',
+                'avatar' => asset('images/avatars/babajide.png'),
+                'online' => true,
+                'location' => 'Ikeja, Lagos',
+                'category' => 'Academic Tutoring',
+                'unread' => 2,
+                'last_time' => '10:42 AM',
+                'messages' => [
+                    [
+                        'id' => 1,
+                        'sender' => 'them',
+                        'text' => 'Hello! Thanks for reaching out regarding the SS2 Mathematics and Physics tutoring position.',
+                        'time' => '10:15 AM'
+                    ],
+                    [
+                        'id' => 2,
+                        'sender' => 'me',
+                        'text' => 'Hi Babajide! Yes, we need someone who can prepare our student for WAEC exams starting next term.',
+                        'time' => '10:20 AM'
+                    ],
+                    [
+                        'id' => 3,
+                        'sender' => 'them',
+                        'text' => 'Perfect. I have 6+ years of WAEC prep experience with an 88% distinction rate. Are you available for a 3-day weekly schedule?',
+                        'time' => '10:30 AM'
+                    ],
+                    [
+                        'id' => 4,
+                        'sender' => 'them',
+                        'text' => 'I can start tomorrow morning at 10 AM if that suits your schedule!',
+                        'time' => '10:42 AM'
+                    ],
+                ]
+            ],
+            [
+                'id' => 102,
+                'name' => 'Funmi Adebayo',
+                'title' => 'Bespoke Fashion Designer & Tailor',
+                'avatar' => asset('images/avatars/funmi.png'),
+                'online' => true,
+                'location' => 'Surulere, Lagos',
+                'category' => 'Fashion & Craft',
+                'unread' => 0,
+                'last_time' => 'Yesterday',
+                'messages' => [
+                    [
+                        'id' => 1,
+                        'sender' => 'them',
+                        'text' => 'Good afternoon! Your custom Senator attire and Agbada measurements have been finalized.',
+                        'time' => 'Yesterday 2:15 PM'
+                    ],
+                    [
+                        'id' => 2,
+                        'sender' => 'me',
+                        'text' => 'Awesome Funmi! When will the fitting session be ready?',
+                        'time' => 'Yesterday 2:45 PM'
+                    ],
+                    [
+                        'id' => 3,
+                        'sender' => 'them',
+                        'text' => 'The initial fitting is ready for Friday afternoon at our Surulere studio.',
+                        'time' => 'Yesterday 3:10 PM'
+                    ]
+                ]
+            ],
+            [
+                'id' => 103,
+                'name' => 'Emeka Okafor',
+                'title' => 'Certified Electrician & Solar Installer',
+                'avatar' => asset('images/avatars/emeka.png'),
+                'online' => false,
+                'location' => 'Lekki Phase 1, Lagos',
+                'category' => 'Home & Technical',
+                'unread' => 0,
+                'last_time' => '2 days ago',
+                'messages' => [
+                    [
+                        'id' => 1,
+                        'sender' => 'me',
+                        'text' => 'Hello Engr. Emeka, do you handle inverter battery bank installation and 5kVA solar setups?',
+                        'time' => '2 days ago'
+                    ],
+                    [
+                        'id' => 2,
+                        'sender' => 'them',
+                        'text' => 'Yes I do! We provide full load audit, surge protection, and neat cable trunking.',
+                        'time' => '2 days ago'
+                    ]
+                ]
+            ],
+            [
+                'id' => 104,
+                'name' => 'Zainab Ibrahim',
+                'title' => 'WAEC / JAMB English Language Instructor',
+                'avatar' => asset('images/avatars/zainab.png'),
+                'online' => true,
+                'location' => 'Maitama, Abuja',
+                'category' => 'Academic Tutoring',
+                'unread' => 0,
+                'last_time' => '3 days ago',
+                'messages' => [
+                    [
+                        'id' => 1,
+                        'sender' => 'them',
+                        'text' => 'Hi! The comprehension and essay writing mock assessment results have been compiled.',
+                        'time' => '3 days ago'
+                    ],
+                    [
+                        'id' => 2,
+                        'sender' => 'me',
+                        'text' => 'Thank you Zainab. Looking forward to reviewing the score breakdown.',
+                        'time' => '3 days ago'
+                    ]
+                ]
+            ]
+        ];
+
+        return view('dashboard.messages', compact('user', 'completionPercentage', 'conversations'));
+    }
 }

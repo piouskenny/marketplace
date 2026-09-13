@@ -105,12 +105,12 @@
                             <span class="px-3 text-[10px] font-normal text-slate-500 uppercase tracking-wider block mb-1">Workplace</span>
                             <nav class="space-y-0.5">
                                 <!-- Messages & Requests -->
-                                <a href="#messages" @click="sidebarOpen = false" class="flex items-center justify-between px-3 py-2 rounded-xl text-[#000000] hover:bg-slate-100 text-xs font-normal transition-colors">
+                                <a href="{{ url('/dashboard/messages') }}" @click="sidebarOpen = false" class="flex items-center justify-between px-3 py-2 rounded-xl text-[#000000] hover:bg-slate-100 text-xs font-normal transition-colors">
                                     <div class="flex items-center gap-2.5">
                                         <svg class="w-4 h-4 text-[#000000]" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                                         <span>Messages</span>
                                     </div>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-[#000000] border border-slate-200">3</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-400 text-slate-900">2</span>
                                 </a>
                             </nav>
                         </div>
