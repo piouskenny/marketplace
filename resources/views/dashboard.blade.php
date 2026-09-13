@@ -216,34 +216,8 @@
                     </div>
                 </div>
 
-                <!-- Sidebar Footer User Profile Card Trigger -->
-                <div class="pt-4 mt-6 border-t border-slate-200/80 space-y-3 shrink-0">
-                    <div @click="profileModalOpen = true; sidebarOpen = false" class="bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between gap-3 cursor-pointer transition-colors" title="Click to view profile card">
-                        <div class="flex items-center gap-2.5 min-w-0">
-                            @if($user->avatar_url)
-                                <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0" />
-                            @else
-                                <div class="w-8 h-8 rounded-lg bg-[#0F172B] text-white font-bold flex items-center justify-center text-xs shrink-0">
-                                    {{ strtoupper(substr($user->name ?? 'U', 0, 1)) }}
-                                </div>
-                            @endif
-                            <div class="min-w-0">
-                                <h5 class="text-xs font-semibold text-slate-900 truncate">{{ $user->name ?? 'User' }}</h5>
-                                @if($completionPercentage < 100)
-                                    <span class="text-[11px] text-slate-500 font-medium block truncate">
-                                        {{ $completionPercentage }}% Profile Setup
-                                    </span>
-                                @else
-                                    <span class="text-[11px] text-emerald-600 font-medium block truncate">
-                                        ✓ Verified Profile
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
-                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                    </div>
-
-                    <!-- Sign Out Button -->
+                <!-- Sidebar Footer Sign Out -->
+                <div class="pt-4 mt-6 border-t border-slate-200/80 shrink-0">
                     <form action="{{ url('/logout') }}" method="POST">
                         @csrf
                         <button type="submit" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer">
