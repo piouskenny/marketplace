@@ -5,6 +5,7 @@
     xInit="setTimeout(() => pageLoading = false, 350); $nextTick(() => scrollToBottom()); startRealtimePolling()"
 >
 
+@push('scripts')
         <script>
             function messagesApp(conversationsData) {
                 return {
@@ -232,8 +233,9 @@
                 };
             }
         </script>
+@endpush
     <!-- Main Dashboard Workspace -->
-    <main class="flex-1 min-w-0 flex flex-col space-y-4 h-[calc(100vh-3.25rem)] overflow-hidden">
+    <main class="flex-1 min-w-0 flex flex-col space-y-4 h-[calc(100vh-2rem)] sm:h-[calc(100vh-3rem)] overflow-hidden">
         
         <!-- Top Header Bar -->
         <header class="bg-white border border-slate-200/80 rounded-2xl px-4 sm:px-6 py-3 flex items-center justify-between gap-4 shrink-0 shadow-xs">
