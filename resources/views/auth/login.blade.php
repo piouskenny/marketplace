@@ -53,6 +53,28 @@
                     Log in to Skill Marketplace
                 </h1>
 
+                <!-- Error Messages & Status Banner -->
+                @if ($errors->any())
+                    <div class="mb-6 bg-rose-50 border border-rose-200/90 text-rose-800 text-xs sm:text-sm font-medium rounded-2xl p-4 space-y-1.5 shadow-2xs">
+                        <div class="flex items-center gap-2 font-bold text-rose-950 text-sm">
+                            <svg class="w-4.5 h-4.5 text-rose-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            <span>Authentication Error</span>
+                        </div>
+                        <ul class="list-disc list-inside space-y-1 text-rose-700 pl-1">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                @if (session('status'))
+                    <div class="mb-6 bg-emerald-50 border border-emerald-200/90 text-emerald-800 text-xs sm:text-sm font-medium rounded-2xl p-4 flex items-center gap-2.5 shadow-2xs">
+                        <svg class="w-4.5 h-4.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        <span>{{ session('status') }}</span>
+                    </div>
+                @endif
+
                 <!-- Google Social Auth Button Only -->
                 <div class="mb-6">
                     <a href="{{ url('/auth/google') }}" class="w-full flex items-center justify-center gap-3 px-4 py-3.5 border border-slate-200 hover:border-sky-300 bg-white hover:bg-sky-50/50 rounded-full text-sm font-extrabold text-slate-800 transition-all shadow-xs group cursor-pointer">
@@ -83,6 +105,7 @@
                             type="email" 
                             id="email" 
                             name="email" 
+                            value="{{ old('email') }}"
                             required
                             placeholder="Username or email" 
                             class="w-full bg-white border border-slate-300 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 text-slate-900 text-sm rounded-xl px-3.5 py-2.5 outline-none transition-all"

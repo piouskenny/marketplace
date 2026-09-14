@@ -11,6 +11,11 @@ class Conversation extends Model
 
     protected $fillable = [
         'connection_request_id',
+        'last_message_at',
+    ];
+
+    protected $casts = [
+        'last_message_at' => 'datetime',
     ];
 
     public function connectionRequest()

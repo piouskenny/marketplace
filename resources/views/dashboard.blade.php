@@ -1,232 +1,32 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth" x-data="{ pageLoading: true, sidebarOpen: false, searchQuery: '', selectedCategory: 'All', profileModalOpen: false, notificationsOpen: false }" x-init="setTimeout(() => pageLoading = false, 350)">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-        <title>Dashboard — {{ config('app.name', 'Skill Marketplace') }}</title>
-
-        <!-- Modern Clean Typography (Inter) -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
-        <!-- Alpine.js -->
-        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-        @livewireStyles
-        <style>
-            body {
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            }
-        </style>
-    </head>
-    <body class="bg-slate-100/70 font-sans antialiased text-slate-900 min-h-full selection:bg-slate-900 selection:text-white">
-
-        <!-- Skeleton Preloader Overlay -->
-        <div 
-            x-show="pageLoading" 
-            x-transition:leave="transition ease-out duration-300"
-            x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-98 pointer-events-none"
-            class="fixed inset-0 z-50 bg-slate-100/90 backdrop-blur-md flex p-4 sm:p-6 gap-6 overflow-hidden"
-        >
-            <!-- Left Sidebar Skeleton -->
-            <div class="hidden lg:flex w-64 xl:w-72 shrink-0 bg-white border border-slate-200/80 rounded-2xl p-5 flex-col justify-between h-[calc(100vh-3rem)] space-y-6">
-                <div class="space-y-6">
-                    <div class="flex items-center gap-3 pb-4 border-b border-slate-100">
-                        <div class="w-9 h-9 rounded-xl bg-slate-200 animate-pulse"></div>
-                        <div class="space-y-1.5 flex-1">
-                            <div class="h-4 w-28 bg-slate-200 rounded-md animate-pulse"></div>
-                            <div class="h-3 w-20 bg-slate-100 rounded-md animate-pulse"></div>
-                        </div>
-                    </div>
-                    <div class="h-10 w-full bg-slate-200 rounded-xl animate-pulse"></div>
-                    <div class="space-y-2 pt-2">
-                        <div class="h-3 w-16 bg-slate-100 rounded-md mb-2"></div>
-                        <div class="h-9 w-full bg-slate-200/80 rounded-xl animate-pulse"></div>
-                        <div class="h-9 w-full bg-slate-200/80 rounded-xl animate-pulse"></div>
-                        <div class="h-9 w-full bg-slate-200/80 rounded-xl animate-pulse"></div>
-                        <div class="h-9 w-full bg-slate-200/80 rounded-xl animate-pulse"></div>
-                    </div>
-                </div>
-                <div class="h-14 w-full bg-slate-200/80 rounded-xl animate-pulse"></div>
-            </div>
-
-            <!-- Main Content Viewport Skeleton -->
-            <div class="flex-1 space-y-6 overflow-hidden">
-                <!-- Top Navbar Skeleton -->
-                <div class="bg-white border border-slate-200/80 rounded-2xl px-5 py-3.5 flex items-center justify-between">
-                    <div class="h-9 w-64 bg-slate-200 rounded-xl animate-pulse"></div>
-                    <div class="flex items-center gap-3">
-                        <div class="h-9 w-9 bg-slate-200 rounded-xl animate-pulse"></div>
-                        <div class="h-9 w-28 bg-slate-200 rounded-xl animate-pulse"></div>
-                    </div>
-                </div>
-
-                <!-- Hero / Banner Skeleton -->
-                <div class="h-40 w-full bg-slate-200/80 rounded-2xl animate-pulse"></div>
-
-                <!-- Cards Grid Skeleton -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="h-44 bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3">
-                        <div class="flex gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-slate-200 animate-pulse"></div>
-                            <div class="space-y-1.5 flex-1">
-                                <div class="h-4 w-3/4 bg-slate-200 rounded-md animate-pulse"></div>
-                                <div class="h-3 w-1/2 bg-slate-100 rounded-md animate-pulse"></div>
-                            </div>
-                        </div>
-                        <div class="h-10 w-full bg-slate-100 rounded-xl animate-pulse"></div>
-                        <div class="flex justify-between items-center pt-2">
-                            <div class="h-4 w-24 bg-slate-200 rounded-md"></div>
-                            <div class="h-8 w-20 bg-slate-200 rounded-lg"></div>
-                        </div>
-                    </div>
-                    <div class="h-44 bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3">
-                        <div class="flex gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-slate-200 animate-pulse"></div>
-                            <div class="space-y-1.5 flex-1">
-                                <div class="h-4 w-3/4 bg-slate-200 rounded-md animate-pulse"></div>
-                                <div class="h-3 w-1/2 bg-slate-100 rounded-md animate-pulse"></div>
-                            </div>
-                        </div>
-                        <div class="h-10 w-full bg-slate-100 rounded-xl animate-pulse"></div>
-                        <div class="flex justify-between items-center pt-2">
-                            <div class="h-4 w-24 bg-slate-200 rounded-md"></div>
-                            <div class="h-8 w-20 bg-slate-200 rounded-lg"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile Drawer Overlay -->
-        <div 
-            x-show="sidebarOpen" 
-            x-transition:enter="transition-opacity ease-out duration-200"
-            x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100"
-            x-transition:leave="transition-opacity ease-in duration-150"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
-            @click="sidebarOpen = false" 
-            class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden"
-            style="display: none;"
-        ></div>
-
-        <!-- Main Dashboard Container -->
-        <div class="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex gap-6 min-h-screen">
-
-            <!-- Sidebar Navigation -->
-            <aside 
-                :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-                class="fixed lg:sticky inset-y-0 lg:top-6 left-0 z-50 lg:z-10 w-72 lg:w-64 xl:w-72 shrink-0 bg-white border-r lg:border border-slate-200/80 lg:rounded-2xl p-5 shadow-xl lg:shadow-xs flex flex-col justify-between h-full lg:h-[calc(100vh-3rem)] transition-transform duration-300 ease-in-out overflow-y-auto no-scrollbar"
-            >
-                <div class="space-y-6">
-                    
-                    <!-- Sidebar Header & Logo -->
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-200/80">
-                        <a href="/" class="flex items-center gap-3 group">
-                            <div class="w-9 h-9 rounded-xl bg-[#0F172B] flex items-center justify-center text-white shadow-xs group-hover:bg-slate-800 transition-colors">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/></svg>
-                            </div>
-                            <div>
-                                <span class="text-slate-900 font-bold text-base tracking-tight block">Skill Marketplace</span>
-                                <span class="text-[11px] text-slate-500 font-medium tracking-wide">Member Dashboard</span>
-                            </div>
-                        </a>
-
-                        <!-- Mobile Close Button -->
-                        <button @click="sidebarOpen = false" class="lg:hidden text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors" aria-label="Close menu">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                    </div>
-
-                    <!-- Post Task Primary CTA -->
-                    <div>
-                        <a href="#post-opportunity" @click="sidebarOpen = false" class="w-full flex items-center justify-center gap-2 bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm py-2.5 px-4 rounded-xl shadow-xs transition-colors">
-                            <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            <span>Post an Opportunity</span>
-                        </a>
-                    </div>
-
-                    <!-- Navigation Links Grouped -->
-                    <div class="space-y-4">
-                        
-                        <!-- Group 1: Navigation -->
-                        <div>
-                            <span class="px-3 text-[10px] font-normal text-slate-500 uppercase tracking-wider block mb-1">Navigation</span>
-                            <nav class="space-y-0.5">
-                                <!-- Home Dashboard -->
-                                <a href="{{ url('/dashboard') }}" class="flex items-center justify-between px-3 py-2 rounded-xl bg-[#0F172B] text-white text-xs font-normal transition-colors shadow-xs">
-                                    <div class="flex items-center gap-2.5">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1V9.5z"/></svg>
-                                        <span>Overview</span>
-                                    </div>
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                </a>
-
-                                <!-- Browse Directory / Find Talent -->
-                                <a href="{{ url('/dashboard/talent') }}" @click="sidebarOpen = false" class="flex items-center justify-between px-3 py-2 rounded-xl text-[#000000] hover:bg-slate-100 text-xs font-normal transition-colors">
-                                    <div class="flex items-center gap-2.5">
-                                        <svg class="w-4 h-4 text-[#000000]" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                                        <span>Find Talent</span>
-                                    </div>
-                                </a>
-                            </nav>
-                        </div>
-
-                        <!-- Group 2: Work & Requests -->
-                        <div>
-                            <span class="px-3 text-[10px] font-normal text-slate-500 uppercase tracking-wider block mb-1">Workplace</span>
-                            <nav class="space-y-0.5">
-                                <!-- Messages & Requests -->
-                                <a href="{{ url('/dashboard/messages') }}" @click="sidebarOpen = false" class="flex items-center justify-between px-3 py-2 rounded-xl text-[#000000] hover:bg-slate-100 text-xs font-normal transition-colors">
-                                    <div class="flex items-center gap-2.5">
-                                        <svg class="w-4 h-4 text-[#000000]" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                                        <span>Messages</span>
-                                    </div>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-400 text-slate-900">2</span>
-                                </a>
-                            </nav>
-                        </div>
-
-                        <!-- Group 3: Settings -->
-                        <div>
-                            <span class="px-3 text-[10px] font-normal text-slate-500 uppercase tracking-wider block mb-1">Account</span>
-                            <nav class="space-y-0.5">
-                                <!-- Profile & Settings -->
-                                <button @click="profileModalOpen = true; sidebarOpen = false" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-[#000000] hover:bg-slate-100 text-xs font-normal transition-colors text-left cursor-pointer">
-                                    <div class="flex items-center gap-2.5">
-                                        <svg class="w-4 h-4 text-[#000000]" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                        <span>View Profile Card</span>
-                                    </div>
-                                </button>
-                                <a href="{{ url('/profile/edit') }}" @click="sidebarOpen = false" class="flex items-center justify-between px-3 py-2 rounded-xl text-[#000000] hover:bg-slate-100 text-xs font-normal transition-colors">
-                                    <div class="flex items-center gap-2.5">
-                                        <svg class="w-4 h-4 text-[#000000]" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                        <span>Edit Settings</span>
-                                    </div>
-                                </a>
-                            </nav>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Sidebar Footer Sign Out -->
-                <div class="pt-4 mt-6 border-t border-slate-200/80 shrink-0">
-                    <form action="{{ url('/logout') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer">
-                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                            <span>Sign Out</span>
-                        </button>
-                    </form>
-                </div>
-            </aside>
+<x-dashboard-layout 
+    title="Dashboard — {{ config('app.name', 'Skill Marketplace') }}"
+    active="overview"
+    xData="{ 
+        pageLoading: true, 
+        sidebarOpen: false, 
+        sidebarCollapsed: localStorage.getItem('sidebar_collapsed') === 'true',
+        toggleSidebar() {
+            this.sidebarCollapsed = !this.sidebarCollapsed;
+            localStorage.setItem('sidebar_collapsed', this.sidebarCollapsed);
+        },
+        searchQuery: '', 
+        selectedCategory: 'All', 
+        profileModalOpen: false, 
+        notificationsOpen: false,
+        postModalOpen: false,
+        postCategoryIsAcademic: false,
+        checkAcademicCategory(event) {
+            const selectedText = event.target.options[event.target.selectedIndex].text.toLowerCase();
+            this.postCategoryIsAcademic = selectedText.includes('education') || selectedText.includes('tutor');
+        },
+        jobDetailModalOpen: false,
+        selectedJob: null,
+        openJobDetails(job) {
+            this.selectedJob = job;
+            this.jobDetailModalOpen = true;
+        }
+    }"
+>
 
             <!-- Main Dashboard Viewport -->
             <main class="flex-1 min-w-0 space-y-6">
@@ -234,6 +34,17 @@
                 <!-- Top Header Bar -->
                 <div class="bg-white border border-slate-200/80 rounded-2xl p-3.5 sm:px-6 shadow-xs flex items-center justify-between gap-4">
                     
+                    <!-- Desktop Sidebar Collapse Toggle Button -->
+                    <button 
+                        @click="toggleSidebar()" 
+                        class="hidden lg:flex items-center justify-center p-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 shrink-0 cursor-pointer transition-colors"
+                        :title="sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+                    >
+                        <svg class="w-4 h-4 transition-transform duration-300" :class="sidebarCollapsed ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                        </svg>
+                    </button>
+
                     <!-- Mobile Menu Button -->
                     <button 
                         @click="sidebarOpen = true" 
@@ -403,246 +214,303 @@
                     </div>
                 @endif
 
-                <!-- Classic Welcome Hero Section -->
-                <div class="bg-[#0F172B] text-white rounded-2xl p-6 sm:p-7 shadow-sm relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div class="space-y-2 max-w-xl">
-                        @if($completionPercentage == 100)
-                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                <span>Profile Active & Verified</span>
-                            </div>
-
-                            <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                                Welcome back, {{ $user->name }}
-                            </h1>
-
-                            <p class="text-slate-300 text-xs sm:text-sm leading-relaxed font-normal">
-                                Explore live opportunities listed below and connect directly with clients or tutors.
-                            </p>
-                        @else
-                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700 text-slate-300 text-xs font-medium">
-                                <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-                                <span>Profile Setup In Progress</span>
-                            </div>
-
-                            <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                                Welcome to Skill Marketplace, {{ $user->name }}
-                            </h1>
-
-                            <p class="text-slate-300 text-xs sm:text-sm leading-relaxed font-normal">
-                                Complete your profile to start receiving client requests and applying for open jobs.
-                            </p>
-                        @endif
-
-                        <!-- Progress Bar (Only visible when incomplete) -->
-                        @if($completionPercentage < 100)
-                            <div class="pt-2 max-w-sm">
-                                <div class="flex items-center justify-between text-xs font-medium mb-1 text-slate-300">
-                                    <span>Setup Progress</span>
-                                    <span class="font-semibold text-white">{{ $completionPercentage }}%</span>
-                                </div>
-                                <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-700/80">
-                                    <div class="bg-white h-full rounded-full transition-all duration-500" style="width: {{ $completionPercentage }}%"></div>
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-
-                    <!-- Hero Action CTA -->
-                    <div class="shrink-0 w-full md:w-auto flex items-center gap-2">
-                        <button @click="profileModalOpen = true" class="w-full md:w-auto inline-flex items-center justify-center bg-slate-800 text-white border border-slate-700 font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl hover:bg-slate-700 transition-colors cursor-pointer">
-                            View Profile Card
+                @if (session('error'))
+                    <div x-data="{ show: true }" x-show="show" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-2xl flex items-center justify-between shadow-xs mb-6">
+                        <div class="flex items-center gap-2 text-xs sm:text-sm font-semibold">
+                            <svg class="w-5 h-5 text-red-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span>{{ session('error') }}</span>
+                        </div>
+                        <button @click="show = false" class="text-red-700 hover:text-red-950 hover:bg-red-100 p-1 rounded-lg transition-colors cursor-pointer shrink-0 ml-3" title="Dismiss">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
-
-                        @if($completionPercentage == 100)
-                            <a href="{{ url('/profile/edit') }}" class="w-full md:w-auto inline-flex items-center justify-center bg-white text-slate-900 font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-xl hover:bg-slate-100 transition-colors shadow-xs">
-                                Edit Profile →
-                            </a>
-                        @else
-                            <a href="{{ route('onboarding') }}" class="w-full md:w-auto inline-flex items-center justify-center bg-white text-slate-900 font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-xl hover:bg-slate-100 transition-colors shadow-xs">
-                                Complete Setup →
-                            </a>
-                        @endif
                     </div>
-                </div>
+                @endif
 
-                <!-- Modern Stats Metrics Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    
-                    <!-- Metric 1 -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-1.5 hover:border-slate-300 transition-colors">
-                        <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
-                            <span>Active Connections</span>
-                            <span class="w-8 h-8 rounded-lg bg-slate-50 text-slate-700 border border-slate-200/60 flex items-center justify-center">
-                                <svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                            </span>
-                        </div>
-                        <div class="text-2xl font-bold text-slate-900 tracking-tight">0</div>
-                        <span class="text-[11px] text-slate-400 font-normal block">0 pending approvals</span>
-                    </div>
+                <!-- Main Grid Layout Container (Left Feed & Right Suggested Job Sidebar) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                    <!-- Metric 2 -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-1.5 hover:border-slate-300 transition-colors">
-                        <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
-                            <span>Open Opportunities</span>
-                            <span class="w-8 h-8 rounded-lg bg-slate-50 text-slate-700 border border-slate-200/60 flex items-center justify-center">
-                                <svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/></svg>
-                            </span>
-                        </div>
-                        <div class="text-2xl font-bold text-slate-900 tracking-tight">{{ count($opportunities) }}</div>
-                        <span class="text-[11px] text-slate-400 font-normal block">Available to connect</span>
-                    </div>
+                    <!-- Left Main Feed Area (Col Span 8) -->
+                    <div class="lg:col-span-8 space-y-6">
 
-                    <!-- Metric 3 -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-1.5 hover:border-slate-300 transition-colors">
-                        <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
-                            <span>Trust Score</span>
-                            <span class="w-8 h-8 rounded-lg bg-slate-50 text-slate-700 border border-slate-200/60 flex items-center justify-center">
-                                <svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                            </span>
-                        </div>
-                        <div class="text-2xl font-bold text-slate-900 tracking-tight">5.0</div>
-                        <span class="text-[11px] text-slate-400 font-normal block">Verified rating</span>
-                    </div>
+                        <!-- JobTrack Style Hero Banner with Integrated Search Pill -->
+                        <div class="bg-gradient-to-r from-[#0F172B] via-slate-900 to-sky-950 text-white rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-lg space-y-6 border border-slate-800">
+                            <!-- Background ambient glow accents -->
+                            <div class="absolute -top-16 -right-16 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                            <div class="absolute -bottom-16 -left-16 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-                    <!-- Metric 4 -->
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-1.5 hover:border-slate-300 transition-colors">
-                        <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
-                            <span>Account Category</span>
-                            <span class="w-8 h-8 rounded-lg bg-slate-50 text-slate-700 border border-slate-200/60 flex items-center justify-center">
-                                <svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                            </span>
-                        </div>
-                        <div class="text-sm font-bold text-slate-900 truncate tracking-tight">
-                            {{ $user->professionalProfile->category->name ?? $user->onboarding_intent ?? 'Client / Talent' }}
-                        </div>
-                        <span class="text-[11px] text-emerald-600 font-medium block">Verified Status</span>
-                    </div>
-
-                </div>
-
-                <!-- Marketplace Opportunities List Section -->
-                <section class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
-                    
-                    <!-- Section Header -->
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
-                        <div>
-                            <h2 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-                                Live Opportunities & Jobs
-                            </h2>
-                            <p class="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">
-                                Browse requests posted by clients and parents. Filter by category or search by keywords.
-                            </p>
-                        </div>
-
-                        <!-- Post CTA -->
-                        <a href="#post-opportunity" class="inline-flex items-center justify-center bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-colors shadow-xs shrink-0">
-                            + Post New Job
-                        </a>
-                    </div>
-
-                    <!-- Search Box & Filter Tabs -->
-                    <div class="space-y-3.5">
-                        
-                        <!-- Search Box -->
-                        <div class="relative">
-                            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                            <input 
-                                type="text" 
-                                x-model="searchQuery"
-                                placeholder="Search by title, subject, or location (e.g. Lagos, Physics)..." 
-                                class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white text-sm text-slate-900 font-normal rounded-xl pl-10 pr-4 py-2.5 outline-none transition-all"
-                            />
-                        </div>
-
-                        <!-- Category Filter Pills -->
-                        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-                            <button 
-                                @click="selectedCategory = 'All'" 
-                                :class="selectedCategory === 'All' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'"
-                                class="px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0 cursor-pointer"
-                            >
-                                All Categories
-                            </button>
-                            <button 
-                                @click="selectedCategory = 'Academic Tutoring'" 
-                                :class="selectedCategory === 'Academic Tutoring' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'"
-                                class="px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0 cursor-pointer"
-                            >
-                                Academic Tutoring
-                            </button>
-                            <button 
-                                @click="selectedCategory = 'Home & Technical'" 
-                                :class="selectedCategory === 'Home & Technical' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'"
-                                class="px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0 cursor-pointer"
-                            >
-                                Home & Technical
-                            </button>
-                            <button 
-                                @click="selectedCategory = 'Creative & Digital'" 
-                                :class="selectedCategory === 'Creative & Digital' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'"
-                                class="px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0 cursor-pointer"
-                            >
-                                Creative & Digital
-                            </button>
-                        </div>
-
-                    </div>
-
-                    <!-- Opportunities List Grid -->
-                    <div class="space-y-4">
-                        @foreach($opportunities as $opp)
-                            <div 
-                                x-show="(selectedCategory === 'All' || selectedCategory === '{{ $opp['category'] }}') && ('{{ strtolower($opp['title'] . ' ' . $opp['description'] . ' ' . $opp['location']) }}'.includes(searchQuery.toLowerCase()))"
-                                class="border border-slate-200/80 hover:border-slate-300 rounded-xl p-5 bg-white hover:shadow-xs transition-all space-y-3 group"
-                            >
-                                <!-- Top Info Line -->
-                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                    <div class="flex items-center gap-2">
-                                        <span class="px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/60">
-                                            {{ $opp['category'] }}
-                                        </span>
-                                        <span class="text-xs text-slate-400 font-normal">• {{ $opp['time_ago'] }}</span>
-                                    </div>
-                                    <div class="text-base font-bold text-slate-900">
-                                        {{ $opp['budget'] }}
-                                    </div>
+                            <div class="relative z-10 space-y-2 max-w-2xl">
+                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-sky-200 text-xs font-semibold backdrop-blur-md">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span>Explore 1,000+ Verified Local Opportunities</span>
                                 </div>
 
-                                <!-- Title & Description -->
-                                <div class="space-y-1">
-                                    <h3 class="text-base font-semibold text-slate-900 group-hover:text-sky-700 transition-colors">
-                                        {{ $opp['title'] }}
-                                    </h3>
-                                    <p class="text-xs sm:text-sm text-slate-600 font-normal leading-relaxed">
-                                        {{ $opp['description'] }}
+                                <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                                    Find your dream job here!
+                                </h1>
+
+                                <p class="text-slate-300 text-xs sm:text-sm leading-relaxed font-normal">
+                                    Explore the latest job openings, tutoring requests, and technical contracts available today!
+                                </p>
+                            </div>
+
+                            <!-- Integrated Pill Search Box inside Hero Banner -->
+                            <div class="relative z-10 max-w-2xl bg-white/95 backdrop-blur-md rounded-2xl p-2 shadow-2xl flex items-center gap-2 border border-white/40">
+                                <svg class="w-5 h-5 text-slate-400 ml-3 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                <input 
+                                    type="text" 
+                                    x-model="searchQuery"
+                                    placeholder="Search Job, Tutor Subject, or Skill..." 
+                                    class="w-full bg-transparent text-sm text-slate-900 placeholder-slate-400 font-medium px-2 py-2 outline-none"
+                                />
+                                <button 
+                                    @click="$nextTick(() => { const el = document.getElementById('opportunities-section'); if(el) el.scrollIntoView({ behavior: 'smooth' }); })"
+                                    class="bg-[#0F172B] hover:bg-slate-800 text-white font-bold text-xs sm:text-sm px-6 py-2.5 rounded-xl shadow-md transition-all shrink-0 cursor-pointer flex items-center gap-1.5"
+                                >
+                                    <span>Search</span>
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Modern Stats Metrics Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            
+                            <!-- Metric 1 -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-1.5 hover:border-slate-300 transition-colors">
+                                <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
+                                    <span>Active Connections</span>
+                                    <span class="w-8 h-8 rounded-lg bg-slate-50 text-slate-700 border border-slate-200/60 flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                    </span>
+                                </div>
+                                <div class="text-2xl font-bold text-slate-900 tracking-tight">0</div>
+                                <span class="text-[11px] text-slate-400 font-normal block">0 pending approvals</span>
+                            </div>
+
+                            <!-- Metric 2 -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-1.5 hover:border-slate-300 transition-colors">
+                                <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
+                                    <span>Open Opportunities</span>
+                                    <span class="w-8 h-8 rounded-lg bg-slate-50 text-slate-700 border border-slate-200/60 flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/></svg>
+                                    </span>
+                                </div>
+                                <div class="text-2xl font-bold text-slate-900 tracking-tight">{{ count($opportunities) }}</div>
+                                <span class="text-[11px] text-slate-400 font-normal block">Available to connect</span>
+                            </div>
+
+                            <!-- Metric 3 -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-1.5 hover:border-slate-300 transition-colors">
+                                <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
+                                    <span>Trust Score</span>
+                                    <span class="w-8 h-8 rounded-lg bg-slate-50 text-slate-700 border border-slate-200/60 flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                    </span>
+                                </div>
+                                <div class="text-2xl font-bold text-slate-900 tracking-tight">5.0</div>
+                                <span class="text-[11px] text-slate-400 font-normal block">Verified rating</span>
+                            </div>
+
+                            <!-- Metric 4 -->
+                            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-1.5 hover:border-slate-300 transition-colors">
+                                <div class="flex items-center justify-between text-slate-500 text-xs font-medium">
+                                    <span>Account Category</span>
+                                    <span class="w-8 h-8 rounded-lg bg-slate-50 text-slate-700 border border-slate-200/60 flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                    </span>
+                                </div>
+                                <div class="text-sm font-bold text-slate-900 truncate tracking-tight">
+                                    {{ $user->professionalProfile->category->name ?? $user->onboarding_intent ?? 'Client / Talent' }}
+                                </div>
+                                <span class="text-[11px] text-emerald-600 font-medium block">Verified Status</span>
+                            </div>
+
+                        </div>
+
+                        <!-- Marketplace Opportunities List Section -->
+                        <section id="opportunities-section" class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
+                            
+                            <!-- Section Header -->
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
+                                <div>
+                                    <h2 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                                        Live Opportunities & Jobs
+                                    </h2>
+                                    <p class="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">
+                                        Browse requests posted by clients and parents. Filter by category or search by keywords.
                                     </p>
                                 </div>
 
-                                <!-- Metadata & Action -->
-                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
-                                    <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 font-normal">
-                                        <span class="flex items-center gap-1">
-                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                                            {{ $opp['location'] }}
-                                        </span>
-                                        <span>•</span>
-                                        <span class="flex items-center gap-1">
-                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                                            {{ $opp['type'] }}
-                                        </span>
-                                    </div>
-
-                                    <!-- Action Button -->
-                                    <a href="#connect" class="inline-flex items-center justify-center bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs py-2 px-4 rounded-xl transition-colors shadow-xs cursor-pointer">
-                                        Apply & Connect →
-                                    </a>
-                                </div>
+                                <!-- Post CTA -->
+                                <button @click="postModalOpen = true" class="inline-flex items-center justify-center bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-colors shadow-xs shrink-0 cursor-pointer">
+                                    + Post New Job
+                                </button>
                             </div>
-                        @endforeach
+
+                            <!-- Search Box & Filter Tabs -->
+                            <div class="space-y-3.5">
+                                
+                                <!-- Category Filter Pills -->
+                                <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                                    <button 
+                                        @click="selectedCategory = 'All'" 
+                                        :class="selectedCategory === 'All' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'"
+                                        class="px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0 cursor-pointer"
+                                    >
+                                        All Categories
+                                    </button>
+                                    <button 
+                                        @click="selectedCategory = 'Academic Tutoring'" 
+                                        :class="selectedCategory === 'Academic Tutoring' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'"
+                                        class="px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0 cursor-pointer"
+                                    >
+                                        Academic Tutoring
+                                    </button>
+                                    <button 
+                                        @click="selectedCategory = 'Home & Technical'" 
+                                        :class="selectedCategory === 'Home & Technical' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'"
+                                        class="px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0 cursor-pointer"
+                                    >
+                                        Home & Technical
+                                    </button>
+                                    <button 
+                                        @click="selectedCategory = 'Creative & Digital'" 
+                                        :class="selectedCategory === 'Creative & Digital' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'"
+                                        class="px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0 cursor-pointer"
+                                    >
+                                        Creative & Digital
+                                    </button>
+                                </div>
+
+                            </div>
+
+                            <!-- Opportunities List Grid -->
+                            <div class="space-y-4">
+                                @foreach($opportunities as $opp)
+                                    <div 
+                                        x-show="(selectedCategory === 'All' || selectedCategory === '{{ $opp['category'] }}') && ('{{ strtolower($opp['title'] . ' ' . $opp['description'] . ' ' . $opp['location']) }}'.includes(searchQuery.toLowerCase()))"
+                                        class="border border-slate-200/80 hover:border-slate-300 rounded-xl p-5 bg-white hover:shadow-xs transition-all space-y-3 group"
+                                    >
+                                        <!-- Top Info Line -->
+                                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                            <div class="flex items-center gap-2">
+                                                <span class="px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/60">
+                                                    {{ $opp['category'] }}
+                                                </span>
+                                                <span class="text-xs text-slate-400 font-normal">• {{ $opp['time_ago'] }}</span>
+                                            </div>
+                                            <div class="text-base font-bold text-slate-900">
+                                                {{ $opp['budget'] }}
+                                            </div>
+                                        </div>
+
+                                        <!-- Title & Description -->
+                                        <div class="space-y-1">
+                                            <h3 class="text-base font-semibold text-slate-900 group-hover:text-sky-700 transition-colors">
+                                                {{ $opp['title'] }}
+                                            </h3>
+                                            <p class="text-xs sm:text-sm text-slate-600 font-normal leading-relaxed">
+                                                {{ $opp['description'] }}
+                                            </p>
+                                        </div>
+
+                                        <!-- Metadata & Action -->
+                                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                                            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 font-normal">
+                                                <span class="flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                                    {{ $opp['location'] }}
+                                                </span>
+                                                <span>•</span>
+                                                <span class="flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                                                    {{ $opp['type'] }}
+                                                </span>
+                                            </div>
+
+                                            <!-- Action Button -->
+                                            @if (!empty($opp['is_own']) || (isset($opp['user_id']) && $opp['user_id'] === Auth::id()))
+                                                <div class="inline-flex items-center gap-2">
+                                                    <span class="px-2.5 py-1 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold">
+                                                        Your Posting
+                                                    </span>
+                                                    <button @click="openJobDetails({{ json_encode($opp) }})" class="inline-flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs py-2 px-3 rounded-xl transition-colors cursor-pointer">
+                                                        View Details
+                                                    </button>
+                                                </div>
+                                            @else
+                                                <button @click="openJobDetails({{ json_encode($opp) }})" class="inline-flex items-center justify-center bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs py-2 px-4 rounded-xl transition-colors shadow-xs cursor-pointer">
+                                                    Apply & Connect →
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                        </section>
+
                     </div>
 
-                </section>
+                    <!-- Right Sidebar Area: Suggested Job Column (Col Span 4 - Aligned to Top Level with Hero Banner) -->
+                    <div class="lg:col-span-4 space-y-5">
+                        
+                        <!-- Suggested Jobs Compact Container -->
+                        <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-4">
+                            <!-- Container Header -->
+                            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+                                    <h3 class="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">Suggested Jobs</h3>
+                                </div>
+                                <a href="#opportunities-section" class="text-xs text-sky-600 hover:text-sky-800 font-semibold transition-colors">
+                                    View All
+                                </a>
+                            </div>
+
+                            <!-- Job Items List -->
+                            <div class="divide-y divide-slate-100">
+                                @foreach($suggestedJobs as $job)
+                                    <div class="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3 group">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <img src="{{ $job['avatar'] }}" alt="{{ $job['client_name'] }}" class="w-9 h-9 rounded-xl object-cover border border-slate-200 shrink-0 shadow-2xs group-hover:scale-105 transition-transform" />
+                                            <div class="min-w-0 space-y-0.5">
+                                                <h4 class="text-xs font-bold text-slate-900 group-hover:text-sky-700 transition-colors truncate">
+                                                    {{ $job['title'] }}
+                                                </h4>
+                                                <p class="text-[11px] text-slate-500 font-medium truncate">
+                                                    {{ $job['client_name'] }} • <span class="text-slate-800 font-semibold">{{ $job['budget'] }}</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <a href="#opportunities-section" class="w-7 h-7 rounded-lg bg-slate-50 hover:bg-[#0F172B] hover:text-white text-slate-600 border border-slate-200/60 flex items-center justify-center transition-colors shrink-0 cursor-pointer" title="View details">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                                        </a>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Quick Post Custom Job Promo Box -->
+                        <div class="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 text-center space-y-3 shadow-2xs">
+                            <div class="w-10 h-10 rounded-full bg-[#0F172B] text-white flex items-center justify-center font-bold text-sm mx-auto shadow-xs">
+                                💡
+                            </div>
+                            <div class="space-y-1">
+                                <h4 class="text-xs font-bold text-slate-900">Need a Specific Skill or Tutor?</h4>
+                                <p class="text-[11px] text-slate-500 font-normal leading-relaxed">
+                                    Post a custom opportunity to receive bids from verified local professionals.
+                                </p>
+                            </div>
+                            <button @click="postModalOpen = true" class="w-full inline-flex items-center justify-center bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-all shadow-xs cursor-pointer">
+                                + Post Custom Job
+                            </button>
+                        </div>
+
+                    </div>
+
+                </div>
+
 
                 <!-- Clean Footer -->
                 <footer class="py-6 text-center text-xs text-slate-400 font-normal border-t border-slate-200/80">
@@ -775,6 +643,277 @@
             </div>
         </div>
 
-        @livewireScripts
-    </body>
-</html>
+        <!-- Post Opportunity Modal Dialog -->
+        <div 
+            x-show="postModalOpen" 
+            x-transition:enter="transition-opacity ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition-opacity ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6"
+            style="display: none;"
+        >
+            <div 
+                @click.away="postModalOpen = false"
+                x-show="postModalOpen"
+                x-transition:enter="transition ease-out duration-250 transform"
+                x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150 transform"
+                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                class="bg-white border border-slate-200 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden my-8"
+            >
+                <!-- Modal Header -->
+                <div class="px-6 py-4 bg-[#0F172B] text-white flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-white">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white tracking-tight">Post a New Opportunity</h3>
+                            <p class="text-[11px] text-slate-300 font-normal">Connect with verified tutors, artisans, and professionals</p>
+                        </div>
+                    </div>
+                    <button @click="postModalOpen = false" class="text-slate-300 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer" aria-label="Close modal">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body Form -->
+                <form action="{{ route('opportunities.store') }}" method="POST" class="p-6 space-y-5">
+                    @csrf
+
+                    <!-- Title & Category Row -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1 sm:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-700">Opportunity Title <span class="text-rose-500">*</span></label>
+                            <input type="text" name="title" required placeholder="e.g. SS2 Physics & Math Tutor Needed or Electrician for Rewiring" class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-medium outline-none transition-all" />
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-xs font-semibold text-slate-700">Service Category <span class="text-rose-500">*</span></label>
+                            <select name="category_id" required @change="checkAcademicCategory($event)" class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-medium outline-none transition-all">
+                                <option value="" disabled selected>Select Category...</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-xs font-semibold text-slate-700">Opportunity Type <span class="text-rose-500">*</span></label>
+                            <select name="opportunity_type" required class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-medium outline-none transition-all">
+                                <option value="Physical In-Person">Physical In-Person</option>
+                                <option value="Online / Remote">Online / Remote</option>
+                                <option value="One-Off Contract">One-Off Contract</option>
+                                <option value="Weekly Tutoring">Weekly Tutoring</option>
+                                <option value="Freelance Gig">Freelance Gig</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Academic Tutoring Fields (Displayed when Education category is picked) -->
+                    <div x-show="postCategoryIsAcademic" x-transition class="p-4 bg-sky-50/80 border border-sky-100 rounded-xl space-y-4">
+                        <div class="flex items-center gap-2 text-xs font-bold text-sky-900 border-b border-sky-200/60 pb-2">
+                            <svg class="w-4 h-4 text-sky-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                            Academic Tutoring Specific Details
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="space-y-1">
+                                <label class="block text-[11px] font-semibold text-slate-700">Subject</label>
+                                <select name="subject_id" class="w-full bg-white border border-slate-200 focus:border-slate-800 rounded-lg px-2.5 py-2 text-xs font-medium outline-none">
+                                    <option value="">Select Subject...</option>
+                                    @foreach($subjects as $sub)
+                                        <option value="{{ $sub->id }}">{{ $sub->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="block text-[11px] font-semibold text-slate-700">Target Level</label>
+                                <select name="education_level_id" class="w-full bg-white border border-slate-200 focus:border-slate-800 rounded-lg px-2.5 py-2 text-xs font-medium outline-none">
+                                    <option value="">Select Level...</option>
+                                    @foreach($levels as $lvl)
+                                        <option value="{{ $lvl->id }}">{{ $lvl->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="block text-[11px] font-semibold text-slate-700">Teaching Mode</label>
+                                <select name="teaching_mode" class="w-full bg-white border border-slate-200 focus:border-slate-800 rounded-lg px-2.5 py-2 text-xs font-medium outline-none">
+                                    <option value="physical">Physical (In-Person)</option>
+                                    <option value="online">Online Virtual</option>
+                                    <option value="both">Both Options</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location & Budget Row -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-semibold text-slate-700">Location / Area <span class="text-rose-500">*</span></label>
+                            <input type="text" name="location" required placeholder="e.g. Ikeja, Lagos or Garki, Abuja" class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-medium outline-none transition-all" />
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-xs font-semibold text-slate-700">Budget / Rate (₦)</label>
+                            <input type="text" name="budget" placeholder="e.g. ₦15,000 / week or ₦45,000" class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-medium outline-none transition-all" />
+                        </div>
+                    </div>
+
+                    <!-- Detailed Description -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold text-slate-700">Description & Requirements <span class="text-rose-500">*</span></label>
+                        <textarea name="description" rows="3" required placeholder="Describe what you are looking for, schedule requirements, or specific experience needed..." class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white rounded-xl p-3 text-xs sm:text-sm font-medium outline-none transition-all"></textarea>
+                    </div>
+
+                    <!-- Actions Bar -->
+                    <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+                        <button type="button" @click="postModalOpen = false" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm py-2.5 px-6 rounded-xl shadow-xs transition-colors cursor-pointer flex items-center gap-2">
+                            <span>Publish Opportunity →</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Job Details Pop-Up Modal -->
+        <div 
+            x-show="jobDetailModalOpen" 
+            x-transition:enter="transition-opacity ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition-opacity ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6"
+            style="display: none;"
+        >
+            <div 
+                @click.away="jobDetailModalOpen = false"
+                x-show="jobDetailModalOpen"
+                x-transition:enter="transition ease-out duration-250 transform"
+                x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150 transform"
+                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                class="bg-white border border-slate-200 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden my-8"
+            >
+                <template x-if="selectedJob">
+                    <div>
+                        <!-- Modal Header -->
+                        <div class="px-6 py-4 bg-[#0F172B] text-white flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <span class="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-white/10 text-sky-200 border border-white/20">
+                                    <span x-text="selectedJob.category"></span>
+                                </span>
+                                <span class="text-xs text-slate-300">• Posted <span x-text="selectedJob.time_ago"></span></span>
+                            </div>
+                            <button @click="jobDetailModalOpen = false" class="text-slate-300 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer" aria-label="Close modal">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- Modal Body -->
+                        <div class="p-6 space-y-6">
+                            <!-- Title & Budget -->
+                            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-4 border-b border-slate-100">
+                                <div class="space-y-1 min-w-0">
+                                    <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 leading-tight" x-text="selectedJob.title"></h2>
+                                    <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                                        <span class="flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                            <span x-text="selectedJob.location"></span>
+                                        </span>
+                                        <span>•</span>
+                                        <span class="flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                                            <span x-text="selectedJob.type"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="text-lg sm:text-xl font-extrabold text-emerald-600 bg-emerald-50 px-3.5 py-1.5 rounded-xl border border-emerald-200/60 shrink-0">
+                                    <span x-text="selectedJob.budget"></span>
+                                </div>
+                            </div>
+
+                            <!-- Full Description -->
+                            <div class="space-y-2">
+                                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Opportunity Description & Requirements</h3>
+                                <p class="text-xs sm:text-sm text-slate-700 font-normal leading-relaxed bg-slate-50/80 border border-slate-200/80 rounded-xl p-4" x-text="selectedJob.description"></p>
+                            </div>
+
+                            <!-- Tags / Metadata -->
+                            <template x-if="selectedJob.tags && selectedJob.tags.length">
+                                <div class="space-y-2">
+                                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Key Details & Tags</h3>
+                                    <div class="flex flex-wrap gap-2">
+                                        <template x-for="tag in selectedJob.tags" :key="tag">
+                                            <span class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200/80" x-text="tag"></span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Application Form Action / Owner Lock Notice -->
+                            <template x-if="selectedJob.is_own || selectedJob.user_id === {{ Auth::id() }}">
+                                <div class="pt-4 border-t border-slate-100 space-y-4">
+                                    <div class="bg-amber-50 border border-amber-200/90 rounded-2xl p-4 text-amber-900 space-y-1.5 shadow-xs">
+                                        <div class="flex items-center gap-2 font-bold text-xs">
+                                            <svg class="w-4.5 h-4.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                            <span>You Created This Opportunity Posting</span>
+                                        </div>
+                                        <p class="text-xs text-amber-700 font-normal leading-relaxed">
+                                            You cannot submit an application or connect to an opportunity that you posted yourself.
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center justify-end">
+                                        <button type="button" @click="jobDetailModalOpen = false" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer">
+                                            Close Modal
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template x-if="!selectedJob.is_own && selectedJob.user_id !== {{ Auth::id() }}">
+                                <form :action="'{{ url('/opportunities') }}/' + selectedJob.id + '/apply'" method="POST" class="pt-4 border-t border-slate-100 space-y-4">
+                                    @csrf
+                                    <input type="hidden" name="job_title" :value="selectedJob.title" />
+                                    <input type="hidden" name="job_category" :value="selectedJob.category" />
+
+                                    <div class="space-y-1.5">
+                                        <label class="block text-xs font-semibold text-slate-700">Cover Note / Application Message (Optional)</label>
+                                        <textarea name="note" rows="2" placeholder="Introduce yourself, mention your experience, or state your availability..." class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white rounded-xl p-3 text-xs sm:text-sm font-medium outline-none transition-all"></textarea>
+                                    </div>
+
+                                    <div class="flex items-center justify-between gap-3 pt-2">
+                                        <div class="text-[11px] text-slate-500 font-normal">
+                                            <span class="font-bold text-slate-700">Free to Apply:</span> Connection request sits as pending until accepted by poster.
+                                        </div>
+
+                                        <div class="flex items-center gap-2">
+                                            <button type="button" @click="jobDetailModalOpen = false" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer">
+                                                Close
+                                            </button>
+                                            <button type="submit" class="bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm py-2.5 px-5 rounded-xl shadow-xs transition-colors cursor-pointer flex items-center gap-2">
+                                                <span>Submit Application & Connect →</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+</x-dashboard-layout>

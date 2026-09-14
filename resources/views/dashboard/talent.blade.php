@@ -1,262 +1,27 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth" x-data="{ 
-    pageLoading: true,
-    sidebarOpen: false, 
-    searchQuery: '{{ $searchQuery }}', 
-    selectedCategory: '{{ $selectedCategory }}', 
-    selectedLocation: '{{ $selectedLocation }}',
-    profileModalOpen: false, 
-    notificationsOpen: false,
-    selectedTalent: null,
-    hireModalOpen: false,
-    openHireModal(talent) {
-        this.selectedTalent = talent;
-        this.hireModalOpen = true;
-    }
-}" x-init="setTimeout(() => pageLoading = false, 350)">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-        <title>Find Talent & Tutors — Dashboard — {{ config('app.name', 'Skill Marketplace') }}</title>
-
-        <!-- Modern Clean Typography (Inter) -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
-        <!-- Alpine.js -->
-        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-        @livewireStyles
-        <style>
-            body {
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            }
-        </style>
-    </head>
-    <body class="bg-slate-100/70 font-sans antialiased text-slate-900 min-h-full selection:bg-slate-900 selection:text-white">
-
-        <!-- Skeleton Preloader Overlay -->
-        <div 
-            x-show="pageLoading" 
-            x-transition:leave="transition ease-out duration-300"
-            x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-98 pointer-events-none"
-            class="fixed inset-0 z-50 bg-slate-100/90 backdrop-blur-md flex p-4 sm:p-6 gap-6 overflow-hidden"
-        >
-            <!-- Left Sidebar Skeleton -->
-            <div class="hidden lg:flex w-64 xl:w-72 shrink-0 bg-white border border-slate-200/80 rounded-2xl p-5 flex-col justify-between h-[calc(100vh-3rem)] space-y-6">
-                <div class="space-y-6">
-                    <div class="flex items-center gap-3 pb-4 border-b border-slate-100">
-                        <div class="w-9 h-9 rounded-xl bg-slate-200 animate-pulse"></div>
-                        <div class="space-y-1.5 flex-1">
-                            <div class="h-4 w-28 bg-slate-200 rounded-md animate-pulse"></div>
-                            <div class="h-3 w-20 bg-slate-100 rounded-md animate-pulse"></div>
-                        </div>
-                    </div>
-                    <div class="h-10 w-full bg-slate-200 rounded-xl animate-pulse"></div>
-                    <div class="space-y-2 pt-2">
-                        <div class="h-3 w-16 bg-slate-100 rounded-md mb-2"></div>
-                        <div class="h-9 w-full bg-slate-200/80 rounded-xl animate-pulse"></div>
-                        <div class="h-9 w-full bg-slate-200/80 rounded-xl animate-pulse"></div>
-                        <div class="h-9 w-full bg-slate-200/80 rounded-xl animate-pulse"></div>
-                        <div class="h-9 w-full bg-slate-200/80 rounded-xl animate-pulse"></div>
-                    </div>
-                </div>
-                <div class="h-14 w-full bg-slate-200/80 rounded-xl animate-pulse"></div>
-            </div>
-
-            <!-- Main Content Viewport Skeleton -->
-            <div class="flex-1 space-y-6 overflow-hidden">
-                <!-- Top Navbar Skeleton -->
-                <div class="bg-white border border-slate-200/80 rounded-2xl px-5 py-3.5 flex items-center justify-between">
-                    <div class="h-9 w-64 bg-slate-200 rounded-xl animate-pulse"></div>
-                    <div class="flex items-center gap-3">
-                        <div class="h-9 w-9 bg-slate-200 rounded-xl animate-pulse"></div>
-                        <div class="h-9 w-28 bg-slate-200 rounded-xl animate-pulse"></div>
-                    </div>
-                </div>
-
-                <!-- Search Engine Header Skeleton -->
-                <div class="h-36 w-full bg-white border border-slate-200/80 rounded-2xl p-5 space-y-4">
-                    <div class="h-6 w-1/3 bg-slate-200 rounded-md animate-pulse"></div>
-                    <div class="h-10 w-full bg-slate-100 rounded-xl animate-pulse"></div>
-                </div>
-
-                <!-- Directory Grid Skeleton -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="h-56 bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3">
-                        <div class="flex gap-3">
-                            <div class="w-12 h-12 rounded-2xl bg-slate-200 animate-pulse"></div>
-                            <div class="space-y-1.5 flex-1">
-                                <div class="h-4 w-3/4 bg-slate-200 rounded-md animate-pulse"></div>
-                                <div class="h-3 w-1/2 bg-slate-100 rounded-md animate-pulse"></div>
-                            </div>
-                        </div>
-                        <div class="h-12 w-full bg-slate-100 rounded-xl animate-pulse"></div>
-                        <div class="flex justify-between items-center pt-2">
-                            <div class="h-4 w-20 bg-slate-200 rounded-md"></div>
-                            <div class="h-9 w-24 bg-slate-200 rounded-xl"></div>
-                        </div>
-                    </div>
-                    <div class="h-56 bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3">
-                        <div class="flex gap-3">
-                            <div class="w-12 h-12 rounded-2xl bg-slate-200 animate-pulse"></div>
-                            <div class="space-y-1.5 flex-1">
-                                <div class="h-4 w-3/4 bg-slate-200 rounded-md animate-pulse"></div>
-                                <div class="h-3 w-1/2 bg-slate-100 rounded-md animate-pulse"></div>
-                            </div>
-                        </div>
-                        <div class="h-12 w-full bg-slate-100 rounded-xl animate-pulse"></div>
-                        <div class="flex justify-between items-center pt-2">
-                            <div class="h-4 w-20 bg-slate-200 rounded-md"></div>
-                            <div class="h-9 w-24 bg-slate-200 rounded-xl"></div>
-                        </div>
-                    </div>
-                    <div class="h-56 bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3">
-                        <div class="flex gap-3">
-                            <div class="w-12 h-12 rounded-2xl bg-slate-200 animate-pulse"></div>
-                            <div class="space-y-1.5 flex-1">
-                                <div class="h-4 w-3/4 bg-slate-200 rounded-md animate-pulse"></div>
-                                <div class="h-3 w-1/2 bg-slate-100 rounded-md animate-pulse"></div>
-                            </div>
-                        </div>
-                        <div class="h-12 w-full bg-slate-100 rounded-xl animate-pulse"></div>
-                        <div class="flex justify-between items-center pt-2">
-                            <div class="h-4 w-20 bg-slate-200 rounded-md"></div>
-                            <div class="h-9 w-24 bg-slate-200 rounded-xl"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile Drawer Overlay -->
-        <div 
-            x-show="sidebarOpen" 
-            x-transition:enter="transition-opacity ease-out duration-200"
-            x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100"
-            x-transition:leave="transition-opacity ease-in duration-150"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
-            @click="sidebarOpen = false" 
-            class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden"
-            style="display: none;"
-        ></div>
-
-        <!-- Main Dashboard Container -->
-        <div class="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex gap-6 min-h-screen">
-
-            <!-- Dashboard Sidebar Navigation -->
-            <aside 
-                :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-                class="fixed lg:sticky inset-y-0 lg:top-6 left-0 z-50 lg:z-10 w-72 lg:w-64 xl:w-72 shrink-0 bg-white border-r lg:border border-slate-200/80 lg:rounded-2xl p-5 shadow-xl lg:shadow-xs flex flex-col justify-between h-full lg:h-[calc(100vh-3rem)] transition-transform duration-300 ease-in-out overflow-y-auto no-scrollbar"
-            >
-                <div class="space-y-6">
-                    
-                    <!-- Sidebar Header & Logo -->
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-200/80">
-                        <a href="/" class="flex items-center gap-3 group">
-                            <div class="w-9 h-9 rounded-xl bg-[#0F172B] flex items-center justify-center text-white shadow-xs group-hover:bg-slate-800 transition-colors">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/></svg>
-                            </div>
-                            <div>
-                                <span class="text-slate-900 font-bold text-base tracking-tight block">Skill Marketplace</span>
-                                <span class="text-[11px] text-slate-500 font-medium tracking-wide">Member Dashboard</span>
-                            </div>
-                        </a>
-
-                        <!-- Mobile Close Button -->
-                        <button @click="sidebarOpen = false" class="lg:hidden text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors" aria-label="Close menu">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                    </div>
-
-                    <!-- Post Task Primary CTA -->
-                    <div>
-                        <a href="{{ url('/dashboard#post-opportunity') }}" @click="sidebarOpen = false" class="w-full flex items-center justify-center gap-2 bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm py-2.5 px-4 rounded-xl shadow-xs transition-colors">
-                            <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-                            <span>Post an Opportunity</span>
-                        </a>
-                    </div>
-
-                    <!-- Navigation Links Grouped -->
-                    <div class="space-y-4">
-                        
-                        <!-- Group 1: Navigation -->
-                        <div>
-                            <span class="px-3 text-[10px] font-normal text-slate-500 uppercase tracking-wider block mb-1">Navigation</span>
-                            <nav class="space-y-0.5">
-                                <!-- Home Dashboard -->
-                                <a href="{{ url('/dashboard') }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-[#000000] hover:bg-slate-100 text-xs font-normal transition-colors">
-                                    <div class="flex items-center gap-2.5">
-                                        <svg class="w-4 h-4 text-[#000000]" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1V9.5z"/></svg>
-                                        <span>Overview</span>
-                                    </div>
-                                </a>
-
-                                <!-- Find Talent (ACTIVE PAGE) -->
-                                <a href="{{ url('/dashboard/talent') }}" class="flex items-center justify-between px-3 py-2 rounded-xl bg-[#0F172B] text-white text-xs font-normal transition-colors shadow-xs">
-                                    <div class="flex items-center gap-2.5">
-                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                                        <span>Find Talent</span>
-                                    </div>
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                </a>
-                            </nav>
-                        </div>
-
-                        <!-- Group 2: Work & Requests -->
-                        <div>
-                            <span class="px-3 text-[10px] font-normal text-slate-500 uppercase tracking-wider block mb-1">Workplace</span>
-                            <nav class="space-y-0.5">
-                                <!-- Messages & Requests -->
-                                <a href="{{ url('/dashboard/messages') }}" @click="sidebarOpen = false" class="flex items-center justify-between px-3 py-2 rounded-xl text-[#000000] hover:bg-slate-100 text-xs font-normal transition-colors">
-                                    <div class="flex items-center gap-2.5">
-                                        <svg class="w-4 h-4 text-[#000000]" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                                        <span>Messages</span>
-                                    </div>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-400 text-slate-900">2</span>
-                                </a>
-                            </nav>
-                        </div>
-
-                        <!-- Group 3: Settings -->
-                        <div>
-                            <span class="px-3 text-[10px] font-normal text-slate-500 uppercase tracking-wider block mb-1">Account</span>
-                            <nav class="space-y-0.5">
-                                <button @click="profileModalOpen = true; sidebarOpen = false" class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-[#000000] hover:bg-slate-100 text-xs font-normal transition-colors text-left cursor-pointer">
-                                    <div class="flex items-center gap-2.5">
-                                        <svg class="w-4 h-4 text-[#000000]" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                        <span>View Profile Card</span>
-                                    </div>
-                                </button>
-                                <a href="{{ url('/profile/edit') }}" @click="sidebarOpen = false" class="flex items-center justify-between px-3 py-2 rounded-xl text-[#000000] hover:bg-slate-100 text-xs font-normal transition-colors">
-                                    <div class="flex items-center gap-2.5">
-                                        <svg class="w-4 h-4 text-[#000000]" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                        <span>Edit Settings</span>
-                                    </div>
-                                </a>
-                            </nav>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Sidebar Footer Sign Out -->
-                <div class="pt-4 mt-6 border-t border-slate-200/80 shrink-0">
-                    <form action="{{ url('/logout') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer">
-                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                            <span>Sign Out</span>
-                        </button>
-                    </form>
-                </div>
-            </aside>
+<x-dashboard-layout 
+    title="Find Talent & Tutors — Dashboard — {{ config('app.name', 'Skill Marketplace') }}"
+    active="talent"
+    xData="{ 
+        pageLoading: true,
+        sidebarOpen: false, 
+        sidebarCollapsed: localStorage.getItem('sidebar_collapsed') === 'true',
+        toggleSidebar() {
+            this.sidebarCollapsed = !this.sidebarCollapsed;
+            localStorage.setItem('sidebar_collapsed', this.sidebarCollapsed);
+        },
+        searchQuery: '{{ addslashes($searchQuery) }}', 
+        selectedCategory: '{{ addslashes($selectedCategory) }}', 
+        selectedLocation: '{{ addslashes($selectedLocation) }}',
+        profileModalOpen: false, 
+        notificationsOpen: false,
+        selectedTalent: null,
+        hireModalOpen: false,
+        openHireModal(talent) {
+            this.selectedTalent = talent;
+            this.hireModalOpen = true;
+        }
+    }"
+>
 
             <!-- Main Dashboard Viewport -->
             <main class="flex-1 min-w-0 space-y-6">
@@ -749,6 +514,4 @@
             </div>
         </div>
 
-        @livewireScripts
-    </body>
-</html>
+</x-dashboard-layout>

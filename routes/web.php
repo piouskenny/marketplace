@@ -5,9 +5,11 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\ConnectionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\OpportunityController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TalentController;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +35,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/talent', [DashboardController::class, 'talent'])->name('dashboard.talent');
     Route::get('/dashboard/messages', [DashboardController::class, 'messages'])->name('dashboard.messages');
+    Route::get('/dashboard/my-jobs', [OpportunityController::class, 'myJobs'])->name('dashboard.my-jobs');
+    Route::post('/opportunities', [OpportunityController::class, 'store'])->name('opportunities.store');
+    Route::delete('/opportunities/{opportunity}', [OpportunityController::class, 'destroy'])->name('opportunities.destroy');
+    Route::post('/opportunities/{opportunity}/apply', [ConnectionController::class, 'apply'])->name('opportunities.apply');
+    Route::post('/connections/{connection}/accept', [ConnectionController::class, 'accept'])->name('connections.accept');
+    Route::post('/connections/{connection}/reject', [ConnectionController::class, 'reject'])->name('connections.reject');
+    Route::post('/connections/{connection}/pay', [ConnectionController::class, 'pay'])->name('connections.pay');
+    Route::get('/connections/status', [ConnectionController::class, 'status'])->name('connections.status');
+
+    // Chat & Messaging Routes
+    Route::get('/conversations', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
+    Route::get('/conversations/{conversation}/messages', [App\Http\Controllers\ChatController::class, 'show'])->name('chat.show');
+    Route::post('/conversations/{conversation}/messages', [App\Http\Controllers\ChatController::class, 'store'])->name('chat.send');
+    Route::post('/conversations/{conversation}/read', [App\Http\Controllers\ChatController::class, 'markRead'])->name('chat.read');
 
     // Email Verification Routes
     Route::get('/email/verify', [VerificationController::class, 'notice'])->name('verification.notice');

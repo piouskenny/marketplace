@@ -2,6 +2,8 @@
 
 namespace App\Policies;
 
+use App\Enums\ConnectionStatus;
+use App\Models\Conversation;
 use App\Models\User;
 
 /**
@@ -13,21 +15,33 @@ use App\Models\User;
 class ConversationPolicy
 {
     /**
-     * Only participants of the connection can view the conversation.
+     * Only connected participants of the connection can view the conversation.
      */
-    public function view(User $user, mixed $conversation): bool
+    public function view(User $user, Conversation $conversation): bool
     {
-        // Placeholder — will check that the user is either the initiator
-        // or recipient of the associated ConnectionRequest AND that the
-        // connection status is Connected.
-        return false;
+        $connection = $conversation->connectionRequest;
+
+        if (!$connection) {
+            return false;
+        }
+
+        $statusValue = $connection->status instanceof ConnectionStatus 
+            ? $connection->status->value 
+            : (string) $connection->status;
+
+        if ($statusValue !== ConnectionStatus::Connected->value) {
+            return false;
+        }
+
+        return (int) $connection->initiator_id === (int) $user->id 
+            || (int) $connection->recipient_id === (int) $user->id;
     }
 
     /**
-     * Only participants can send messages.
+     * Only connected participants can send messages.
      */
-    public function sendMessage(User $user, mixed $conversation): bool
+    public function sendMessage(User $user, Conversation $conversation): bool
     {
-        return false;
+        return $this->view($user, $conversation);
     }
 }
