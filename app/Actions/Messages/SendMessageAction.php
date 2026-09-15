@@ -58,6 +58,15 @@ class SendMessageAction
         // 3. Broadcast real-time event
         event(new MessageSent($message));
 
+        // 4. Send database notification to recipient
+        $recipient = ($connection->initiator_id === $sender->id)
+            ? $connection->recipient
+            : $connection->initiator;
+
+        if ($recipient) {
+            $recipient->notify(new \App\Notifications\NewMessageNotification($message));
+        }
+
         return $message;
     }
 }

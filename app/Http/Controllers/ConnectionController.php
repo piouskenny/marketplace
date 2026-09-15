@@ -39,6 +39,8 @@ class ConnectionController extends Controller
             'initial_message' => $note,
         ]);
 
+        \App\Events\ConnectionRequestCreated::dispatch($connectionRequest->id);
+
         // Push pending application to session array for demo preview
         $pendingApps = session()->get('pending_applications', []);
         $jobTitle = $opportunity ? $opportunity->title : $request->input('job_title', 'Opportunity Application');
@@ -78,6 +80,8 @@ class ConnectionController extends Controller
                 'status' => ConnectionStatus::Accepted,
                 'accepted_at' => now(),
             ]);
+
+            \App\Events\ConnectionRequestAccepted::dispatch($conn->id);
         }
 
         $sessionAccepted = session()->get('accepted_connections', []);
@@ -120,6 +124,8 @@ class ConnectionController extends Controller
                 'status' => ConnectionStatus::Declined,
                 'declined_at' => now(),
             ]);
+
+            \App\Events\ConnectionRequestDeclined::dispatch($conn->id);
         }
 
         $sessionDeclined = session()->get('declined_connections', []);
@@ -165,7 +171,7 @@ class ConnectionController extends Controller
                     'connected_at' => now(),
                 ]);
 
-                \App\Models\Payment::create([
+                $payment = \App\Models\Payment::create([
                     'user_id' => $user->id,
                     'connection_request_id' => $conn->id,
                     'reference' => 'CONN-FEE-' . strtoupper(uniqid()),
@@ -178,6 +184,8 @@ class ConnectionController extends Controller
 
                 $createConversationAction = new \App\Actions\Conversations\CreateConversationAction();
                 $conversation = $createConversationAction->execute($conn);
+
+                \App\Events\ConnectionActivated::dispatch($conn->id, $payment->id);
             });
         }
 

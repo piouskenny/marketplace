@@ -6,7 +6,9 @@ use App\Events\ConnectionActivated;
 use App\Events\ConnectionRequestAccepted;
 use App\Events\ConnectionRequestCreated;
 use App\Events\ConnectionRequestDeclined;
+use App\Listeners\SendConnectionAcceptedNotification;
 use App\Listeners\SendConnectionActivatedNotification;
+use App\Listeners\SendConnectionDeclinedNotification;
 use App\Listeners\SendConnectionRequestNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
@@ -23,11 +25,11 @@ class EventServiceProvider extends ServiceProvider
         ],
 
         ConnectionRequestAccepted::class => [
-            // SendPaymentRequiredNotification::class,  // TODO: create listener
+            SendConnectionAcceptedNotification::class,
         ],
 
         ConnectionRequestDeclined::class => [
-            // SendConnectionDeclinedNotification::class,  // TODO: create listener
+            SendConnectionDeclinedNotification::class,
         ],
 
         ConnectionActivated::class => [

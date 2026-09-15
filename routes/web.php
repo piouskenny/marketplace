@@ -42,7 +42,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/connections/{connection}/accept', [ConnectionController::class, 'accept'])->name('connections.accept');
     Route::post('/connections/{connection}/reject', [ConnectionController::class, 'reject'])->name('connections.reject');
     Route::post('/connections/{connection}/pay', [ConnectionController::class, 'pay'])->name('connections.pay');
+    Route::post('/connections/{connection}/review', [\App\Http\Controllers\ReviewController::class, 'store'])->name('connections.review');
     Route::get('/connections/status', [ConnectionController::class, 'status'])->name('connections.status');
+
+    // Notifications Routes
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
 
     // Chat & Messaging Routes
     Route::get('/conversations', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');

@@ -29,6 +29,17 @@
                 <!-- Top Header Bar -->
                 <div class="bg-white border border-slate-200/80 rounded-2xl p-3.5 sm:px-6 shadow-xs flex items-center justify-between gap-4">
                     
+                    <!-- Desktop Sidebar Collapse Toggle Button -->
+                    <button 
+                        @click="toggleSidebar()" 
+                        class="hidden lg:flex items-center justify-center p-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 shrink-0 cursor-pointer transition-colors"
+                        :title="sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+                    >
+                        <svg class="w-4 h-4 transition-transform duration-300" :class="sidebarCollapsed ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                        </svg>
+                    </button>
+
                     <!-- Mobile Menu Button -->
                     <button 
                         @click="sidebarOpen = true" 

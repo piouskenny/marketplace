@@ -214,7 +214,10 @@ class DashboardController extends Controller
             ],
         ];
 
-        return view('dashboard', compact('user', 'completionPercentage', 'categories', 'subjects', 'levels', 'opportunities', 'suggestedJobs'));
+        $userNotifications = $user->notifications()->take(15)->get();
+        $unreadCount = $user->unreadNotifications()->count();
+
+        return view('dashboard', compact('user', 'completionPercentage', 'categories', 'subjects', 'levels', 'opportunities', 'suggestedJobs', 'userNotifications', 'unreadCount'));
     }
 
     /**
@@ -298,7 +301,10 @@ class DashboardController extends Controller
 
         $professionals = $query->orderBy('average_rating', 'desc')->get();
 
-        return view('dashboard.talent', compact('user', 'completionPercentage', 'professionals', 'categories', 'searchQuery', 'selectedCategory', 'selectedLocation'));
+        $userNotifications = $user->notifications()->take(15)->get();
+        $unreadCount = $user->unreadNotifications()->count();
+
+        return view('dashboard.talent', compact('user', 'completionPercentage', 'professionals', 'categories', 'searchQuery', 'selectedCategory', 'selectedLocation', 'userNotifications', 'unreadCount'));
     }
 
     /**
@@ -700,6 +706,9 @@ class DashboardController extends Controller
             ]
         ]);
 
-        return view('dashboard.messages', compact('user', 'completionPercentage', 'conversations'));
+        $userNotifications = $user->notifications()->take(15)->get();
+        $unreadCount = $user->unreadNotifications()->count();
+
+        return view('dashboard.messages', compact('user', 'completionPercentage', 'conversations', 'userNotifications', 'unreadCount'));
     }
 }
