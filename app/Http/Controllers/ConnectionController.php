@@ -234,7 +234,8 @@ class ConnectionController extends Controller
 
         foreach ($pendingApps as $app) {
             $connId = (int) $app['id'];
-            $st = $app['status'] ?? 'pending';
+            $dbConn = $dbConnections->firstWhere('id', $connId);
+            $st = $dbConn ? ($dbConn->status instanceof ConnectionStatus ? $dbConn->status->value : (string)$dbConn->status) : ($app['status'] ?? 'pending');
             if (in_array($connId, $paidConns)) {
                 $st = 'connected';
             } elseif (in_array($connId, $sessionAccepted)) {
@@ -249,13 +250,22 @@ class ConnectionController extends Controller
         }
 
         foreach ($dbConnections as $conn) {
-            $st = $conn->status->value;
-            if (in_array($conn->id, $paidConns)) {
+            $dbSt = $conn->status instanceof ConnectionStatus ? $conn->status->value : (string) $conn->status;
+            if ($dbSt === ConnectionStatus::Connected->value || $conn->conversation) {
                 $st = 'connected';
-            } elseif (in_array($conn->id, $sessionAccepted)) {
-                $st = 'accepted';
-            } elseif (in_array($conn->id, $sessionDeclined)) {
+            } elseif ($dbSt === ConnectionStatus::Declined->value) {
                 $st = 'declined';
+            } elseif ($dbSt === ConnectionStatus::Accepted->value) {
+                $st = in_array($conn->id, $paidConns) ? 'connected' : 'accepted';
+            } else {
+                $st = 'pending';
+                if (in_array($conn->id, $paidConns)) {
+                    $st = 'connected';
+                } elseif (in_array($conn->id, $sessionAccepted)) {
+                    $st = 'accepted';
+                } elseif (in_array($conn->id, $sessionDeclined)) {
+                    $st = 'declined';
+                }
             }
             $statuses[] = [
                 'id' => $conn->id,

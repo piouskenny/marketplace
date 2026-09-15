@@ -55,7 +55,7 @@ class SendMessageAction
             'last_message_at' => now(),
         ]);
 
-        // 3. Broadcast real-time event
+        // 3. Broadcast real-time event after MySQL persistence
         event(new MessageSent($message));
 
         // 4. Send database notification to recipient

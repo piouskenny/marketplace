@@ -108,4 +108,26 @@ class ChatController extends Controller
             'read_count' => $updatedCount,
         ]);
     }
+
+    /**
+     * Send a message associated with a connection request ID (auto-creates or resolves Conversation).
+     */
+    public function storeByConnection(Request $request, \App\Models\ConnectionRequest $connectionRequest, SendMessageAction $sendMessageAction, \App\Actions\Conversations\CreateConversationAction $createConversationAction)
+    {
+        $user = Auth::user();
+        if ((int) $connectionRequest->initiator_id !== (int) $user->id && (int) $connectionRequest->recipient_id !== (int) $user->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        $statusValue = $connectionRequest->status instanceof \App\Enums\ConnectionStatus 
+            ? $connectionRequest->status->value 
+            : (string) $connectionRequest->status;
+
+        if ($statusValue !== \App\Enums\ConnectionStatus::Connected->value) {
+            return response()->json(['success' => false, 'message' => 'Messaging is disabled because connection is not in Connected status.'], 403);
+        }
+
+        $conversation = $createConversationAction->execute($connectionRequest);
+        return $this->store($request, $conversation, $sendMessageAction);
+    }
 }

@@ -338,63 +338,45 @@ class DashboardController extends Controller
         $sessionDeclined = session()->get('declined_connections', []);
         $sessionPaid = session()->get('paid_connections', []);
 
-        // Pending Outgoing Application Connection Requests
-        $pendingApps = session()->get('pending_applications', []);
-        $dbOutgoingRequests = \App\Models\ConnectionRequest::with(['recipient', 'opportunity'])
-            ->where('initiator_id', $user->id)
-            ->latest()
-            ->get();
+        // Fetch all DB Connection Requests involving the current user (both incoming and outgoing)
+        $dbConnections = \App\Models\ConnectionRequest::with([
+            'initiator.professionalProfile.category',
+            'initiator.professionalProfile.skills',
+            'recipient.professionalProfile',
+            'opportunity.category',
+            'conversation.messages.sender',
+        ])
+        ->where(function ($q) use ($user) {
+            $q->where('initiator_id', $user->id)
+              ->orWhere('recipient_id', $user->id);
+        })
+        ->latest()
+        ->get();
 
-        // DB Incoming Connection Requests for Job Owners
-        $dbIncomingRequests = \App\Models\ConnectionRequest::with(['initiator.professionalProfile.category', 'initiator.professionalProfile.skills', 'opportunity'])
-            ->where('recipient_id', $user->id)
-            ->latest()
-            ->get();
+        $processedConnIds = [];
+        $dynamicConversations = [];
 
-        $pendingConversations = [];
-
-        // Outgoing Applications (Sent by me)
-        foreach ($pendingApps as $app) {
-            $connId = (int) $app['id'];
-            $currentStatus = 'pending';
-            if (in_array($connId, $sessionPaid)) {
-                $currentStatus = 'connected';
-            } elseif (in_array($connId, $sessionAccepted)) {
-                $currentStatus = 'accepted';
-            } elseif (in_array($connId, $sessionDeclined)) {
-                $currentStatus = 'declined';
+        foreach ($dbConnections as $req) {
+            if (in_array($req->id, $processedConnIds)) {
+                continue;
             }
+            $processedConnIds[] = $req->id;
 
-            $pendingConversations[] = [
-                'id' => 'conn_' . $app['id'],
-                'connection_id' => $app['id'],
-                'is_incoming' => false,
-                'name' => $app['name'],
-                'title' => $app['title'],
-                'avatar' => $app['avatar'] ?? asset('images/avatars/babajide.png'),
-                'online' => false,
-                'location' => $app['location'] ?? 'Lagos, Nigeria',
-                'category' => $app['category'] ?? 'General Service',
-                'unread' => 0,
-                'last_time' => $app['last_time'] ?? 'Just now',
-                'status' => $currentStatus,
-                'messages' => [
-                    [
-                        'id' => 1,
-                        'sender' => 'me',
-                        'text' => 'Application & Connection Request Submitted: "' . ($app['note'] ?? 'I am interested in this opportunity.') . '"',
-                        'time' => 'Just now'
-                    ]
-                ]
-            ];
-        }
+            $isIncoming = (int) $req->recipient_id === (int) $user->id;
+            $otherUser = $isIncoming ? $req->initiator : $req->recipient;
 
-        foreach ($dbOutgoingRequests as $req) {
-            $alreadyInSession = collect($pendingConversations)->contains(function ($item) use ($req) {
-                return isset($item['connection_id']) && $item['connection_id'] == $req->id;
-            });
-            if (!$alreadyInSession) {
-                $currentStatus = $req->status->value;
+            $dbStatus = $req->status instanceof \App\Enums\ConnectionStatus 
+                ? $req->status->value 
+                : (string) $req->status;
+
+            if ($dbStatus === \App\Enums\ConnectionStatus::Connected->value || $req->conversation) {
+                $currentStatus = 'connected';
+            } elseif ($dbStatus === \App\Enums\ConnectionStatus::Declined->value) {
+                $currentStatus = 'declined';
+            } elseif ($dbStatus === \App\Enums\ConnectionStatus::Accepted->value) {
+                $currentStatus = in_array($req->id, $sessionPaid) ? 'connected' : 'accepted';
+            } else {
+                $currentStatus = 'pending';
                 if (in_array($req->id, $sessionPaid)) {
                     $currentStatus = 'connected';
                 } elseif (in_array($req->id, $sessionAccepted)) {
@@ -402,184 +384,167 @@ class DashboardController extends Controller
                 } elseif (in_array($req->id, $sessionDeclined)) {
                     $currentStatus = 'declined';
                 }
+            }
 
-                $pendingConversations[] = [
-                    'id' => 'conn_' . $req->id,
-                    'connection_id' => $req->id,
-                    'is_incoming' => false,
-                    'name' => $req->recipient ? $req->recipient->name : 'Job Owner / Household',
-                    'title' => $req->opportunity ? $req->opportunity->title : 'Opportunity Connection Request',
+            $dbConv = $req->conversation;
+
+            $msgs = [];
+            if ($dbConv && $dbConv->messages->isNotEmpty()) {
+                foreach ($dbConv->messages as $m) {
+                    $msgs[] = [
+                        'id' => $m->id,
+                        'sender' => (int) $m->sender_id === (int) $user->id ? 'me' : 'them',
+                        'text' => $m->body,
+                        'time' => $m->created_at ? $m->created_at->format('g:i A') : 'Just now',
+                        'read_at' => $m->read_at,
+                    ];
+                }
+            } else {
+                $msgs = [
+                    [
+                        'id' => 1,
+                        'sender' => $isIncoming ? 'them' : 'me',
+                        'text' => $req->initial_message ?? ($isIncoming ? 'Hello! I am interested in your opportunity.' : 'Application & Connection Request Submitted.'),
+                        'time' => $req->created_at ? $req->created_at->format('g:i A') : 'Just now',
+                    ]
+                ];
+            }
+
+            $profile = $isIncoming && $otherUser ? $otherUser->professionalProfile : null;
+            $skillsList = $profile && $profile->skills ? $profile->skills->pluck('name')->toArray() : ['Academic Tutoring', 'Mathematics'];
+
+            $dynamicConversations[] = [
+                'id' => 'conn_' . $req->id,
+                'connection_id' => $req->id,
+                'db_conversation_id' => $dbConv ? $dbConv->id : null,
+                'is_incoming' => $isIncoming,
+                'name' => $otherUser ? $otherUser->name : ($isIncoming ? 'Applicant User' : 'Job Owner / Household'),
+                'title' => $req->opportunity ? $req->opportunity->title : 'Opportunity Connection Request',
+                'avatar' => asset('images/avatars/babajide.png'),
+                'online' => true,
+                'location' => $profile ? ($profile->location ?? 'Lagos, Nigeria') : ($req->opportunity ? $req->opportunity->location : 'Lagos, Nigeria'),
+                'category' => $req->opportunity && $req->opportunity->category ? $req->opportunity->category->name : 'General Service',
+                'unread' => $dbConv ? $dbConv->messages->where('sender_id', '!=', $user->id)->whereNull('read_at')->count() : ($isIncoming ? 1 : 0),
+                'last_time' => $dbConv && $dbConv->last_message_at ? $dbConv->last_message_at->diffForHumans() : ($req->created_at ? $req->created_at->diffForHumans() : 'Just now'),
+                'status' => $currentStatus,
+                'applicant_profile' => $isIncoming ? [
+                    'name' => $otherUser ? $otherUser->name : 'Applicant User',
                     'avatar' => asset('images/avatars/babajide.png'),
+                    'title' => $profile->headline ?? 'Verified Skill Marketplace Talent',
+                    'category' => $profile && $profile->category ? $profile->category->name : 'Academic Tutoring',
+                    'location' => $profile->location ?? 'Lagos, Nigeria',
+                    'phone' => $otherUser->phone ?? '+234 802 345 6789',
+                    'email' => $otherUser->email ?? 'applicant@example.com',
+                    'bio' => $profile->bio ?? 'Qualified professional offering expert tutoring and contract services.',
+                    'skills' => !empty($skillsList) ? $skillsList : ['Tutoring', 'Mentorship', 'Subject Prep'],
+                    'education' => 'Higher Degree — University of Lagos',
+                    'rating' => '4.9 ★ (24 Reviews)',
+                    'verified' => true,
+                ] : null,
+                'messages' => $msgs,
+            ];
+        }
+
+        // Process pending application sessions if not already in DB
+        $pendingApps = session()->get('pending_applications', []);
+        foreach ($pendingApps as $app) {
+            $connId = (int) $app['id'];
+            if (!in_array($connId, $processedConnIds)) {
+                $processedConnIds[] = $connId;
+                $currentStatus = 'pending';
+                if (in_array($connId, $sessionPaid)) {
+                    $currentStatus = 'connected';
+                } elseif (in_array($connId, $sessionAccepted)) {
+                    $currentStatus = 'accepted';
+                } elseif (in_array($connId, $sessionDeclined)) {
+                    $currentStatus = 'declined';
+                }
+
+                $dynamicConversations[] = [
+                    'id' => 'conn_' . $connId,
+                    'connection_id' => $connId,
+                    'db_conversation_id' => null,
+                    'is_incoming' => false,
+                    'name' => $app['name'],
+                    'title' => $app['title'],
+                    'avatar' => $app['avatar'] ?? asset('images/avatars/babajide.png'),
                     'online' => false,
-                    'location' => $req->opportunity ? $req->opportunity->location : 'Lagos, Nigeria',
-                    'category' => $req->opportunity && $req->opportunity->category ? $req->opportunity->category->name : 'Service Request',
+                    'location' => $app['location'] ?? 'Lagos, Nigeria',
+                    'category' => $app['category'] ?? 'General Service',
                     'unread' => 0,
-                    'last_time' => $req->created_at ? $req->created_at->diffForHumans() : 'Just now',
+                    'last_time' => $app['last_time'] ?? 'Just now',
                     'status' => $currentStatus,
                     'messages' => [
                         [
                             'id' => 1,
                             'sender' => 'me',
-                            'text' => 'Application & Connection Request Submitted: "' . ($req->initial_message ?? 'I am interested in this opportunity.') . '"',
-                            'time' => $req->created_at ? $req->created_at->format('g:i A') : 'Just now'
+                            'text' => 'Application & Connection Request Submitted: "' . ($app['note'] ?? 'I am interested in this opportunity.') . '"',
+                            'time' => 'Just now'
                         ]
                     ]
                 ];
             }
         }
 
-        // Incoming Connection Requests (Sent to me by Job Applicants)
-        $incomingConversations = [];
-        foreach ($dbIncomingRequests as $inc) {
-            $currentStatus = $inc->status->value;
-            if (in_array($inc->id, $sessionPaid)) {
-                $currentStatus = 'connected';
-            } elseif (in_array($inc->id, $sessionAccepted)) {
-                $currentStatus = 'accepted';
-            } elseif (in_array($inc->id, $sessionDeclined)) {
-                $currentStatus = 'declined';
-            }
+        // Add demo incoming application if no dynamic incoming conversation exists
+        $hasIncoming = collect($dynamicConversations)->contains(function ($item) {
+            return !empty($item['is_incoming']);
+        });
 
-            $applicantUser = $inc->initiator;
-            $profile = $applicantUser ? $applicantUser->professionalProfile : null;
-            $skillsList = $profile ? $profile->skills->pluck('name')->toArray() : ['Academic Tutoring', 'Mathematics'];
-
-            $incomingConversations[] = [
-                'id' => 'conn_' . $inc->id,
-                'connection_id' => $inc->id,
-                'is_incoming' => true,
-                'name' => $applicantUser ? $applicantUser->name : 'Applicant User',
-                'title' => $inc->opportunity ? $inc->opportunity->title : 'Opportunity Application',
-                'avatar' => asset('images/avatars/babajide.png'),
-                'online' => true,
-                'location' => $profile->location ?? 'Lagos, Nigeria',
-                'category' => $inc->opportunity && $inc->opportunity->category ? $inc->opportunity->category->name : 'Tutoring & Education',
-                'unread' => 1,
-                'last_time' => $inc->created_at ? $inc->created_at->diffForHumans() : 'Just now',
-                'status' => $currentStatus,
-                'applicant_profile' => [
-                    'name' => $applicantUser ? $applicantUser->name : 'Applicant User',
-                    'avatar' => asset('images/avatars/babajide.png'),
-                    'title' => $profile->headline ?? 'Verified Skill Marketplace Talent',
-                    'category' => $profile && $profile->category ? $profile->category->name : 'Academic Tutoring',
-                    'location' => $profile->location ?? 'Lagos, Nigeria',
-                    'phone' => $applicantUser->phone ?? '+234 802 345 6789',
-                    'email' => $applicantUser->email ?? 'applicant@example.com',
-                    'bio' => $profile->bio ?? 'Qualified professional offering expert tutoring and contract services.',
-                    'skills' => !empty($skillsList) ? $skillsList : ['Tutoring', 'Mentorship', 'Subject Prep'],
-                    'education' => 'Higher Degree — University of Lagos',
-                    'rating' => '4.9 ★ (24 Reviews)',
-                    'verified' => true,
-                ],
-                'messages' => [
-                    [
-                        'id' => 1,
-                        'sender' => 'them',
-                        'text' => $inc->initial_message ?? 'Hello! I am highly interested in your opportunity and would love to connect and discuss details.',
-                        'time' => $inc->created_at ? $inc->created_at->format('g:i A') : 'Just now'
-                    ]
-                ]
-            ];
-        }
-
-        // Add a curated Demo Incoming Application for instant testing if no DB incoming request exists
-        if (empty($incomingConversations)) {
+        if (!$hasIncoming) {
             $demoConnId = 901;
-            $demoStatus = 'pending';
-            if (in_array($demoConnId, $sessionPaid)) {
-                $demoStatus = 'connected';
-            } elseif (in_array($demoConnId, $sessionAccepted)) {
-                $demoStatus = 'accepted';
-            } elseif (in_array($demoConnId, $sessionDeclined)) {
-                $demoStatus = 'declined';
-            }
+            if (!in_array($demoConnId, $processedConnIds)) {
+                $demoStatus = 'pending';
+                if (in_array($demoConnId, $sessionPaid)) {
+                    $demoStatus = 'connected';
+                } elseif (in_array($demoConnId, $sessionAccepted)) {
+                    $demoStatus = 'accepted';
+                } elseif (in_array($demoConnId, $sessionDeclined)) {
+                    $demoStatus = 'declined';
+                }
 
-            $incomingConversations[] = [
-                'id' => 'conn_' . $demoConnId,
-                'connection_id' => $demoConnId,
-                'is_incoming' => true,
-                'name' => 'Chinedu Eze',
-                'title' => 'SS2 Mathematics & Physics Tutor Posting Application',
-                'avatar' => asset('images/avatars/babajide.png'),
-                'online' => true,
-                'location' => 'Ikeja, Lagos',
-                'category' => 'Academic Tutoring',
-                'unread' => 1,
-                'last_time' => '10 mins ago',
-                'status' => $demoStatus,
-                'applicant_profile' => [
+                $dynamicConversations[] = [
+                    'id' => 'conn_' . $demoConnId,
+                    'connection_id' => $demoConnId,
+                    'db_conversation_id' => null,
+                    'is_incoming' => true,
                     'name' => 'Chinedu Eze',
+                    'title' => 'SS2 Mathematics & Physics Tutor Posting Application',
                     'avatar' => asset('images/avatars/babajide.png'),
-                    'title' => 'Senior Mathematics & Physics Tutor (WAEC Specialist)',
-                    'category' => 'Academic Tutoring',
+                    'online' => true,
                     'location' => 'Ikeja, Lagos',
-                    'phone' => '+234 803 456 7890',
-                    'email' => 'chinedu.eze@example.com',
-                    'bio' => 'Passionate STEM educator with over 6 years experience preparing SSS2 & SSS3 students for WAEC, NECO, and JAMB exams. 88% distinction rate.',
-                    'skills' => ['Mathematics', 'Physics', 'Further Math', 'WAEC Prep', 'Exam Strategy'],
-                    'education' => 'B.Sc. Industrial Physics (First Class) — University of Lagos',
-                    'rating' => '4.9 ★ (32 Reviews)',
-                    'verified' => true,
-                ],
-                'messages' => [
-                    [
-                        'id' => 1,
-                        'sender' => 'them',
-                        'text' => 'Good day! I saw your opportunity posting for SS2 Mathematics & Physics Tutoring. I have extensive WAEC prep experience and would love to assist your student.',
-                        'time' => '10:30 AM'
+                    'category' => 'Academic Tutoring',
+                    'unread' => 1,
+                    'last_time' => '10 mins ago',
+                    'status' => $demoStatus,
+                    'applicant_profile' => [
+                        'name' => 'Chinedu Eze',
+                        'avatar' => asset('images/avatars/babajide.png'),
+                        'title' => 'Senior Mathematics & Physics Tutor (WAEC Specialist)',
+                        'category' => 'Academic Tutoring',
+                        'location' => 'Ikeja, Lagos',
+                        'phone' => '+234 803 456 7890',
+                        'email' => 'chinedu.eze@example.com',
+                        'bio' => 'Passionate STEM educator with over 6 years experience preparing SSS2 & SSS3 students for WAEC, NECO, and JAMB exams. 88% distinction rate.',
+                        'skills' => ['Mathematics', 'Physics', 'Further Math', 'WAEC Prep', 'Exam Strategy'],
+                        'education' => 'B.Sc. Industrial Physics (First Class) — University of Lagos',
+                        'rating' => '4.9 ★ (32 Reviews)',
+                        'verified' => true,
+                    ],
+                    'messages' => [
+                        [
+                            'id' => 1,
+                            'sender' => 'them',
+                            'text' => 'Good day! I saw your opportunity posting for SS2 Mathematics & Physics Tutoring. I have extensive WAEC prep experience and would love to assist your student.',
+                            'time' => '10:30 AM'
+                        ]
                     ]
-                ]
-            ];
-        }
-
-        // DB Connected Conversations
-        $dbConnectedConversations = \App\Models\Conversation::with(['connectionRequest.initiator', 'connectionRequest.recipient', 'connectionRequest.opportunity.category', 'messages.sender'])
-            ->whereHas('connectionRequest', function ($q) use ($user) {
-                $q->where('status', \App\Enums\ConnectionStatus::Connected)
-                  ->where(function ($sub) use ($user) {
-                      $sub->where('initiator_id', $user->id)
-                          ->orWhere('recipient_id', $user->id);
-                  });
-            })
-            ->orderBy('last_message_at', 'desc')
-            ->get();
-
-        $connectedConversations = [];
-        foreach ($dbConnectedConversations as $conv) {
-            $otherUser = $conv->connectionRequest->initiator_id === $user->id 
-                ? $conv->connectionRequest->recipient 
-                : $conv->connectionRequest->initiator;
-
-            $msgs = [];
-            foreach ($conv->messages as $m) {
-                $msgs[] = [
-                    'id' => $m->id,
-                    'sender' => $m->sender_id === $user->id ? 'me' : 'them',
-                    'text' => $m->body,
-                    'time' => $m->created_at ? $m->created_at->format('g:i A') : 'Just now',
-                    'read_at' => $m->read_at,
                 ];
             }
-
-            $connectedConversations[] = [
-                'id' => 'db_conv_' . $conv->id,
-                'db_conversation_id' => $conv->id,
-                'connection_id' => $conv->connection_request_id,
-                'name' => $otherUser ? $otherUser->name : 'Connected Partner',
-                'title' => $conv->connectionRequest->opportunity ? $conv->connectionRequest->opportunity->title : 'Connected Opportunity',
-                'avatar' => asset('images/avatars/babajide.png'),
-                'online' => true,
-                'location' => $otherUser->location ?? 'Lagos, Nigeria',
-                'category' => $conv->connectionRequest->opportunity && $conv->connectionRequest->opportunity->category ? $conv->connectionRequest->opportunity->category->name : 'Direct Connection',
-                'unread' => $conv->messages->where('sender_id', '!=', $user->id)->whereNull('read_at')->count(),
-                'last_time' => $conv->last_message_at ? $conv->last_message_at->diffForHumans() : ($conv->created_at ? $conv->created_at->diffForHumans() : 'Just now'),
-                'status' => 'connected',
-                'messages' => $msgs,
-            ];
         }
 
         // Merge conversations
-        $conversations = array_merge($connectedConversations, $incomingConversations, $pendingConversations, [
+        $conversations = array_merge($dynamicConversations, [
             [
                 'id' => 101,
                 'name' => 'Babajide Ogundele',

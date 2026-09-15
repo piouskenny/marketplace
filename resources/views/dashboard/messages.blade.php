@@ -2,12 +2,13 @@
     title="Messages & Direct Chat — {{ config('app.name', 'Skill Marketplace') }}"
     active="messages"
     xData="messagesApp()"
-    xInit="setTimeout(() => pageLoading = false, 350); $nextTick(() => scrollToBottom()); startRealtimePolling()"
+    xInit="setTimeout(() => pageLoading = false, 350); $nextTick(() => { scrollToBottom(); initRealtimeEcho(); })"
 >
     <x-slot name="head">
         <script>
             window.conversationsData = {!! json_encode($conversations ?? []) !!};
             window.initialActiveId = {!! request('conn_id') ? json_encode('conn_' . request('conn_id')) : (isset($conversations[0]['id']) ? json_encode($conversations[0]['id']) : 101) !!};
+            window.currentUserId = {!! json_encode(auth()->id()) !!};
 
             window.messagesApp = function() {
                 return {
@@ -30,10 +31,164 @@
                     reviewSuccess: false,
                     reviewError: '',
                     selectedApplicant: null,
+                    currentUserId: window.currentUserId,
                     activeConversationId: window.initialActiveId,
                     conversations: window.conversationsData || [],
                     searchQuery: '',
                     newMessageText: '',
+                    activeChannelName: null,
+                    subscribedToUserChannel: false,
+
+                    initRealtimeEcho: function() {
+                        var self = this;
+                        if (!window.Echo) return;
+
+                        if (self.currentUserId && !self.subscribedToUserChannel) {
+                            self.subscribedToUserChannel = true;
+                            window.Echo.private('user.' + self.currentUserId)
+                                .listen('.notification.created', function(n) {
+                                    self.handleIncomingUserNotification(n);
+                                })
+                                .listen('NotificationCreated', function(n) {
+                                    self.handleIncomingUserNotification(n);
+                                });
+                        }
+
+                        var conv = self.activeConversation;
+                        if (!conv || !conv.db_conversation_id) return;
+
+                        var targetChannel = 'conversation.' + conv.db_conversation_id;
+                        if (self.activeChannelName === targetChannel) return;
+
+                        if (self.activeChannelName) {
+                            window.Echo.leave(self.activeChannelName);
+                        }
+
+                        self.activeChannelName = targetChannel;
+                        window.Echo.private(targetChannel)
+                            .listen('.message.sent', function(e) {
+                                self.handleIncomingBroadcast(e);
+                            })
+                            .listen('MessageSent', function(e) {
+                                self.handleIncomingBroadcast(e);
+                            });
+                    },
+
+                    handleIncomingUserNotification: function(n) {
+                        if (!n) return;
+                        var self = this;
+
+                        if (n.type === 'new_message') {
+                            var conv = self.conversations.find(function(c) {
+                                return (n.conversation_id && (String(c.db_conversation_id) === String(n.conversation_id) || String(c.id) === 'db_conv_' + n.conversation_id)) ||
+                                       (n.connection_request_id && (String(c.connection_id) === String(n.connection_request_id) || String(c.id) === 'conn_' + n.connection_request_id)) ||
+                                       (n.connection_id && (String(c.connection_id) === String(n.connection_id) || String(c.id) === 'conn_' + n.connection_id));
+                            });
+
+                            if (conv) {
+                                if (n.conversation_id && !conv.db_conversation_id) {
+                                    conv.db_conversation_id = n.conversation_id;
+                                    self.initRealtimeEcho();
+                                }
+
+                                if (!conv.messages) conv.messages = [];
+                                var msgId = n.message_id || Date.now();
+                                var exists = conv.messages.some(function(m) {
+                                    return String(m.id) === String(msgId) || (m.text === n.message && Date.now() - (m.id || 0) < 15000);
+                                });
+
+                                if (!exists) {
+                                    conv.messages.push({
+                                        id: msgId,
+                                        sender: 'them',
+                                        text: n.message || 'New message received',
+                                        time: 'Just now'
+                                    });
+
+                                    if (String(self.activeConversationId) !== String(conv.id)) {
+                                        conv.unread = (conv.unread || 0) + 1;
+                                    }
+                                    conv.last_time = 'Just now';
+
+                                    if (String(self.activeConversationId) === String(conv.id)) {
+                                        self.$nextTick(function() { self.scrollToBottom(); });
+                                    }
+                                }
+                            }
+                        } else if (n.connection_request_id || n.connection_id || n.type) {
+                            var connReqId = n.connection_request_id || n.connection_id;
+                            var conv = self.conversations.find(function(c) {
+                                return (connReqId && (String(c.connection_id) === String(connReqId) || String(c.id) === 'conn_' + connReqId)) ||
+                                       (n.conversation_id && String(c.db_conversation_id) === String(n.conversation_id));
+                            });
+
+                            if (conv) {
+                                if (n.type === 'connection_accepted') {
+                                    conv.status = 'accepted';
+                                } else if (n.type === 'connection_declined') {
+                                    conv.status = 'declined';
+                                } else if (n.type === 'connection_activated') {
+                                    conv.status = 'connected';
+                                    if (n.conversation_id && !conv.db_conversation_id) {
+                                        conv.db_conversation_id = n.conversation_id;
+                                    }
+                                    self.initRealtimeEcho();
+                                }
+                                self.$nextTick(function() { self.scrollToBottom(); });
+                            } else {
+                                window.location.reload();
+                            }
+                        }
+                    },
+
+                    handleIncomingBroadcast: function(e) {
+                        if (!e) return;
+                        var self = this;
+
+                        var conv = self.conversations.find(function(c) {
+                            return (e.conversation_id && (String(c.db_conversation_id) === String(e.conversation_id) || String(c.id) === 'db_conv_' + e.conversation_id)) ||
+                                   (e.connection_id && (String(c.connection_id) === String(e.connection_id) || String(c.id) === 'conn_' + e.connection_id)) ||
+                                   (e.connection_request_id && (String(c.connection_id) === String(e.connection_request_id) || String(c.id) === 'conn_' + e.connection_request_id));
+                        });
+
+                        if (!conv) return;
+
+                        if (e.conversation_id && !conv.db_conversation_id) {
+                            conv.db_conversation_id = e.conversation_id;
+                        }
+
+                        if (!conv.messages) conv.messages = [];
+
+                        // Prevent duplicate rendering of sender's own message
+                        var existing = conv.messages.find(function(m) {
+                            return String(m.id) === String(e.id) || (m.text === e.body && m.sender === 'me' && Date.now() - (m.id || 0) < 15000);
+                        });
+
+                        if (existing) {
+                            existing.id = e.id;
+                            existing.time = e.time_formatted || existing.time;
+                        } else {
+                            var isMe = String(e.sender_id) === String(self.currentUserId);
+                            conv.messages.push({
+                                id: e.id,
+                                sender: isMe ? 'me' : 'them',
+                                text: e.body,
+                                time: e.time_formatted || 'Just now'
+                            });
+
+                            if (String(self.activeConversationId) !== String(conv.id)) {
+                                conv.unread = (conv.unread || 0) + 1;
+                            }
+                        }
+
+                        conv.last_time = e.time_formatted || 'Just now';
+
+                        if (String(self.activeConversationId) === String(conv.id)) {
+                            self.$nextTick(function() {
+                                self.scrollToBottom();
+                            });
+                        }
+                    },
 
                     get activeConversation() {
                         if (!this.conversations || this.conversations.length === 0) return null;
@@ -70,6 +225,7 @@
                         var self = this;
                         this.$nextTick(function() {
                             self.scrollToBottom();
+                            self.initRealtimeEcho();
                         });
                     },
 
@@ -102,8 +258,17 @@
                             self.scrollToBottom();
                         });
 
+                        var targetUrl = null;
+                        var rawConnId = conv.connection_id || conv.id;
                         if (conv.db_conversation_id) {
-                            fetch('{{ url('/conversations') }}/' + conv.db_conversation_id + '/messages', {
+                            targetUrl = '{{ url('/conversations') }}/' + conv.db_conversation_id + '/messages';
+                        } else if (rawConnId) {
+                            var cleanConnId = String(rawConnId).replace('conn_', '');
+                            targetUrl = '{{ url('/connections') }}/' + cleanConnId + '/messages';
+                        }
+
+                        if (targetUrl) {
+                            fetch(targetUrl, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -116,6 +281,10 @@
                                 if (data.success && data.message) {
                                     tempMsg.id = data.message.id;
                                     tempMsg.time = data.message.time_formatted;
+                                    if (data.message.conversation_id && !conv.db_conversation_id) {
+                                        conv.db_conversation_id = data.message.conversation_id;
+                                        self.initRealtimeEcho();
+                                    }
                                 }
                             })
                             .catch(function(err) {});
@@ -634,7 +803,7 @@
                             </template>
 
                             <!-- Payment Pending Card -->
-                            <template x-if="!activeConversation.is_incoming && activeConversation.status === 'accepted'">
+                            <template x-if="activeConversation.status === 'accepted'">
                                 <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-emerald-950 space-y-3 mb-3 shadow-xs">
                                     <div class="flex items-center justify-between gap-3">
                                         <div class="flex items-center gap-2.5">
@@ -644,7 +813,7 @@
                                             <div>
                                                 <h4 class="text-xs font-bold text-slate-900">Application Approved! Connection Fee Required</h4>
                                                 <p class="text-[11px] text-slate-600 font-normal">
-                                                    <strong x-text="activeConversation.name"></strong> accepted your application connection request! Pay the ₦1,000 platform connection fee to unlock direct chat messaging and phone details.
+                                                    Connection request with <strong x-text="activeConversation.name"></strong> is approved! Complete the ₦1,000 platform connection fee to unlock direct chat messaging and private phone details.
                                                 </p>
                                             </div>
                                         </div>

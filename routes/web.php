@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/conversations', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
     Route::get('/conversations/{conversation}/messages', [App\Http\Controllers\ChatController::class, 'show'])->name('chat.show');
     Route::post('/conversations/{conversation}/messages', [App\Http\Controllers\ChatController::class, 'store'])->name('chat.send');
+    Route::post('/connections/{connectionRequest}/messages', [App\Http\Controllers\ChatController::class, 'storeByConnection'])->name('chat.send-by-connection');
     Route::post('/conversations/{conversation}/read', [App\Http\Controllers\ChatController::class, 'markRead'])->name('chat.read');
 
     // Email Verification Routes
