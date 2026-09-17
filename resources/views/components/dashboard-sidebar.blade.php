@@ -11,9 +11,13 @@
 
     $userId = Auth::id();
     $myJobsCount = $userId ? \App\Models\Opportunity::where('user_id', $userId)->whereNull('deleted_at')->count() : 0;
-    $unreadMessagesCount = $userId ? \App\Models\ConnectionRequest::where('recipient_id', $userId)
+    $pendingConnCount = $userId ? \App\Models\ConnectionRequest::where('recipient_id', $userId)
         ->where('status', \App\Enums\ConnectionStatus::Pending)
         ->count() : 0;
+    $unreadMsgCount = $userId ? \App\Models\Message::whereHas('conversation.connectionRequest', function ($q) use ($userId) {
+        $q->where('initiator_id', $userId)->orWhere('recipient_id', $userId);
+    })->where('sender_id', '!=', $userId)->whereNull('read_at')->count() : 0;
+    $unreadMessagesCount = $pendingConnCount + $unreadMsgCount;
 @endphp
 
 <aside 

@@ -37,48 +37,45 @@
                     searchQuery: '',
                     newMessageText: '',
                     activeChannelName: null,
-                    subscribedToUserChannel: false,
+                    subscribedChannels: {},
 
                     initRealtimeEcho: function() {
                         var self = this;
                         if (!window.Echo) return;
 
+                        if (!self.subscribedChannels) self.subscribedChannels = {};
+
                         if (self.currentUserId && !self.subscribedToUserChannel) {
                             self.subscribedToUserChannel = true;
                             window.Echo.private('user.' + self.currentUserId)
-                                .listen('.notification.created', function(n) {
-                                    self.handleIncomingUserNotification(n);
-                                })
-                                .listen('NotificationCreated', function(n) {
-                                    self.handleIncomingUserNotification(n);
-                                });
+                                .listen('.notification.created', function(n) { self.handleIncomingUserNotification(n); })
+                                .listen('notification.created', function(n) { self.handleIncomingUserNotification(n); })
+                                .listen('NotificationCreated', function(n) { self.handleIncomingUserNotification(n); })
+                                .listen('.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated', function(n) { self.handleIncomingUserNotification(n); })
+                                .listen('Illuminate\\Notifications\\Events\\BroadcastNotificationCreated', function(n) { self.handleIncomingUserNotification(n); });
                         }
 
-                        var conv = self.activeConversation;
-                        if (!conv || !conv.db_conversation_id) return;
-
-                        var targetChannel = 'conversation.' + conv.db_conversation_id;
-                        if (self.activeChannelName === targetChannel) return;
-
-                        if (self.activeChannelName) {
-                            window.Echo.leave(self.activeChannelName);
-                        }
-
-                        self.activeChannelName = targetChannel;
-                        window.Echo.private(targetChannel)
-                            .listen('.message.sent', function(e) {
-                                self.handleIncomingBroadcast(e);
-                            })
-                            .listen('MessageSent', function(e) {
-                                self.handleIncomingBroadcast(e);
+                        if (self.conversations && self.conversations.length > 0) {
+                            self.conversations.forEach(function(conv) {
+                                if (conv.db_conversation_id) {
+                                    var targetChannel = 'conversation.' + conv.db_conversation_id;
+                                    if (!self.subscribedChannels[targetChannel]) {
+                                        self.subscribedChannels[targetChannel] = true;
+                                        window.Echo.private(targetChannel)
+                                            .listen('.message.sent', function(e) { self.handleIncomingBroadcast(e); })
+                                            .listen('message.sent', function(e) { self.handleIncomingBroadcast(e); })
+                                            .listen('MessageSent', function(e) { self.handleIncomingBroadcast(e); });
+                                    }
+                                }
                             });
+                        }
                     },
 
                     handleIncomingUserNotification: function(n) {
                         if (!n) return;
                         var self = this;
 
-                        if (n.type === 'new_message') {
+                        if (n.type === 'new_message' || n.message) {
                             var conv = self.conversations.find(function(c) {
                                 return (n.conversation_id && (String(c.db_conversation_id) === String(n.conversation_id) || String(c.id) === 'db_conv_' + n.conversation_id)) ||
                                        (n.connection_request_id && (String(c.connection_id) === String(n.connection_request_id) || String(c.id) === 'conn_' + n.connection_request_id)) ||
@@ -114,6 +111,12 @@
                                         self.$nextTick(function() { self.scrollToBottom(); });
                                     }
                                 }
+                            } else {
+                                // Conversation not in active list yet: trigger background sync
+                                fetch('{{ url('/connections/status') }}')
+                                    .then(function(res) { return res.json(); })
+                                    .then(function() { self.initRealtimeEcho(); })
+                                    .catch(function() {});
                             }
                         } else if (n.connection_request_id || n.connection_id || n.type) {
                             var connReqId = n.connection_request_id || n.connection_id;

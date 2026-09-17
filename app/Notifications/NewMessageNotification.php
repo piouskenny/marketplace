@@ -15,10 +15,17 @@ class NewMessageNotification extends Notification implements ShouldBroadcastNow
     use Queueable;
 
     public Message $message;
+    public ?int $targetUserId = null;
 
     public function __construct(Message $message)
     {
-        $this->message = $message;
+        $this->message = $message->loadMissing(['conversation.connectionRequest', 'sender']);
+        $conn = $this->message->conversation ? $this->message->conversation->connectionRequest : null;
+        if ($conn) {
+            $this->targetUserId = ($conn->initiator_id === $this->message->sender_id)
+                ? $conn->recipient_id
+                : $conn->initiator_id;
+        }
     }
 
     public function via(object $notifiable): array
@@ -28,16 +35,16 @@ class NewMessageNotification extends Notification implements ShouldBroadcastNow
 
     public function broadcastOn(): array
     {
-        $conn = $this->message->conversation ? $this->message->conversation->connectionRequest : null;
-        $targetUserId = null;
-        if ($conn) {
-            $targetUserId = ($conn->initiator_id === $this->message->sender_id)
+        $userId = $this->targetUserId;
+        if (!$userId && isset($this->message->conversation) && $this->message->conversation->connectionRequest) {
+            $conn = $this->message->conversation->connectionRequest;
+            $userId = ($conn->initiator_id === $this->message->sender_id)
                 ? $conn->recipient_id
                 : $conn->initiator_id;
         }
 
         return [
-            new PrivateChannel('user.' . ($targetUserId ?? $notifiable->id)),
+            new PrivateChannel('user.' . $userId),
         ];
     }
 
