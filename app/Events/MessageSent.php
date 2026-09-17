@@ -14,10 +14,12 @@ class MessageSent implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public Message $message;
+    public ?string $clientMsgId;
 
-    public function __construct(Message $message)
+    public function __construct(Message $message, ?string $clientMsgId = null)
     {
         $this->message = $message->load(['sender', 'conversation']);
+        $this->clientMsgId = $clientMsgId;
     }
 
     public function broadcastOn(): array
@@ -38,6 +40,7 @@ class MessageSent implements ShouldBroadcastNow
 
         return [
             'id' => $this->message->id,
+            'client_msg_id' => $this->clientMsgId,
             'conversation_id' => $this->message->conversation_id,
             'connection_id' => $connId,
             'connection_request_id' => $connId,
@@ -45,8 +48,8 @@ class MessageSent implements ShouldBroadcastNow
             'sender_name' => $this->message->sender ? $this->message->sender->name : 'User',
             'body' => $this->message->body,
             'read_at' => $this->message->read_at ? $this->message->read_at->toIso8601String() : null,
-            'created_at' => $this->message->created_at ? $this->message->created_at->toIso8601String() : null,
-            'time_formatted' => $this->message->created_at ? $this->message->created_at->format('g:i A') : 'Just now',
+            'created_at' => $this->message->created_at ? $this->message->created_at->toIso8601String() : now()->toIso8601String(),
+            'time_formatted' => $this->message->created_at ? $this->message->created_at->toIso8601String() : now()->toIso8601String(),
         ];
     }
 }

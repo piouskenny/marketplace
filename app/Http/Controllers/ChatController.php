@@ -68,6 +68,7 @@ class ChatController extends Controller
 
         $request->validate([
             'body' => 'required|string|min:1|max:5000',
+            'client_msg_id' => 'nullable|string|max:100',
         ]);
 
         $sender = Auth::user();
@@ -75,19 +76,21 @@ class ChatController extends Controller
         $message = $sendMessageAction->execute(
             $conversation,
             $sender,
-            $request->input('body')
+            $request->input('body'),
+            $request->input('client_msg_id')
         );
 
         return response()->json([
             'success' => true,
             'message' => [
                 'id' => $message->id,
+                'client_msg_id' => $request->input('client_msg_id'),
                 'conversation_id' => $message->conversation_id,
                 'sender_id' => $message->sender_id,
                 'body' => $message->body,
-                'read_at' => $message->read_at,
+                'read_at' => $message->read_at ? $message->read_at->toIso8601String() : null,
                 'created_at' => $message->created_at->toIso8601String(),
-                'time_formatted' => $message->created_at->format('g:i A'),
+                'time_formatted' => $message->created_at->toIso8601String(),
             ],
         ]);
     }

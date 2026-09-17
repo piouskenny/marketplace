@@ -16,10 +16,12 @@ class NewMessageNotification extends Notification implements ShouldBroadcastNow
 
     public Message $message;
     public ?int $targetUserId = null;
+    public ?string $clientMsgId = null;
 
-    public function __construct(Message $message)
+    public function __construct(Message $message, ?string $clientMsgId = null)
     {
         $this->message = $message->loadMissing(['conversation.connectionRequest', 'sender']);
+        $this->clientMsgId = $clientMsgId;
         $conn = $this->message->conversation ? $this->message->conversation->connectionRequest : null;
         if ($conn) {
             $this->targetUserId = ($conn->initiator_id === $this->message->sender_id)
@@ -70,6 +72,7 @@ class NewMessageNotification extends Notification implements ShouldBroadcastNow
             'connection_request_id' => $connId,
             'connection_id' => $connId,
             'message_id' => $this->message->id,
+            'client_msg_id' => $this->clientMsgId,
             'created_at' => now()->toIso8601String(),
         ];
     }

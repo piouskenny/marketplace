@@ -2,7 +2,7 @@
     title="Messages & Direct Chat — {{ config('app.name', 'Skill Marketplace') }}"
     active="messages"
     xData="messagesApp()"
-    xInit="setTimeout(() => pageLoading = false, 350); $nextTick(() => { scrollToBottom(); initRealtimeEcho(); }); startRealtimePolling()"
+    xInit="init()"
 >
     <x-slot name="head">
         <script>
@@ -11,6 +11,7 @@
             window.currentUserId = {!! json_encode(auth()->id()) !!};
 
             window.messagesApp = function() {
+                console.log('[RT-DIAG BOOT] messagesApp created');
                 return {
                     pageLoading: true,
                     sidebarOpen: false,
@@ -39,20 +40,117 @@
                     activeChannelName: null,
                     subscribedChannels: {},
 
+                    init: function() {
+                        console.log('[RT-DIAG BOOT] Alpine init called');
+                        console.log('[RT-DIAG BOOT] currentUserId:', this.currentUserId);
+                        console.log('[RT-DIAG BOOT] conversations:', this.conversations ? this.conversations.map(function(c) { return { id: c.id, conn_id: c.connection_id, db_conv_id: c.db_conversation_id, status: c.status }; }) : []);
+                        
+                        var self = this;
+                        setTimeout(function() { self.pageLoading = false; }, 350);
+
+                        console.log('[RT-DIAG BOOT] calling ensureEchoSubscribed');
+                        self.ensureEchoSubscribed();
+                        self.startRealtimePolling();
+                    },
+
+                    ensureEchoSubscribed: function() {
+                        var self = this;
+                        var attempts = 0;
+                        function check() {
+                            attempts++;
+                            if (window.Echo) {
+                                console.log('[RT-DIAG BOOT] window.Echo is ready (attempt ' + attempts + '). Executing initRealtimeEcho()...');
+                                self.$nextTick(function() {
+                                    self.scrollToBottom();
+                                    self.initRealtimeEcho();
+                                });
+                            } else if (attempts < 50) {
+                                console.log('[RT-DIAG BOOT] window.Echo not ready yet. Retrying in 100ms...');
+                                setTimeout(check, 100);
+                            } else {
+                                console.error('[RT-DIAG BOOT ERROR] window.Echo failed to load within 5 seconds!');
+                            }
+                        }
+                        check();
+                    },
+
+                    formatTime: function(t) {
+                        if (!t) return 'Just now';
+                        if (typeof t === 'string' && (t.indexOf('T') !== -1 || t.indexOf('-') !== -1 || t.indexOf(':') !== -1)) {
+                            var d = new Date(t);
+                            if (!isNaN(d.getTime())) {
+                                return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+                            }
+                        }
+                        return t;
+                    },
+
+                    sortConversations: function() {
+                        if (!this.conversations || this.conversations.length <= 1) return;
+                        this.conversations.sort(function(a, b) {
+                            var tsA = Number(a.updated_timestamp) || 0;
+                            var tsB = Number(b.updated_timestamp) || 0;
+                            return tsB - tsA;
+                        });
+                    },
+
                     initRealtimeEcho: function() {
                         var self = this;
-                        if (!window.Echo) return;
+                        console.log('[RT-DIAG] initRealtimeEcho() called. UserID:', self.currentUserId, 'Conversations:', self.conversations ? self.conversations.map(function(c) { return { id: c.id, conn_id: c.connection_id, db_conv_id: c.db_conversation_id, status: c.status }; }) : []);
+
+                        if (!window.Echo) {
+                            console.warn('[RT-DIAG] window.Echo is undefined!');
+                            return;
+                        }
+
+                        if (window.Pusher) {
+                            window.Pusher.logToConsole = true;
+                        }
+
+                        if (window.Echo.connector && window.Echo.connector.pusher && !window._pusherStateBound) {
+                            window._pusherStateBound = true;
+                            window.Echo.connector.pusher.connection.bind('state_change', function(states) {
+                                console.log('[RT-DIAG Pusher State Change]', states.previous, '->', states.current);
+                            });
+                            window.Echo.connector.pusher.connection.bind('error', function(err) {
+                                console.error('[RT-DIAG Pusher Connection Error]', err);
+                            });
+                        }
 
                         if (!self.subscribedChannels) self.subscribedChannels = {};
 
                         if (self.currentUserId && !self.subscribedToUserChannel) {
                             self.subscribedToUserChannel = true;
-                            window.Echo.private('user.' + self.currentUserId)
-                                .listen('.notification.created', function(n) { self.handleIncomingUserNotification(n); })
-                                .listen('notification.created', function(n) { self.handleIncomingUserNotification(n); })
-                                .listen('NotificationCreated', function(n) { self.handleIncomingUserNotification(n); })
-                                .listen('.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated', function(n) { self.handleIncomingUserNotification(n); })
-                                .listen('Illuminate\\Notifications\\Events\\BroadcastNotificationCreated', function(n) { self.handleIncomingUserNotification(n); });
+                            var userChannelName = 'user.' + self.currentUserId;
+                            console.log('[RT-DIAG] Attempting subscription to user channel:', userChannelName);
+                            var userChannel = window.Echo.private(userChannelName);
+                            
+                            if (typeof userChannel.subscribed === 'function') {
+                                userChannel.subscribed(function() {
+                                    console.log('[RT-DIAG SUCCESS] Subscribed to user channel:', userChannelName);
+                                });
+                            }
+                            if (typeof userChannel.error === 'function') {
+                                userChannel.error(function(err) {
+                                    console.error('[RT-DIAG ERROR] Subscription error on user channel:', userChannelName, err);
+                                });
+                            }
+
+                            var notifHandler = function(n) {
+                                console.log('[RT-DIAG EVENT] Incoming user notification event received on', userChannelName, n);
+                                self.handleIncomingUserNotification(n);
+                            };
+
+                            if (typeof userChannel.notification === 'function') {
+                                userChannel.notification(notifHandler);
+                            }
+
+                            userChannel
+                                .listen('.notification.created', notifHandler)
+                                .listen('notification.created', notifHandler)
+                                .listen('NotificationCreated', notifHandler)
+                                .listen('.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated', notifHandler)
+                                .listen('Illuminate\\Notifications\\Events\\BroadcastNotificationCreated', notifHandler);
                         }
 
                         if (self.conversations && self.conversations.length > 0) {
@@ -61,90 +159,140 @@
                                     var targetChannel = 'conversation.' + conv.db_conversation_id;
                                     if (!self.subscribedChannels[targetChannel]) {
                                         self.subscribedChannels[targetChannel] = true;
-                                        window.Echo.private(targetChannel)
-                                            .listen('.message.sent', function(e) { self.handleIncomingBroadcast(e); })
-                                            .listen('message.sent', function(e) { self.handleIncomingBroadcast(e); })
-                                            .listen('MessageSent', function(e) { self.handleIncomingBroadcast(e); });
+                                        console.log('[RT-DIAG] Attempting subscription to conversation channel:', targetChannel, 'for conv:', conv.id);
+                                        
+                                        var convChannel = window.Echo.private(targetChannel);
+                                        
+                                        if (typeof convChannel.subscribed === 'function') {
+                                            convChannel.subscribed(function() {
+                                                console.log('[RT-DIAG SUCCESS] Subscribed to conversation channel:', targetChannel);
+                                            });
+                                        }
+                                        if (typeof convChannel.error === 'function') {
+                                            convChannel.error(function(err) {
+                                                console.error('[RT-DIAG ERROR] Subscription error on conversation channel:', targetChannel, err);
+                                            });
+                                        }
+
+                                        var msgHandler = function(e) {
+                                            console.log('[RT-DIAG EVENT] MessageSent event received on channel', targetChannel, e);
+                                            self.handleIncomingBroadcast(e);
+                                        };
+
+                                        convChannel
+                                            .listen('.message.sent', msgHandler)
+                                            .listen('message.sent', msgHandler)
+                                            .listen('MessageSent', msgHandler);
+                                    } else {
+                                        console.log('[RT-DIAG] Already subscribed to channel:', targetChannel);
                                     }
+                                } else {
+                                    console.log('[RT-DIAG SKIP] Conversation', conv.id, 'has NO db_conversation_id yet.');
                                 }
                             });
                         }
                     },
 
                     handleIncomingUserNotification: function(n) {
+                        console.log('[RT-DIAG ENTRY] handleIncomingUserNotification()', n);
                         if (!n) return;
                         var self = this;
 
-                        if (n.type === 'new_message' || n.message) {
+                        var payload = (n && typeof n === 'object' && n.data) ? n.data : n;
+                        var type = payload.type || n.type;
+                        var messageText = payload.message || n.message;
+                        var convId = payload.conversation_id || n.conversation_id;
+                        var connReqId = payload.connection_request_id || payload.connection_id || n.connection_request_id || n.connection_id;
+                        var msgTime = payload.created_at || payload.time_formatted || n.created_at || new Date().toISOString();
+
+                        console.log('[RT-DIAG NOTIF PARSED]', { type: type, messageText: messageText, convId: convId, connReqId: connReqId });
+
+                        if (type === 'new_message' || messageText) {
                             var conv = self.conversations.find(function(c) {
-                                return (n.conversation_id && (String(c.db_conversation_id) === String(n.conversation_id) || String(c.id) === 'db_conv_' + n.conversation_id)) ||
-                                       (n.connection_request_id && (String(c.connection_id) === String(n.connection_request_id) || String(c.id) === 'conn_' + n.connection_request_id)) ||
-                                       (n.connection_id && (String(c.connection_id) === String(n.connection_id) || String(c.id) === 'conn_' + n.connection_id));
+                                return (convId && (String(c.db_conversation_id) === String(convId) || String(c.id) === 'db_conv_' + convId)) ||
+                                       (connReqId && (String(c.connection_id) === String(connReqId) || String(c.id) === 'conn_' + connReqId));
                             });
 
                             if (conv) {
-                                if (n.conversation_id && !conv.db_conversation_id) {
-                                    conv.db_conversation_id = n.conversation_id;
+                                console.log('[RT-DIAG NOTIF MATCH FOUND] Matched conversation:', conv.id, 'db_conv_id:', conv.db_conversation_id);
+                                if (convId && !conv.db_conversation_id) {
+                                    console.log('[RT-DIAG NOTIF] Setting db_conversation_id =', convId, 'and re-running initRealtimeEcho()');
+                                    conv.db_conversation_id = convId;
                                     self.initRealtimeEcho();
                                 }
 
                                 if (!conv.messages) conv.messages = [];
-                                var msgId = n.message_id || Date.now();
-                                var exists = conv.messages.some(function(m) {
-                                    return String(m.id) === String(msgId) || (m.text === n.message && Date.now() - (m.id || 0) < 15000);
-                                });
+                                var dbId = payload.message_id || n.message_id;
+                                var clientMsgId = payload.client_msg_id || n.client_msg_id;
 
-                                if (!exists) {
+                                var existingById = dbId ? conv.messages.find(function(m) { return String(m.id) === String(dbId); }) : null;
+                                var existingByClient = clientMsgId ? conv.messages.find(function(m) { return m.client_msg_id && String(m.client_msg_id) === String(clientMsgId); }) : null;
+                                var existing = existingById || existingByClient;
+
+                                console.log('[RT-DIAG NOTIF DEDUP CHECK]', { dbId: dbId, clientMsgId: clientMsgId, existingById: !!existingById, existingByClient: !!existingByClient, existing: !!existing });
+
+                                if (existing) {
+                                    console.log('[RT-DIAG NOTIF DEDUP] Updating existing message:', existing.id);
+                                    if (dbId) existing.id = dbId;
+                                    existing.pending = false;
+                                    existing.time = msgTime;
+                                } else {
+                                    console.log('[RT-DIAG NOTIF DEDUP] Appending NEW message to conversation:', conv.id);
                                     conv.messages.push({
-                                        id: msgId,
+                                        id: dbId || Date.now(),
+                                        client_msg_id: clientMsgId,
                                         sender: 'them',
-                                        text: n.message || 'New message received',
-                                        time: 'Just now'
+                                        text: messageText || 'New message received',
+                                        time: msgTime,
+                                        pending: false
                                     });
 
                                     if (String(self.activeConversationId) !== String(conv.id)) {
                                         conv.unread = (conv.unread || 0) + 1;
                                     }
-                                    conv.last_time = 'Just now';
+                                }
 
-                                    if (String(self.activeConversationId) === String(conv.id)) {
-                                        self.$nextTick(function() { self.scrollToBottom(); });
-                                    }
+                                conv.last_time = self.formatTime(msgTime);
+                                conv.updated_timestamp = Math.floor(Date.now() / 1000);
+                                self.sortConversations();
+
+                                if (String(self.activeConversationId) === String(conv.id)) {
+                                    self.$nextTick(function() { self.scrollToBottom(); });
                                 }
                             } else {
-                                // Conversation not in active list yet: trigger background sync
-                                fetch('{{ url('/connections/status') }}')
-                                    .then(function(res) { return res.json(); })
-                                    .then(function() { self.initRealtimeEcho(); })
-                                    .catch(function() {});
+                                console.warn('[RT-DIAG NOTIF NO MATCH] Could not find conversation matching convId:', convId, 'connReqId:', connReqId, 'in state:', self.conversations.map(function(c) { return { id: c.id, conn_id: c.connection_id, db_conv_id: c.db_conversation_id }; }));
+                                self.initRealtimeEcho();
                             }
-                        } else if (n.connection_request_id || n.connection_id || n.type) {
-                            var connReqId = n.connection_request_id || n.connection_id;
+                        } else if (connReqId || type) {
                             var conv = self.conversations.find(function(c) {
                                 return (connReqId && (String(c.connection_id) === String(connReqId) || String(c.id) === 'conn_' + connReqId)) ||
-                                       (n.conversation_id && String(c.db_conversation_id) === String(n.conversation_id));
+                                       (convId && String(c.db_conversation_id) === String(convId));
                             });
 
                             if (conv) {
-                                if (n.type === 'connection_accepted') {
+                                console.log('[RT-DIAG STATUS EVENT MATCH]', type, 'conv:', conv.id);
+                                if (type === 'connection_accepted') {
                                     conv.status = 'accepted';
-                                } else if (n.type === 'connection_declined') {
+                                } else if (type === 'connection_declined') {
                                     conv.status = 'declined';
-                                } else if (n.type === 'connection_activated') {
+                                } else if (type === 'connection_activated') {
                                     conv.status = 'connected';
-                                    if (n.conversation_id && !conv.db_conversation_id) {
-                                        conv.db_conversation_id = n.conversation_id;
+                                    if (convId && !conv.db_conversation_id) {
+                                        conv.db_conversation_id = convId;
                                     }
                                     self.initRealtimeEcho();
                                 }
+                                conv.updated_timestamp = Math.floor(Date.now() / 1000);
+                                self.sortConversations();
                                 self.$nextTick(function() { self.scrollToBottom(); });
                             } else {
-                                window.location.reload();
+                                console.warn('[RT-DIAG STATUS EVENT NO MATCH]', type, 'connReqId:', connReqId, 'convId:', convId);
                             }
                         }
                     },
 
                     handleIncomingBroadcast: function(e) {
+                        console.log('[RT-DIAG ENTRY] handleIncomingBroadcast()', e);
                         if (!e) return;
                         var self = this;
 
@@ -154,29 +302,46 @@
                                    (e.connection_request_id && (String(c.connection_id) === String(e.connection_request_id) || String(c.id) === 'conn_' + e.connection_request_id));
                         });
 
-                        if (!conv) return;
+                        if (!conv) {
+                            console.warn('[RT-DIAG BROADCAST NO MATCH] Received broadcast for convId:', e.conversation_id, 'connId:', e.connection_id, 'but no matching conversation found in state! State contains:', self.conversations.map(function(c) { return { id: c.id, conn_id: c.connection_id, db_conv_id: c.db_conversation_id }; }));
+                            return;
+                        }
+
+                        console.log('[RT-DIAG BROADCAST MATCH FOUND] Matched conv:', conv.id, 'db_conv_id:', conv.db_conversation_id);
 
                         if (e.conversation_id && !conv.db_conversation_id) {
+                            console.log('[RT-DIAG BROADCAST] Setting db_conversation_id =', e.conversation_id, 'and re-running initRealtimeEcho()');
                             conv.db_conversation_id = e.conversation_id;
+                            self.initRealtimeEcho();
                         }
 
                         if (!conv.messages) conv.messages = [];
 
-                        // Prevent duplicate rendering of sender's own message
-                        var existing = conv.messages.find(function(m) {
-                            return String(m.id) === String(e.id) || (m.text === e.body && m.sender === 'me' && Date.now() - (m.id || 0) < 15000);
-                        });
+                        var msgTime = e.created_at || e.time_formatted || new Date().toISOString();
+                        var dbId = e.id;
+                        var clientMsgId = e.client_msg_id;
+
+                        var existingById = dbId ? conv.messages.find(function(m) { return String(m.id) === String(dbId); }) : null;
+                        var existingByClient = clientMsgId ? conv.messages.find(function(m) { return m.client_msg_id && String(m.client_msg_id) === String(clientMsgId); }) : null;
+                        var existing = existingById || existingByClient;
+
+                        console.log('[RT-DIAG BROADCAST DEDUP CHECK]', { dbId: dbId, clientMsgId: clientMsgId, existingById: !!existingById, existingByClient: !!existingByClient, existing: !!existing });
 
                         if (existing) {
-                            existing.id = e.id;
-                            existing.time = e.time_formatted || existing.time;
+                            console.log('[RT-DIAG BROADCAST DEDUP] Updating existing message:', existing.id);
+                            if (dbId) existing.id = dbId;
+                            existing.pending = false;
+                            existing.time = msgTime;
                         } else {
                             var isMe = String(e.sender_id) === String(self.currentUserId);
+                            console.log('[RT-DIAG BROADCAST DEDUP] Appending NEW message from', isMe ? 'me' : 'them', 'to conv:', conv.id);
                             conv.messages.push({
-                                id: e.id,
+                                id: dbId,
+                                client_msg_id: clientMsgId,
                                 sender: isMe ? 'me' : 'them',
                                 text: e.body,
-                                time: e.time_formatted || 'Just now'
+                                time: msgTime,
+                                pending: false
                             });
 
                             if (String(self.activeConversationId) !== String(conv.id)) {
@@ -184,7 +349,9 @@
                             }
                         }
 
-                        conv.last_time = e.time_formatted || 'Just now';
+                        conv.last_time = self.formatTime(msgTime);
+                        conv.updated_timestamp = Math.floor(Date.now() / 1000);
+                        self.sortConversations();
 
                         if (String(self.activeConversationId) === String(conv.id)) {
                             self.$nextTick(function() {
@@ -239,22 +406,21 @@
                         var conv = this.activeConversation;
                         if (!conv) return;
 
-                        var now = new Date();
-                        var hours = now.getHours();
-                        var minutes = now.getMinutes().toString().padStart(2, '0');
-                        var ampm = hours >= 12 ? 'PM' : 'AM';
-                        var formattedHours = (hours % 12 || 12).toString();
-                        var timeString = formattedHours + ':' + minutes + ' ' + ampm;
-
+                        var clientMsgId = 'cmsg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                        var isoNow = new Date().toISOString();
                         var tempMsg = {
-                            id: Date.now(),
+                            id: clientMsgId,
+                            client_msg_id: clientMsgId,
                             sender: 'me',
                             text: text,
-                            time: timeString
+                            time: isoNow,
+                            pending: true
                         };
                         if (!conv.messages) conv.messages = [];
                         conv.messages.push(tempMsg);
-                        conv.last_time = 'Just now';
+                        conv.last_time = this.formatTime(isoNow);
+                        conv.updated_timestamp = Math.floor(Date.now() / 1000);
+                        this.sortConversations();
                         this.newMessageText = '';
 
                         var self = this;
@@ -278,13 +444,14 @@
                                     'Content-Type': 'application/json',
                                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                                 },
-                                body: JSON.stringify({ body: text })
+                                body: JSON.stringify({ body: text, client_msg_id: clientMsgId })
                             })
                             .then(function(res) { return res.json(); })
                             .then(function(data) {
                                 if (data.success && data.message) {
                                     tempMsg.id = data.message.id;
-                                    tempMsg.time = data.message.time_formatted;
+                                    tempMsg.pending = false;
+                                    tempMsg.time = data.message.time_formatted || data.message.created_at || tempMsg.time;
                                     if (data.message.conversation_id && !conv.db_conversation_id) {
                                         conv.db_conversation_id = data.message.conversation_id;
                                         self.initRealtimeEcho();
@@ -379,8 +546,14 @@
                         .then(function(data) {
                             self.payingConnection = false;
                             conv.status = 'connected';
+                            if (data.conversation_id) {
+                                conv.db_conversation_id = data.conversation_id;
+                            }
                             self.paymentModalOpen = false;
-                            self.$nextTick(function() { self.scrollToBottom(); });
+                            self.$nextTick(function() {
+                                self.scrollToBottom();
+                                self.initRealtimeEcho();
+                            });
                         })
                         .catch(function() {
                             self.payingConnection = false;
@@ -873,7 +1046,7 @@
                                             class="text-[10px] mt-1.5 flex items-center gap-1"
                                             :class="msg.sender === 'me' ? 'text-slate-400 justify-end' : 'text-slate-400 justify-start'"
                                         >
-                                            <span x-text="msg.time"></span>
+                                            <span x-text="formatTime(msg.time)"></span>
                                             <template x-if="msg.sender === 'me'">
                                                 <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                             </template>

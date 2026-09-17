@@ -395,8 +395,8 @@ class DashboardController extends Controller
                         'id' => $m->id,
                         'sender' => (int) $m->sender_id === (int) $user->id ? 'me' : 'them',
                         'text' => $m->body,
-                        'time' => $m->created_at ? $m->created_at->format('g:i A') : 'Just now',
-                        'read_at' => $m->read_at,
+                        'time' => $m->created_at ? $m->created_at->toIso8601String() : 'Just now',
+                        'read_at' => $m->read_at ? $m->read_at->toIso8601String() : null,
                     ];
                 }
             } else {
@@ -405,13 +405,17 @@ class DashboardController extends Controller
                         'id' => 1,
                         'sender' => $isIncoming ? 'them' : 'me',
                         'text' => $req->initial_message ?? ($isIncoming ? 'Hello! I am interested in your opportunity.' : 'Application & Connection Request Submitted.'),
-                        'time' => $req->created_at ? $req->created_at->format('g:i A') : 'Just now',
+                        'time' => $req->created_at ? $req->created_at->toIso8601String() : 'Just now',
                     ]
                 ];
             }
 
             $profile = $isIncoming && $otherUser ? $otherUser->professionalProfile : null;
             $skillsList = $profile && $profile->skills ? $profile->skills->pluck('name')->toArray() : ['Academic Tutoring', 'Mathematics'];
+
+            $lastTimestamp = $dbConv && $dbConv->last_message_at 
+                ? $dbConv->last_message_at->timestamp 
+                : ($req->created_at ? $req->created_at->timestamp : time());
 
             $dynamicConversations[] = [
                 'id' => 'conn_' . $req->id,
@@ -426,6 +430,7 @@ class DashboardController extends Controller
                 'category' => $req->opportunity && $req->opportunity->category ? $req->opportunity->category->name : 'General Service',
                 'unread' => $dbConv ? $dbConv->messages->where('sender_id', '!=', $user->id)->whereNull('read_at')->count() : ($isIncoming ? 1 : 0),
                 'last_time' => $dbConv && $dbConv->last_message_at ? $dbConv->last_message_at->diffForHumans() : ($req->created_at ? $req->created_at->diffForHumans() : 'Just now'),
+                'updated_timestamp' => $lastTimestamp,
                 'status' => $currentStatus,
                 'applicant_profile' => $isIncoming ? [
                     'name' => $otherUser ? $otherUser->name : 'Applicant User',
@@ -445,11 +450,18 @@ class DashboardController extends Controller
             ];
         }
 
+        // Existing DB names and titles for deduplication
+        $existingNames = collect($dynamicConversations)->pluck('name')->map(fn($n) => strtolower(trim($n)))->toArray();
+        $existingTitles = collect($dynamicConversations)->pluck('title')->map(fn($t) => strtolower(trim($t)))->toArray();
+
         // Process pending application sessions if not already in DB
         $pendingApps = session()->get('pending_applications', []);
         foreach ($pendingApps as $app) {
             $connId = (int) $app['id'];
-            if (!in_array($connId, $processedConnIds)) {
+            $appNameLower = strtolower(trim($app['name'] ?? ''));
+            $appTitleLower = strtolower(trim($app['title'] ?? ''));
+
+            if (!in_array($connId, $processedConnIds) && !in_array($appNameLower, $existingNames) && !in_array($appTitleLower, $existingTitles)) {
                 $processedConnIds[] = $connId;
                 $currentStatus = 'pending';
                 if (in_array($connId, $sessionPaid)) {
@@ -473,6 +485,7 @@ class DashboardController extends Controller
                     'category' => $app['category'] ?? 'General Service',
                     'unread' => 0,
                     'last_time' => $app['last_time'] ?? 'Just now',
+                    'updated_timestamp' => time(),
                     'status' => $currentStatus,
                     'messages' => [
                         [
@@ -491,7 +504,7 @@ class DashboardController extends Controller
             return !empty($item['is_incoming']);
         });
 
-        if (!$hasIncoming) {
+        if (!$hasIncoming && !in_array('chinedu eze', $existingNames)) {
             $demoConnId = 901;
             if (!in_array($demoConnId, $processedConnIds)) {
                 $demoStatus = 'pending';
@@ -516,6 +529,7 @@ class DashboardController extends Controller
                     'category' => 'Academic Tutoring',
                     'unread' => 1,
                     'last_time' => '10 mins ago',
+                    'updated_timestamp' => time() - 600,
                     'status' => $demoStatus,
                     'applicant_profile' => [
                         'name' => 'Chinedu Eze',
@@ -543,8 +557,9 @@ class DashboardController extends Controller
             }
         }
 
-        // Merge conversations
-        $conversations = array_merge($dynamicConversations, [
+        // Demo conversations list
+        $demoList = [];
+        $demos = [
             [
                 'id' => 101,
                 'name' => 'Babajide Ogundele',
@@ -555,6 +570,7 @@ class DashboardController extends Controller
                 'category' => 'Academic Tutoring',
                 'unread' => 2,
                 'last_time' => '10:42 AM',
+                'updated_timestamp' => strtotime('today 10:42 AM'),
                 'status' => 'connected',
                 'is_incoming' => false,
                 'messages' => [
@@ -594,6 +610,7 @@ class DashboardController extends Controller
                 'category' => 'Fashion & Craft',
                 'unread' => 0,
                 'last_time' => 'Yesterday',
+                'updated_timestamp' => strtotime('yesterday 14:00'),
                 'status' => 'connected',
                 'is_incoming' => false,
                 'messages' => [
@@ -627,6 +644,7 @@ class DashboardController extends Controller
                 'category' => 'Home & Technical',
                 'unread' => 0,
                 'last_time' => '2 days ago',
+                'updated_timestamp' => strtotime('-2 days'),
                 'status' => 'connected',
                 'messages' => [
                     [
@@ -653,6 +671,7 @@ class DashboardController extends Controller
                 'category' => 'Academic Tutoring',
                 'unread' => 0,
                 'last_time' => '3 days ago',
+                'updated_timestamp' => strtotime('-3 days'),
                 'status' => 'connected',
                 'messages' => [
                     [
@@ -669,7 +688,24 @@ class DashboardController extends Controller
                     ]
                 ]
             ]
-        ]);
+        ];
+
+        foreach ($demos as $d) {
+            $dNameLower = strtolower(trim($d['name']));
+            if (!in_array($dNameLower, $existingNames)) {
+                $demoList[] = $d;
+            }
+        }
+
+        // Merge conversations
+        $conversations = array_merge($dynamicConversations, $demoList);
+
+        // Sort all conversations by updated_timestamp descending (latest at top)
+        usort($conversations, function ($a, $b) {
+            $tsA = $a['updated_timestamp'] ?? 0;
+            $tsB = $b['updated_timestamp'] ?? 0;
+            return $tsB <=> $tsA;
+        });
 
         $userNotifications = $user->notifications()->take(15)->get();
         $unreadCount = $user->unreadNotifications()->count();
