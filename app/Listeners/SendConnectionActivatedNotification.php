@@ -16,10 +16,10 @@ class SendConnectionActivatedNotification
         $connectionRequest = ConnectionRequest::find($event->connectionRequestId);
         if ($connectionRequest) {
             if ($connectionRequest->initiator) {
-                $connectionRequest->initiator->notify(new ConnectionActivatedNotification($connectionRequest));
+                $connectionRequest->initiator->notify(new ConnectionActivatedNotification($connectionRequest, $connectionRequest->initiator_id));
             }
             if ($connectionRequest->recipient) {
-                $connectionRequest->recipient->notify(new ConnectionActivatedNotification($connectionRequest));
+                $connectionRequest->recipient->notify(new ConnectionActivatedNotification($connectionRequest, $connectionRequest->recipient_id));
             }
         }
     }

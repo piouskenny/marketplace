@@ -3,11 +3,14 @@
 namespace App\Notifications;
 
 use App\Models\Message;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
 
-class NewMessageNotification extends Notification
+class NewMessageNotification extends Notification implements ShouldBroadcastNow
 {
     use Queueable;
 
@@ -20,7 +23,27 @@ class NewMessageNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
+    }
+
+    public function broadcastOn(): array
+    {
+        $conn = $this->message->conversation ? $this->message->conversation->connectionRequest : null;
+        $targetUserId = null;
+        if ($conn) {
+            $targetUserId = ($conn->initiator_id === $this->message->sender_id)
+                ? $conn->recipient_id
+                : $conn->initiator_id;
+        }
+
+        return [
+            new PrivateChannel('user.' . ($targetUserId ?? $notifiable->id)),
+        ];
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'notification.created';
     }
 
     public function toArray(object $notifiable): array
@@ -37,7 +60,15 @@ class NewMessageNotification extends Notification
             'url' => url('/dashboard/messages' . ($connId ? '?conn_id=' . $connId : '')),
             'icon' => 'message-square',
             'conversation_id' => $this->message->conversation_id,
+            'connection_request_id' => $connId,
+            'connection_id' => $connId,
             'message_id' => $this->message->id,
+            'created_at' => now()->toIso8601String(),
         ];
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->toArray($notifiable));
     }
 }
