@@ -2,7 +2,7 @@
     title="Messages & Direct Chat — {{ config('app.name', 'Skill Marketplace') }}"
     active="messages"
     xData="messagesApp()"
-    xInit="setTimeout(() => pageLoading = false, 350); $nextTick(() => scrollToBottom()); startRealtimePolling()"
+    xInit="setTimeout(() => pageLoading = false, 350); $nextTick(() => scrollToBottom()); startRealtimePolling(); setupEchoListeners()"
 >
     <x-slot name="head">
         <script>
@@ -65,6 +65,7 @@
                                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                                     }
                                 }).catch(function() {});
+                                this.fetchActiveConversationMessages();
                             }
                         }
                         var self = this;
@@ -286,7 +287,82 @@
                                     }
                                 })
                                 .catch(function(err) {});
+
+                            self.fetchActiveConversationMessages();
                         }, 2500);
+                    },
+
+                    setupEchoListeners: function() {
+                        var self = this;
+                        if (typeof window.Echo === 'undefined') return;
+
+                        this.conversations.forEach(function(conv) {
+                            if (!conv.db_conversation_id) return;
+
+                            var channelName = 'conversation.' + conv.db_conversation_id;
+                            
+                            window.Echo.private(channelName)
+                                .listen('.message.sent', function(e) {
+                                    self.handleIncomingBroadcastMessage(conv, e);
+                                })
+                                .listen('message.sent', function(e) {
+                                    self.handleIncomingBroadcastMessage(conv, e);
+                                });
+                        });
+                    },
+
+                    handleIncomingBroadcastMessage: function(conv, data) {
+                        var self = this;
+                        var currentUserId = {{ Auth::id() }};
+                        if (data.sender_id === currentUserId) return;
+
+                        if (!conv.messages) conv.messages = [];
+                        var exists = conv.messages.some(function(m) { return String(m.id) === String(data.id); });
+                        if (!exists) {
+                            conv.messages.push({
+                                id: data.id,
+                                sender: 'them',
+                                text: data.body,
+                                time: data.time_formatted || 'Just now'
+                            });
+                            conv.last_time = 'Just now';
+                            if (String(self.activeConversationId) !== String(conv.id)) {
+                                conv.unread = (conv.unread || 0) + 1;
+                            } else {
+                                self.$nextTick(function() {
+                                    self.scrollToBottom();
+                                });
+                            }
+                        }
+                    },
+
+                    fetchActiveConversationMessages: function() {
+                        var self = this;
+                        var conv = self.activeConversation;
+                        if (!conv || !conv.db_conversation_id) return;
+
+                        var currentUserId = {{ Auth::id() }};
+                        fetch('{{ url('/conversations') }}/' + conv.db_conversation_id + '/messages')
+                            .then(function(res) { return res.json(); })
+                            .then(function(data) {
+                                if (data && data.success && data.messages) {
+                                    data.messages.forEach(function(m) {
+                                        var exists = conv.messages.some(function(msg) { return String(msg.id) === String(m.id); });
+                                        if (!exists) {
+                                            var timeStr = m.time_formatted || 'Just now';
+                                            conv.messages.push({
+                                                id: m.id,
+                                                sender: m.sender_id === currentUserId ? 'me' : 'them',
+                                                text: m.body,
+                                                time: timeStr
+                                            });
+                                            conv.last_time = 'Just now';
+                                            self.$nextTick(function() { self.scrollToBottom(); });
+                                        }
+                                    });
+                                }
+                            })
+                            .catch(function() {});
                     }
                 };
             };
