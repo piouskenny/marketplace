@@ -16,13 +16,34 @@ class ConnectionController extends Controller
      */
     public function apply(Request $request, $opportunityId)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
+
+        // Enforce onboarding/profile completion before applying
+        if (!$user->isProfileComplete()) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Complete your profile before applying for opportunities.',
+                    'redirect' => route('onboarding'),
+                ], 403);
+            }
+
+            return redirect()->to(route('onboarding'))
+                ->with('error', 'Complete your profile before applying for opportunities.');
+        }
 
         // Check if DB opportunity exists
         $opportunity = Opportunity::find($opportunityId);
 
         // Block applying to your own opportunity
         if ($opportunity && $opportunity->user_id === $user->id) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'You cannot apply to an opportunity that you created yourself.',
+                ], 422);
+            }
             return redirect()->back()->with('error', 'You cannot apply to an opportunity that you created yourself.');
         }
 

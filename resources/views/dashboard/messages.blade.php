@@ -7,7 +7,7 @@
     <x-slot name="head">
         <script>
             window.conversationsData = {!! json_encode($conversations ?? []) !!};
-            window.initialActiveId = {!! request('conn_id') ? json_encode('conn_' . request('conn_id')) : (isset($conversations[0]['id']) ? json_encode($conversations[0]['id']) : 101) !!};
+            window.initialActiveId = {!! request('conn_id') ? json_encode('conn_' . request('conn_id')) : (isset($conversations[0]['id']) ? json_encode($conversations[0]['id']) : 'null') !!};
             window.currentUserId = {!! json_encode(auth()->id()) !!};
 
             window.messagesApp = function() {
@@ -249,7 +249,48 @@
                             return;
                         }
 
-                        if (type === 'new_message' || messageText) {
+                        if (type === 'connection_request' || type === 'connection_request_created') {
+                            console.log('[RT-DIAG CONNECTION REQUEST NOTIF]', payload);
+                            var existingConn = self.conversations.find(function(c) {
+                                return connReqId && (String(c.connection_id) === String(connReqId) || String(c.id) === 'conn_' + connReqId);
+                            });
+
+                            if (!existingConn && connReqId) {
+                                var newConnItem = {
+                                    id: 'conn_' + connReqId,
+                                    connection_id: Number(connReqId),
+                                    db_conversation_id: convId || null,
+                                    is_incoming: true,
+                                    name: payload.initiator_name || payload.title || 'New Applicant',
+                                    title: payload.opportunity_title || payload.title || 'Opportunity Connection Request',
+                                    avatar: (payload.applicant_profile && payload.applicant_profile.avatar) ? payload.applicant_profile.avatar : '/images/avatars/babajide.png',
+                                    online: true,
+                                    location: (payload.applicant_profile && payload.applicant_profile.location) ? payload.applicant_profile.location : 'Lagos, Nigeria',
+                                    category: payload.category || 'General Service',
+                                    unread: 1,
+                                    last_time: self.formatTime(msgTime),
+                                    updated_timestamp: Math.floor(Date.now() / 1000),
+                                    status: 'pending',
+                                    applicant_profile: payload.applicant_profile || null,
+                                    messages: [
+                                        {
+                                            id: 1,
+                                            sender: 'them',
+                                            text: payload.initial_message || payload.message || 'Application & Connection Request Submitted.',
+                                            time: self.formatTime(msgTime)
+                                        }
+                                    ]
+                                };
+                                self.conversations.unshift(newConnItem);
+                                self.sortConversations();
+                                if (!self.activeConversationId) {
+                                    self.activeConversationId = newConnItem.id;
+                                }
+                            }
+                            return;
+                        }
+
+                        if (type === 'new_message' || (messageText && type !== 'connection_accepted' && type !== 'connection_declined' && type !== 'connection_activated')) {
                             var conv = self.conversations.find(function(c) {
                                 return (convId && (String(c.db_conversation_id) === String(convId) || String(c.id) === 'db_conv_' + convId)) ||
                                        (connReqId && (String(c.connection_id) === String(connReqId) || String(c.id) === 'conn_' + connReqId));
@@ -833,7 +874,12 @@
                                     </template>
                                     <template x-if="!c.is_incoming && c.status === 'accepted'">
                                         <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200 shrink-0">
-                                            Payment Pending
+                                            Payment Required
+                                        </span>
+                                    </template>
+                                    <template x-if="c.is_incoming && c.status === 'accepted'">
+                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200 shrink-0">
+                                            Awaiting Payment
                                         </span>
                                     </template>
                                     <template x-if="c.status === 'connected'">
@@ -924,7 +970,12 @@
                                         </template>
                                         <template x-if="!activeConversation.is_incoming && activeConversation.status === 'accepted'">
                                             <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                                                [Payment Pending]
+                                                [Payment Required]
+                                            </span>
+                                        </template>
+                                        <template x-if="activeConversation.is_incoming && activeConversation.status === 'accepted'">
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
+                                                [Awaiting Payment]
                                             </span>
                                         </template>
                                         <template x-if="activeConversation.status === 'connected'">
@@ -1022,8 +1073,8 @@
                                 </div>
                             </template>
 
-                            <!-- Payment Pending Card -->
-                            <template x-if="activeConversation.status === 'accepted'">
+                            <!-- Payment Pending Card (Initiator / Applicant View: Pays Fee) -->
+                            <template x-if="!activeConversation.is_incoming && activeConversation.status === 'accepted'">
                                 <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-emerald-950 space-y-3 mb-3 shadow-xs">
                                     <div class="flex items-center justify-between gap-3">
                                         <div class="flex items-center gap-2.5">
@@ -1033,12 +1084,12 @@
                                             <div>
                                                 <h4 class="text-xs font-bold text-slate-900">Application Approved! Connection Fee Required</h4>
                                                 <p class="text-[11px] text-slate-600 font-normal">
-                                                    Connection request with <strong x-text="activeConversation.name"></strong> is approved! Complete the ₦1,000 platform connection fee to unlock direct chat messaging and private phone details.
+                                                    Your connection request with <strong x-text="activeConversation.name"></strong> was approved! Complete the ₦1,000 platform connection fee to unlock direct chat messaging and private contact details.
                                                 </p>
                                             </div>
                                         </div>
                                         <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 shrink-0">
-                                            Payment Pending
+                                            Payment Required
                                         </span>
                                     </div>
                                     <div class="flex items-center gap-2 pt-2 border-t border-emerald-100">
@@ -1049,6 +1100,28 @@
                                             <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V6m0 8v2m0-6c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                             <span>Pay ₦1,000 Connection Fee & Unlock Chat</span>
                                         </button>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Payment Pending Card (Recipient / Job Creator View: Waiting for Applicant Payment) -->
+                            <template x-if="activeConversation.is_incoming && activeConversation.status === 'accepted'">
+                                <div class="bg-indigo-50 border border-indigo-200/90 rounded-2xl p-4 text-indigo-950 space-y-2 mb-3 shadow-xs">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                                                ⌛
+                                            </div>
+                                            <div>
+                                                <h4 class="text-xs font-bold text-slate-900">Request Accepted — Waiting for Applicant Payment</h4>
+                                                <p class="text-[11px] text-slate-600 font-normal">
+                                                    You accepted <strong x-text="activeConversation.name"></strong>'s request. Waiting for <strong x-text="activeConversation.name"></strong> to complete the ₦1,000 connection payment. Direct chat will unlock automatically once paid.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 shrink-0">
+                                            Awaiting Payment
+                                        </span>
                                     </div>
                                 </div>
                             </template>

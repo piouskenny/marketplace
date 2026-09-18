@@ -73,6 +73,14 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    /**
+     * Check if user has completed their onboarding/profile setup.
+     */
+    public function isProfileComplete(): bool
+    {
+        return (bool) $this->onboarding_completed;
+    }
+
     public function professionalProfile()
     {
         return $this->hasOne(ProfessionalProfile::class);
