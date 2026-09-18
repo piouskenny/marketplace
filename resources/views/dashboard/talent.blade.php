@@ -228,7 +228,7 @@
                                 <option value="">All Subjects</option>
                                 @foreach($subjects as $sub)
                                     <option value="{{ $sub->id }}" {{ isset($selectedSubject) && $selectedSubject == $sub->id ? 'selected' : '' }}>
-                                        🎓 {{ $sub->name }}
+                                        {{ $sub->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -254,9 +254,9 @@
                             <!-- Min Rating Filter -->
                             <select name="min_rating" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
                                 <option value="0" {{ isset($selectedMinRating) && $selectedMinRating == 0 ? 'selected' : '' }}>All Ratings</option>
-                                <option value="4.5" {{ isset($selectedMinRating) && $selectedMinRating == 4.5 ? 'selected' : '' }}>★ 4.5 & above</option>
-                                <option value="4.0" {{ isset($selectedMinRating) && $selectedMinRating == 4.0 ? 'selected' : '' }}>★ 4.0 & above</option>
-                                <option value="3.0" {{ isset($selectedMinRating) && $selectedMinRating == 3.0 ? 'selected' : '' }}>★ 3.0 & above</option>
+                                <option value="4.5" {{ isset($selectedMinRating) && $selectedMinRating == 4.5 ? 'selected' : '' }}>4.5 & above</option>
+                                <option value="4.0" {{ isset($selectedMinRating) && $selectedMinRating == 4.0 ? 'selected' : '' }}>4.0 & above</option>
+                                <option value="3.0" {{ isset($selectedMinRating) && $selectedMinRating == 3.0 ? 'selected' : '' }}>3.0 & above</option>
                             </select>
 
                             @if((isset($selectedSubject) && $selectedSubject) || (isset($selectedLevel) && $selectedLevel) || (isset($selectedTeachingMode) && $selectedTeachingMode !== 'All') || (isset($selectedMinRating) && $selectedMinRating > 0))
@@ -299,7 +299,7 @@
                                     
                                     <!-- Top Row: Avatar + Name + Rating -->
                                     <div class="flex items-start justify-between gap-3">
-                                        <div class="flex items-center gap-3 min-w-0">
+                                        <a href="{{ url('/profile/' . $pro->user_id) }}" class="flex items-center gap-3 min-w-0 group/link hover:opacity-80 transition-opacity">
                                             <div class="relative shrink-0">
                                                 @if($pro->user->avatar_url)
                                                     <img src="{{ $pro->user->avatar_url }}" alt="{{ $pro->user->name }}" class="w-11 h-11 rounded-xl object-cover border border-slate-200" />
@@ -312,26 +312,27 @@
                                             </div>
 
                                             <div class="min-w-0">
-                                                <h3 class="text-sm font-bold text-slate-900 truncate group-hover:text-sky-900 transition-colors">
+                                                <h3 class="text-sm font-bold text-slate-900 truncate group-hover/link:underline">
                                                     {{ $pro->user->name }}
                                                 </h3>
-                                                <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-md inline-block">
-                                                    ✓ Verified Expert
+                                                <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-md">
+                                                    <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                    <span>Verified Expert</span>
                                                 </span>
                                             </div>
-                                        </div>
+                                        </a>
 
                                         <div class="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-lg shrink-0">
-                                            <span>★</span>
+                                            <svg class="w-3.5 h-3.5 fill-amber-400 text-amber-400" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                                             <span>{{ number_format($pro->average_rating ?? 5.0, 1) }}</span>
                                         </div>
                                     </div>
 
                                     <!-- Headline / Display Title -->
                                     <div>
-                                        <h4 class="text-xs sm:text-sm font-semibold text-slate-800 leading-snug">
+                                        <a href="{{ url('/profile/' . $pro->user_id) }}" class="text-xs sm:text-sm font-semibold text-slate-800 leading-snug hover:underline block">
                                             {{ $pro->display_name }}
-                                        </h4>
+                                        </a>
                                     </div>
 
                                     <!-- Location & Metadata -->
@@ -363,32 +364,37 @@
 
                                         @if($pro->educationProfile && $pro->educationProfile->subjects)
                                             @foreach($pro->educationProfile->subjects->take(2) as $sb)
-                                                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-sky-50 text-sky-800 border border-sky-200/60">
-                                                    🎓 {{ $sb->name }}
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-sky-50 text-sky-800 border border-sky-200/60">
+                                                    <svg class="w-3 h-3 text-sky-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                                                    <span>{{ $sb->name }}</span>
                                                 </span>
                                             @endforeach
                                         @endif
                                     </div>
                                 </div>
 
-                                <!-- Action Button: Connect & Hire -->
-                                <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-3 mt-2">
-                                    <span class="text-[11px] text-slate-400 font-medium">Guaranteed Acceptance</span>
+                                <!-- Action Buttons: View Profile & Connect & Hire -->
+                                <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 mt-2">
+                                    <a href="{{ url('/profile/' . $pro->user_id) }}" class="text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition-colors shrink-0">
+                                        View Profile →
+                                    </a>
 
                                     <button 
                                         @click="openHireModal({
                                             id: {{ $pro->id }},
+                                            user_id: {{ $pro->user_id }},
                                             name: '{{ addslashes($pro->user->name) }}',
                                             display_name: '{{ addslashes($pro->display_name) }}',
                                             location: '{{ addslashes($pro->location) }}',
                                             category: '{{ addslashes($pro->category->name ?? 'Talent') }}',
                                             hourly_rate: '{{ $pro->hourly_rate ? '₦' . number_format($pro->hourly_rate) . '/hr' : 'Flexible Rate' }}'
                                         })" 
-                                        class="inline-flex items-center justify-center bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-xs transition-colors cursor-pointer"
+                                        class="inline-flex items-center justify-center bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs py-2 px-3.5 rounded-xl shadow-xs transition-colors cursor-pointer shrink-0"
                                     >
-                                        Connect & Hire (₦1,000) →
+                                        Connect & Hire →
                                     </button>
                                 </div>
+
                             </div>
                         @endforeach
                     </div>
@@ -534,13 +540,19 @@
                             <span class="text-xs font-bold text-slate-900 bg-white border border-slate-200 px-2 py-0.5 rounded-md" x-text="selectedTalent.hourly_rate"></span>
                         </div>
                         <p class="text-xs text-slate-600 font-medium" x-text="selectedTalent.display_name"></p>
-                        <div class="text-[11px] text-slate-400 flex items-center gap-2">
-                            <span x-text="selectedTalent.category"></span>
-                            <span>•</span>
-                            <span x-text="selectedTalent.location"></span>
+                        <div class="text-[11px] text-slate-500 flex items-center justify-between gap-2 pt-1">
+                            <div class="flex items-center gap-2">
+                                <span x-text="selectedTalent.category"></span>
+                                <span>•</span>
+                                <span x-text="selectedTalent.location"></span>
+                            </div>
+                            <a :href="'{{ url('/profile') }}/' + (selectedTalent.user_id || selectedTalent.id)" class="text-xs font-bold text-[#0F172B] hover:underline">
+                                View Full Profile →
+                            </a>
                         </div>
                     </div>
                 </template>
+
 
                 <div class="bg-sky-50 border border-sky-200 text-sky-950 rounded-xl p-3.5 text-xs space-y-1">
                     <div class="flex items-center justify-between font-bold text-slate-900">
@@ -572,4 +584,7 @@
             </div>
         </div>
 
+        <!-- Profile Slide-Over Drawer Modal -->
+        <x-profile-drawer :user="$user" :completionPercentage="$completionPercentage" />
 </x-dashboard-layout>
+

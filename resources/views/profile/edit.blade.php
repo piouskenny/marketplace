@@ -6,16 +6,46 @@
             <!-- Main Form Viewport -->
             <main class="flex-1 min-w-0 space-y-6 max-w-4xl">
                 
-                <!-- Header Card -->
-                <div class="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-xs flex items-center justify-between gap-4">
-                    <div>
-                        <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Profile & Service Settings</h1>
-                        <p class="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">Manage your public listing, profile photo, and tutoring preferences.</p>
+                <!-- Top Header Bar -->
+                <header class="bg-white border border-slate-200/80 rounded-2xl p-3.5 sm:px-6 shadow-xs flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <!-- Desktop Sidebar Collapse Toggle Button -->
+                        <button 
+                            @click="toggleSidebar()" 
+                            class="hidden lg:flex items-center justify-center p-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-slate-900 shrink-0 cursor-pointer transition-colors"
+                            :title="sidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+                        >
+                            <svg class="w-4 h-4 transition-transform duration-300" :class="sidebarCollapsed ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                            </svg>
+                        </button>
+
+                        <!-- Mobile Menu Button -->
+                        <button @click="sidebarOpen = true" class="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 cursor-pointer" aria-label="Open navigation menu">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                        </button>
+
+                        <div>
+                            <h1 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">Profile & Service Settings</h1>
+                            <p class="text-xs text-slate-500 hidden sm:block">Manage your public listing, profile photo, and tutoring preferences.</p>
+                        </div>
                     </div>
-                    <a href="{{ url('/dashboard') }}" class="lg:hidden text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl transition-colors">
-                        ← Dashboard
-                    </a>
-                </div>
+
+                    <div class="flex items-center gap-3">
+                        <!-- Header Profile Button Trigger -->
+                        <button @click="profileModalOpen = true" class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+                            @if($user->avatar_url)
+                                <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0" />
+                            @else
+                                <div class="w-8 h-8 rounded-lg bg-[#0F172B] text-white font-bold flex items-center justify-center text-xs shrink-0">
+                                    {{ strtoupper(substr($user->name ?? 'U', 0, 1)) }}
+                                </div>
+                            @endif
+                            <span class="text-xs font-semibold text-slate-800 hidden sm:inline">{{ $user->name ?? 'User' }}</span>
+                        </button>
+                    </div>
+                </header>
+
 
                 @if (session('status'))
                     <div x-data="{ show: true }" x-show="show" x-transition class="bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm font-medium rounded-2xl p-4 flex items-center justify-between gap-2 shadow-xs">
@@ -190,4 +220,8 @@
                 </div>
 
             </main>
+
+            <!-- Profile Slide-Over Drawer Modal -->
+            <x-profile-drawer :user="$user" />
 </x-dashboard-layout>
+

@@ -101,8 +101,8 @@
                                 <span class="text-xs font-medium text-slate-500 block uppercase tracking-wider">Total Job Postings</span>
                                 <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1 block">{{ $myOpportunities->count() }}</span>
                             </div>
-                            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center text-xl shrink-0">
-                                📋
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0">
+                                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                             </div>
                         </div>
 
@@ -113,8 +113,8 @@
                                     {{ $myOpportunities->filter(fn($o) => ($o->status->value ?? $o->status) === 'open')->count() }}
                                 </span>
                             </div>
-                            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-xl shrink-0">
-                                🟢
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+                                <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>
                             </div>
                         </div>
 
@@ -125,8 +125,8 @@
                                     {{ $myOpportunities->sum('connection_requests_count') }}
                                 </span>
                             </div>
-                            <div class="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center text-xl shrink-0">
-                                👥
+                            <div class="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center shrink-0">
+                                <svg class="w-6 h-6 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                             </div>
                         </div>
                     </div>
@@ -150,8 +150,8 @@
 
                         @if($myOpportunities->isEmpty())
                             <div class="p-12 text-center space-y-4">
-                                <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center text-3xl">
-                                    📂
+                                <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
+                                    <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                                 </div>
                                 <div class="max-w-md mx-auto space-y-1">
                                     <h4 class="text-base font-bold text-slate-900">No Job Postings Yet</h4>
@@ -266,8 +266,8 @@
 
             <div class="relative bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-md p-6 space-y-6 z-10">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 text-lg">
-                        ⚠️
+                    <div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     </div>
                     <div>
                         <h3 class="text-base font-bold text-slate-900">Delete Job Posting</h3>
@@ -425,4 +425,8 @@
                     </div>
                 </form>
             </div>
+
+            <!-- Profile Slide-Over Drawer Modal -->
+            <x-profile-drawer :user="$user" />
 </x-dashboard-layout>
+

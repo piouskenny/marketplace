@@ -470,31 +470,58 @@
 
                             <!-- Job Items List -->
                             <div class="divide-y divide-slate-100">
-                                @foreach($suggestedJobs as $job)
-                                    <div class="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3 group">
+                                @forelse($suggestedJobs as $job)
+                                    <div 
+                                        @click="openJobDetails({{ json_encode($job['raw_opp']) }})"
+                                        class="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-3 group cursor-pointer hover:bg-slate-50/80 p-2 rounded-xl transition-colors"
+                                    >
                                         <div class="flex items-center gap-3 min-w-0">
-                                            <img src="{{ $job['avatar'] }}" alt="{{ $job['client_name'] }}" class="w-9 h-9 rounded-xl object-cover border border-slate-200 shrink-0 shadow-2xs group-hover:scale-105 transition-transform" />
-                                            <div class="min-w-0 space-y-0.5">
+                                            @if(!empty($job['avatar']))
+                                                <img src="{{ $job['avatar'] }}" alt="{{ $job['client_name'] }}" class="w-9 h-9 rounded-xl object-cover border border-slate-200 shrink-0 shadow-2xs group-hover:scale-105 transition-transform" />
+                                            @else
+                                                <div class="w-9 h-9 rounded-xl bg-[#0F172B] text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                                                    {{ $job['user_initial'] }}
+                                                </div>
+                                            @endif
+                                            <div class="min-w-0 space-y-1">
                                                 <h4 class="text-xs font-bold text-slate-900 group-hover:text-sky-700 transition-colors truncate">
                                                     {{ $job['title'] }}
                                                 </h4>
-                                                <p class="text-[11px] text-slate-500 font-medium truncate">
-                                                    {{ $job['client_name'] }} • <span class="text-slate-800 font-semibold">{{ $job['budget'] }}</span>
-                                                </p>
+                                                <div class="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500 font-medium truncate">
+                                                    <span>{{ $job['client_name'] }}</span>
+                                                    <span>•</span>
+                                                    <span class="text-slate-800 font-semibold">{{ $job['budget'] }}</span>
+                                                </div>
+                                                @if(!empty($job['match_reason']))
+                                                    <div class="pt-0.5">
+                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 text-[10px] font-semibold border border-sky-200/60">
+                                                            <svg class="w-3 h-3 text-sky-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                            {{ $job['match_reason'] }}
+                                                        </span>
+                                                    </div>
+                                                @endif
                                             </div>
                                         </div>
-                                        <a href="#opportunities-section" class="w-7 h-7 rounded-lg bg-slate-50 hover:bg-[#0F172B] hover:text-white text-slate-600 border border-slate-200/60 flex items-center justify-center transition-colors shrink-0 cursor-pointer" title="View details">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                                        </a>
+                                        <button 
+                                            @click.stop="openJobDetails({{ json_encode($job['raw_opp']) }})" 
+                                            class="w-7 h-7 rounded-lg bg-slate-50 group-hover:bg-[#0F172B] group-hover:text-white text-slate-600 border border-slate-200/60 flex items-center justify-center transition-colors shrink-0 cursor-pointer" 
+                                            title="View details & connect"
+                                        >
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                        </button>
                                     </div>
-                                @endforeach
+                                @empty
+                                    <div class="py-4 text-center text-xs text-slate-400 font-normal">
+                                        No suggested jobs matching your profile yet.
+                                    </div>
+                                @endforelse
                             </div>
                         </div>
 
                         <!-- Quick Post Custom Job Promo Box -->
                         <div class="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 text-center space-y-3 shadow-2xs">
-                            <div class="w-10 h-10 rounded-full bg-[#0F172B] text-white flex items-center justify-center font-bold text-sm mx-auto shadow-xs">
-                                💡
+                            <div class="w-10 h-10 rounded-xl bg-[#0F172B] text-white flex items-center justify-center mx-auto shadow-xs">
+                                <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-1.5m0-10.5a6 6 0 00-6 6c0 2.22 1.21 4.156 3 5.196V18a1 1 0 001 1h4a1 1 0 001-1v-1.304A6.002 6.002 0 0018 12a6 6 0 00-6-6z"/></svg>
                             </div>
                             <div class="space-y-1">
                                 <h4 class="text-xs font-bold text-slate-900">Need a Specific Skill or Tutor?</h4>
@@ -916,4 +943,8 @@
                     </div>
                 </template>
             </div>
+
+            <!-- Profile Slide-Over Drawer Modal -->
+            <x-profile-drawer :user="$user" :completionPercentage="$completionPercentage" />
 </x-dashboard-layout>
+

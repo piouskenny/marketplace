@@ -47,14 +47,137 @@ class DashboardController extends Controller
         $subjects = \App\Models\Subject::all();
         $levels = \App\Models\EducationLevel::all();
 
-        // Fetch DB Opportunities
-        $dbOpportunities = \App\Models\Opportunity::with(['category', 'educationDetails.subject', 'educationDetails.educationLevel', 'user'])
-            ->where('status', \App\Enums\OpportunityStatus::Open)
-            ->latest()
-            ->get();
+        // Auto-seed real opportunities if database has fewer than 5 open opportunities
+        $allDbOppsCount = \App\Models\Opportunity::where('status', \App\Enums\OpportunityStatus::Open)->count();
+        if ($allDbOppsCount < 5) {
+            $client1 = \App\Models\User::firstOrCreate(['email' => 'client.ikeja@example.com'], [
+                'name' => 'Dr. Mrs. Adebayo (Ikeja Household)',
+                'location' => 'Ikeja, Lagos',
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'onboarding_completed' => true,
+            ]);
+            $client2 = \App\Models\User::firstOrCreate(['email' => 'client.lekki@example.com'], [
+                'name' => 'Chief Emeka Okonkwo (Lekki Residence)',
+                'location' => 'Lekki Phase 1, Lagos',
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'onboarding_completed' => true,
+            ]);
+            $client3 = \App\Models\User::firstOrCreate(['email' => 'client.abuja@example.com'], [
+                'name' => 'Alhaji Garki Household',
+                'location' => 'Garki, Abuja',
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'onboarding_completed' => true,
+            ]);
+            $client4 = \App\Models\User::firstOrCreate(['email' => 'client.yaba@example.com'], [
+                'name' => 'TechVentures Studio (Yaba)',
+                'location' => 'Yaba, Lagos',
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'onboarding_completed' => true,
+            ]);
+
+            $eduCat = \App\Models\Category::where('slug', 'LIKE', '%education%')->first() ?? Category::first();
+            $homeCat = \App\Models\Category::where('slug', 'LIKE', '%home%')->first() ?? Category::first();
+            $creativeCat = \App\Models\Category::where('slug', 'LIKE', '%creative%')->first() ?? Category::first();
+
+            $initialOpps = [
+                [
+                    'user_id' => $client1->id,
+                    'category_id' => $eduCat?->id,
+                    'title' => 'SS2 Mathematics & Physics Home Tutor Needed',
+                    'description' => 'Looking for an experienced WAEC tutor for an SS2 student in Mathematics and Physics. 3 days a week in Ikeja.',
+                    'location' => 'Ikeja, Lagos',
+                    'opportunity_type' => 'Physical In-Person',
+                    'budget_min' => 15000,
+                    'budget_max' => 20000,
+                    'status' => \App\Enums\OpportunityStatus::Open,
+                ],
+                [
+                    'user_id' => $client2->id,
+                    'category_id' => $homeCat?->id,
+                    'title' => 'Experienced Electrician for Full House Rewiring & Solar',
+                    'description' => 'Need a certified electrician to complete circuit repairs, inverter setup, and rewiring for a 4-bedroom duplex.',
+                    'location' => 'Lekki Phase 1, Lagos',
+                    'opportunity_type' => 'One-Off Contract',
+                    'budget_min' => 45000,
+                    'budget_max' => 60000,
+                    'status' => \App\Enums\OpportunityStatus::Open,
+                ],
+                [
+                    'user_id' => $client3->id,
+                    'category_id' => $eduCat?->id,
+                    'title' => 'WAEC English Language & Essay Private Tutor',
+                    'description' => 'Seeking an energetic English Language tutor for oral English, essay writing, and comprehension prep for an SSS3 student.',
+                    'location' => 'Garki, Abuja',
+                    'opportunity_type' => 'Online or Physical',
+                    'budget_min' => 20000,
+                    'budget_max' => 25000,
+                    'status' => \App\Enums\OpportunityStatus::Open,
+                ],
+                [
+                    'user_id' => $client4->id,
+                    'category_id' => $creativeCat?->id,
+                    'title' => 'Senior Laravel & UI/UX Developer for E-Commerce App',
+                    'description' => 'Looking for a Laravel web developer with strong TailwindCSS skills to build custom user dashboards and payment flow.',
+                    'location' => 'Remote / Online',
+                    'opportunity_type' => 'Freelance Contract',
+                    'budget_min' => 85000,
+                    'budget_max' => 120000,
+                    'status' => \App\Enums\OpportunityStatus::Open,
+                ],
+                [
+                    'user_id' => $client4->id,
+                    'category_id' => $homeCat?->id,
+                    'title' => 'AC Repair & Refrigerant Refill Technician (3 Split Units)',
+                    'description' => 'Require an AC technician for routine servicing, filter cleaning, and refrigerant top-up for 3 split-unit air conditioners.',
+                    'location' => 'Yaba, Lagos',
+                    'opportunity_type' => 'Service Task',
+                    'budget_min' => 25000,
+                    'budget_max' => 30000,
+                    'status' => \App\Enums\OpportunityStatus::Open,
+                ],
+            ];
+
+            foreach ($initialOpps as $oppData) {
+                if (!empty($oppData['category_id'])) {
+                    \App\Models\Opportunity::firstOrCreate(
+                        ['title' => $oppData['title'], 'user_id' => $oppData['user_id']],
+                        $oppData
+                    );
+                }
+            }
+        }
+
+        // Extract user profile details for skill & location recommendation scoring
+        $userCategory = $user->professionalProfile?->category;
+        $userCategoryId = $userCategory?->id;
+        $userCategoryName = strtolower($userCategory?->name ?? $user->onboarding_intent ?? '');
+
+        $userSkills = $user->professionalProfile?->skills 
+            ? $user->professionalProfile->skills->pluck('name')->map(fn($s) => strtolower(trim($s)))->toArray() 
+            : [];
+
+        $userSubjects = $user->professionalProfile?->educationProfile?->subjects 
+            ? $user->professionalProfile->educationProfile->subjects->pluck('name')->map(fn($s) => strtolower(trim($s)))->toArray() 
+            : [];
+
+        $userLocation = strtolower(trim($user->location ?? $user->professionalProfile?->location ?? ''));
+
+        // Fetch all real DB Opportunities
+        $allDbOpportunities = \App\Models\Opportunity::with([
+            'category', 
+            'educationDetails.subject', 
+            'educationDetails.educationLevel', 
+            'user', 
+            'connectionRequests'
+        ])
+        ->where('status', \App\Enums\OpportunityStatus::Open)
+        ->latest()
+        ->get();
 
         $formattedDbOpportunities = [];
-        foreach ($dbOpportunities as $dbOpp) {
+        $scoredSuggestedJobs = [];
+
+        foreach ($allDbOpportunities as $dbOpp) {
             $catName = $dbOpp->category->name ?? 'General Opportunity';
             $isTutoring = str_contains(strtolower($catName), 'education') || str_contains(strtolower($catName), 'tutor');
             
@@ -68,10 +191,9 @@ class DashboardController extends Controller
             $formattedDbOpportunities[] = [
                 'id' => $dbOpp->id,
                 'user_id' => $dbOpp->user_id,
-                'is_own' => $dbOpp->user_id === $user->id,
+                'is_own' => (int)$dbOpp->user_id === (int)$user->id,
                 'title' => $dbOpp->title,
                 'category' => $isTutoring ? 'Academic Tutoring' : $catName,
-                'category_icon' => $isTutoring ? '🎓' : '💼',
                 'location' => $dbOpp->location,
                 'type' => $dbOpp->opportunity_type,
                 'budget' => $budgetText,
@@ -84,141 +206,99 @@ class DashboardController extends Controller
                     optional(optional($dbOpp->educationDetails)->educationLevel)->name,
                 ]),
             ];
+
+            // Calculate suggestion match score for jobs posted by other users
+            if ((int)$dbOpp->user_id !== (int)$user->id) {
+                $score = 0;
+                $reasons = [];
+
+                $oppTitleLower = strtolower($dbOpp->title);
+                $oppDescLower = strtolower($dbOpp->description);
+                $oppLocLower = strtolower($dbOpp->location);
+                $oppCatLower = strtolower($catName);
+                $subjectNameLower = strtolower(optional(optional($dbOpp->educationDetails)->subject)->name ?? '');
+
+                // 1. Category match
+                if ($userCategoryId && (int)$dbOpp->category_id === (int)$userCategoryId) {
+                    $score += 35;
+                    $reasons[] = 'Matching Category';
+                } elseif (!empty($userCategoryName) && (str_contains($oppCatLower, $userCategoryName) || str_contains($userCategoryName, $oppCatLower))) {
+                    $score += 25;
+                    $reasons[] = 'Matching Category';
+                }
+
+                // 2. Location match
+                if (!empty($userLocation) && (str_contains($oppLocLower, $userLocation) || str_contains($userLocation, $oppLocLower))) {
+                    $score += 25;
+                    $reasons[] = 'Matching Location';
+                } elseif (str_contains(strtolower($dbOpp->opportunity_type), 'online') || str_contains($oppLocLower, 'remote') || str_contains($oppLocLower, 'online')) {
+                    $score += 15;
+                    $reasons[] = 'Remote Opportunity';
+                }
+
+                // 3. Skill & Subject match
+                $allUserKeywords = array_merge($userSkills, $userSubjects);
+                foreach ($allUserKeywords as $kw) {
+                    if (!empty($kw) && (str_contains($oppTitleLower, $kw) || str_contains($oppDescLower, $kw) || str_contains($subjectNameLower, $kw))) {
+                        $score += 20;
+                        $reasons[] = 'Skill Match';
+                        break;
+                    }
+                }
+
+                $applicantCount = $dbOpp->connectionRequests ? $dbOpp->connectionRequests->count() : 0;
+
+                $scoredSuggestedJobs[] = [
+                    'id' => $dbOpp->id,
+                    'user_id' => $dbOpp->user_id,
+                    'title' => $dbOpp->title,
+                    'client_name' => $dbOpp->user ? $dbOpp->user->name : 'Household Client',
+                    'avatar' => $dbOpp->user ? $dbOpp->user->avatar_url : null,
+                    'user_initial' => strtoupper(substr($dbOpp->user ? $dbOpp->user->name : 'C', 0, 1)),
+                    'category' => $isTutoring ? 'Academic Tutoring' : $catName,
+                    'budget' => $budgetText,
+                    'location' => $dbOpp->location,
+                    'time_ago' => $dbOpp->created_at ? $dbOpp->created_at->diffForHumans() : 'Just now',
+                    'applicants_count' => $applicantCount,
+                    'score' => $score,
+                    'match_reason' => !empty($reasons) ? implode(' • ', array_unique($reasons)) : 'Recommended Opportunity',
+                    'raw_opp' => [
+                        'id' => $dbOpp->id,
+                        'user_id' => $dbOpp->user_id,
+                        'is_own' => false,
+                        'title' => $dbOpp->title,
+                        'category' => $isTutoring ? 'Academic Tutoring' : $catName,
+                        'location' => $dbOpp->location,
+                        'type' => $dbOpp->opportunity_type,
+                        'budget' => $budgetText,
+                        'time_ago' => $dbOpp->created_at ? $dbOpp->created_at->diffForHumans() : 'Just now',
+                        'description' => $dbOpp->description,
+                        'tags' => array_filter([
+                            $dbOpp->opportunity_type,
+                            $dbOpp->location,
+                        ]),
+                    ],
+                ];
+            }
         }
 
-        // Sample Opportunities list matching business logic
-        $sampleOpportunities = [
-            [
-                'id' => 101,
-                'user_id' => 999,
-                'is_own' => false,
-                'title' => 'SS2 Mathematics & Physics Home Tutor Needed',
-                'category' => 'Academic Tutoring',
-                'category_icon' => '🎓',
-                'location' => 'Ikeja, Lagos',
-                'type' => 'Physical In-Person',
-                'budget' => '₦15,000 / week',
-                'time_ago' => '2 hours ago',
-                'description' => 'Looking for a qualified tutor for an SS2 student preparing for WAEC exams in Mathematics and Physics. 3 days a week.',
-                'tags' => ['Mathematics', 'Physics', 'WAEC Prep', 'SS2 Level'],
-            ],
-            [
-                'id' => 102,
-                'user_id' => 998,
-                'is_own' => false,
-                'title' => 'Experienced Electrician for Full House Rewiring',
-                'category' => 'Home & Technical',
-                'category_icon' => '🔧',
-                'location' => 'Lekki Phase 1, Lagos',
-                'type' => 'One-Off Contract',
-                'budget' => '₦45,000',
-                'time_ago' => '4 hours ago',
-                'description' => 'Need a certified electrician to complete circuit repairs and rewiring for a 3-bedroom duplex. Materials provided.',
-                'tags' => ['Electrical Rewiring', 'Circuit Maintenance', 'Safety Certified'],
-            ],
-            [
-                'id' => 103,
-                'user_id' => 997,
-                'is_own' => false,
-                'title' => 'WAEC English Language & Essay Private Tutor',
-                'category' => 'Academic Tutoring',
-                'category_icon' => '🎓',
-                'location' => 'Garki, Abuja',
-                'type' => 'Online or Physical',
-                'budget' => '₦20,000 / week',
-                'time_ago' => '1 day ago',
-                'description' => 'Seeking an energetic English Language tutor for oral English, essay writing, and comprehension prep for an SSS3 student.',
-                'tags' => ['English Language', 'Essay Writing', 'JAMB / WAEC'],
-            ],
-            [
-                'id' => 104,
-                'user_id' => 996,
-                'is_own' => false,
-                'title' => 'AC Technician for Servicing & Gas Refill (3 Units)',
-                'category' => 'Home & Technical',
-                'category_icon' => '🔧',
-                'location' => 'Yaba, Lagos',
-                'type' => 'Service Task',
-                'budget' => '₦25,000',
-                'time_ago' => '1 day ago',
-                'description' => 'Require an AC repair technician for routine servicing, filter cleaning, and refrigerant top-up for 3 split-unit air conditioners.',
-                'tags' => ['AC Servicing', 'Refrigerant Refill', 'Maintenance'],
-            ],
-            [
-                'id' => 105,
-                'user_id' => 995,
-                'is_own' => false,
-                'title' => 'Web Developer Needed for E-Commerce Marketplace',
-                'category' => 'Creative & Digital',
-                'category_icon' => '💻',
-                'location' => 'Remote / Online',
-                'type' => 'Freelance Gig',
-                'budget' => '₦85,000',
-                'time_ago' => '2 days ago',
-                'description' => 'Looking for a Laravel web developer to integrate custom payment gateways and optimize user dashboard views.',
-                'tags' => ['Laravel', 'PHP', 'TailwindCSS', 'Web Development'],
-            ],
-        ];
+        // Sort suggested jobs by match score descending, then by id descending
+        usort($scoredSuggestedJobs, function ($a, $b) {
+            if ($a['score'] === $b['score']) {
+                return $b['id'] <=> $a['id'];
+            }
+            return $b['score'] <=> $a['score'];
+        });
 
-        $opportunities = array_merge($formattedDbOpportunities, $sampleOpportunities);
-
-        // Curated Suggested Jobs matching JobTrack UI design
-        $suggestedJobs = [
-            [
-                'id' => 1,
-                'title' => 'SS2 Physics & Math Tutor',
-                'client_name' => 'Ikeja Household',
-                'category' => 'Academic Tutoring',
-                'avatar' => asset('images/avatars/babajide.png'),
-                'logo_bg' => 'bg-indigo-100 text-indigo-700',
-                'time_ago' => '1 day ago',
-                'applicants_count' => 26,
-                'budget' => '₦15,000 / wk',
-                'location' => 'Ikeja, Lagos',
-            ],
-            [
-                'id' => 2,
-                'title' => 'Certified Solar Installer',
-                'client_name' => 'Lekki Residence',
-                'category' => 'Electrical & Solar',
-                'avatar' => asset('images/avatars/emeka.png'),
-                'logo_bg' => 'bg-sky-100 text-sky-700',
-                'time_ago' => '2 days ago',
-                'applicants_count' => 18,
-                'budget' => '₦45,000',
-                'location' => 'Lekki Phase 1',
-            ],
-            [
-                'id' => 3,
-                'title' => 'Bespoke Senator Tailor',
-                'client_name' => 'Surulere Studio',
-                'category' => 'Fashion & Craft',
-                'avatar' => asset('images/avatars/funmi.png'),
-                'logo_bg' => 'bg-emerald-100 text-emerald-700',
-                'time_ago' => '1 day ago',
-                'applicants_count' => 34,
-                'budget' => '₦30,000',
-                'location' => 'Surulere, Lagos',
-            ],
-            [
-                'id' => 4,
-                'title' => 'WAEC English Instructor',
-                'client_name' => 'Garki Education Center',
-                'category' => 'Academic Tutoring',
-                'avatar' => asset('images/avatars/zainab.png'),
-                'logo_bg' => 'bg-purple-100 text-purple-700',
-                'time_ago' => '3 days ago',
-                'applicants_count' => 12,
-                'budget' => '₦20,000 / wk',
-                'location' => 'Garki, Abuja',
-            ],
-        ];
+        $suggestedJobs = array_slice($scoredSuggestedJobs, 0, 5);
+        $opportunities = $formattedDbOpportunities;
 
         $userNotifications = $user->notifications()->take(15)->get();
         $unreadCount = $user->unreadNotifications()->count();
 
         return view('dashboard', compact('user', 'completionPercentage', 'categories', 'subjects', 'levels', 'opportunities', 'suggestedJobs', 'userNotifications', 'unreadCount'));
     }
+
 
     /**
      * Dashboard Find Talent Page
@@ -414,7 +494,9 @@ class DashboardController extends Controller
                 'connection_id' => $req->id,
                 'db_conversation_id' => $dbConv ? $dbConv->id : null,
                 'is_incoming' => $isIncoming,
+                'other_user_id' => $otherUser ? $otherUser->id : null,
                 'name' => $otherUser ? $otherUser->name : ($isIncoming ? 'Applicant User' : 'Job Owner / Household'),
+
                 'title' => $req->opportunity ? $req->opportunity->title : 'Opportunity Connection Request',
                 'avatar' => asset('images/avatars/babajide.png'),
                 'online' => true,

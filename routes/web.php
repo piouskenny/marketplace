@@ -78,7 +78,9 @@ Route::middleware('auth')->group(function () {
         // Profile Management Hub
         Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile/edit', [ProfileController::class, 'update']);
+        Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
     });
 });
+
 
 

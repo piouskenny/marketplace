@@ -949,14 +949,14 @@
                     <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
                         <!-- Chat Active User Header -->
                         <div class="px-5 py-3.5 border-b border-slate-200/80 flex items-center justify-between gap-4 bg-white shrink-0">
-                            <div class="flex items-center gap-3 min-w-0">
+                            <a :href="activeConversation.other_user_id ? '{{ url('/profile') }}/' + activeConversation.other_user_id : 'javascript:void(0)'" class="flex items-center gap-3 min-w-0 hover:opacity-80 transition-opacity">
                                 <div class="relative shrink-0">
                                     <img :src="activeConversation.avatar" :alt="activeConversation.name" class="w-10 h-10 rounded-full object-cover border border-slate-200" />
                                     <span x-show="activeConversation.online" class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white absolute bottom-0 right-0"></span>
                                 </div>
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <h3 class="text-sm font-bold text-slate-900 truncate" x-text="activeConversation.name"></h3>
+                                        <h3 class="text-sm font-bold text-slate-900 truncate hover:underline" x-text="activeConversation.name"></h3>
                                         <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200" x-text="activeConversation.category"></span>
                                         <template x-if="activeConversation.is_incoming && activeConversation.status === 'pending'">
                                             <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
@@ -995,16 +995,17 @@
                                         <span x-text="activeConversation.location"></span>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
 
-                            <button 
-                                @click="openApplicantProfile(activeConversation)" 
-                                class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors cursor-pointer shrink-0"
+                            <a 
+                                :href="activeConversation.other_user_id ? '{{ url('/profile') }}/' + activeConversation.other_user_id : 'javascript:void(0)'" 
+                                class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0F172B] hover:bg-slate-800 text-white text-xs font-bold transition-colors cursor-pointer shrink-0 shadow-2xs"
                             >
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                <span>View Profile</span>
-                            </button>
+                                <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <span>View Full Profile →</span>
+                            </a>
                         </div>
+
 
                         <!-- Messages History Feed Scroll Container -->
                         <div x-ref="messageFeed" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-slate-50/30">
@@ -1397,4 +1398,7 @@
         </div>
     </div>
 
+    <!-- Profile Slide-Over Drawer Modal -->
+    <x-profile-drawer :user="$user" />
 </x-dashboard-layout>
+
