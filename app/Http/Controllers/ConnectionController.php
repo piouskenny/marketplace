@@ -76,6 +76,8 @@ class ConnectionController extends Controller
         $conn = ConnectionRequest::find($cleanId);
 
         if ($conn) {
+            $this->authorize('accept', $conn);
+
             $conn->update([
                 'status' => ConnectionStatus::Accepted,
                 'accepted_at' => now(),
@@ -120,6 +122,8 @@ class ConnectionController extends Controller
         $conn = ConnectionRequest::find($cleanId);
 
         if ($conn) {
+            $this->authorize('decline', $conn);
+
             $conn->update([
                 'status' => ConnectionStatus::Declined,
                 'declined_at' => now(),
@@ -165,6 +169,8 @@ class ConnectionController extends Controller
         $conversation = null;
 
         if ($conn) {
+            $this->authorize('pay', $conn);
+
             \Illuminate\Support\Facades\DB::transaction(function () use ($conn, $user, &$conversation) {
                 $conn->update([
                     'status' => ConnectionStatus::Connected,

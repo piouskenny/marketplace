@@ -223,7 +223,7 @@ class DashboardController extends Controller
     /**
      * Dashboard Find Talent Page
      */
-    public function talent(Request $request)
+    public function talent(Request $request, \App\Services\ProfessionalDiscoveryService $discoveryService)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -254,58 +254,50 @@ class DashboardController extends Controller
         $searchQuery = trim($request->input('query', ''));
         $selectedCategory = trim($request->input('category', 'All'));
         $selectedLocation = trim($request->input('location', 'All'));
+        $selectedSubject = $request->input('subject_id') ? (int) $request->input('subject_id') : null;
+        $selectedLevel = $request->input('education_level_id') ? (int) $request->input('education_level_id') : null;
+        $selectedTeachingMode = trim($request->input('teaching_mode', 'All'));
+        $selectedMinRating = $request->input('min_rating') ? (float) $request->input('min_rating') : 0;
 
         $categories = Category::whereNull('parent_id')->get();
+        $subjects = \App\Models\Subject::orderBy('name')->get();
+        $educationLevels = \App\Models\EducationLevel::orderBy('id')->get();
 
-        $query = ProfessionalProfile::with([
-            'user',
-            'category',
-            'skills',
-            'educationProfile.subjects',
-            'educationProfile.educationLevels',
-        ]);
+        $filters = [
+            'query' => $searchQuery,
+            'category' => $selectedCategory,
+            'location' => $selectedLocation,
+            'subject_id' => $selectedSubject,
+            'education_level_id' => $selectedLevel,
+            'teaching_mode' => $selectedTeachingMode,
+            'min_rating' => $selectedMinRating,
+        ];
 
-        if (!empty($searchQuery)) {
-            $query->where(function ($q) use ($searchQuery) {
-                $q->where('display_name', 'LIKE', "%{$searchQuery}%")
-                  ->orWhere('bio', 'LIKE', "%{$searchQuery}%")
-                  ->orWhere('location', 'LIKE', "%{$searchQuery}%")
-                  ->orWhereHas('user', function ($uq) use ($searchQuery) {
-                      $uq->where('name', 'LIKE', "%{$searchQuery}%")
-                         ->orWhere('location', 'LIKE', "%{$searchQuery}%");
-                  })
-                  ->orWhereHas('category', function ($cq) use ($searchQuery) {
-                      $cq->where('name', 'LIKE', "%{$searchQuery}%");
-                  })
-                  ->orWhereHas('skills', function ($sq) use ($searchQuery) {
-                      $sq->where('name', 'LIKE', "%{$searchQuery}%");
-                  })
-                  ->orWhereHas('educationProfile.subjects', function ($subq) use ($searchQuery) {
-                      $subq->where('name', 'LIKE', "%{$searchQuery}%");
-                  });
-            });
-        }
-
-        if (!empty($selectedCategory) && $selectedCategory !== 'All') {
-            $query->where(function ($q) use ($selectedCategory) {
-                $q->whereHas('category', function ($cq) use ($selectedCategory) {
-                    $cq->where('name', 'LIKE', "%{$selectedCategory}%")
-                       ->orWhere('slug', 'LIKE', "%{$selectedCategory}%");
-                });
-            });
-        }
-
-        if (!empty($selectedLocation) && $selectedLocation !== 'All') {
-            $query->where('location', 'LIKE', "%{$selectedLocation}%");
-        }
-
-        $professionals = $query->orderBy('average_rating', 'desc')->get();
+        $paginated = $discoveryService->search($filters, 50);
+        $professionals = $paginated->items();
 
         $userNotifications = $user->notifications()->take(15)->get();
         $unreadCount = $user->unreadNotifications()->count();
 
-        return view('dashboard.talent', compact('user', 'completionPercentage', 'professionals', 'categories', 'searchQuery', 'selectedCategory', 'selectedLocation', 'userNotifications', 'unreadCount'));
+        return view('dashboard.talent', compact(
+            'user',
+            'completionPercentage',
+            'professionals',
+            'categories',
+            'subjects',
+            'educationLevels',
+            'searchQuery',
+            'selectedCategory',
+            'selectedLocation',
+            'selectedSubject',
+            'selectedLevel',
+            'selectedTeachingMode',
+            'selectedMinRating',
+            'userNotifications',
+            'unreadCount'
+        ));
     }
+
 
     /**
      * Dashboard Messages & Real-Time Chat Workspace

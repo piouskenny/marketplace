@@ -180,7 +180,7 @@
                     </div>
 
                     <!-- Search Engine Input & Filter Bar -->
-                    <form action="{{ route('dashboard.talent') }}" method="GET" class="space-y-4">
+                    <form action="{{ route('dashboard.talent') }}" method="GET" class="space-y-3">
                         <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
                             
                             <!-- Search Input -->
@@ -217,6 +217,53 @@
                                     <option value="Enugu" {{ $selectedLocation === 'Enugu' ? 'selected' : '' }}>Enugu</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <!-- Specialized Education & Rating Filters Row -->
+                        <div class="bg-slate-900 text-white p-2.5 rounded-xl border border-slate-800 flex flex-wrap items-center gap-2 text-xs">
+                            <span class="text-slate-400 font-semibold px-1 text-[11px] uppercase tracking-wider">Tutor Filters:</span>
+                            
+                            <!-- Subject Filter -->
+                            <select name="subject_id" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
+                                <option value="">All Subjects</option>
+                                @foreach($subjects as $sub)
+                                    <option value="{{ $sub->id }}" {{ isset($selectedSubject) && $selectedSubject == $sub->id ? 'selected' : '' }}>
+                                        🎓 {{ $sub->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <!-- Education Level Filter -->
+                            <select name="education_level_id" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
+                                <option value="">All Levels</option>
+                                @foreach($educationLevels as $lvl)
+                                    <option value="{{ $lvl->id }}" {{ isset($selectedLevel) && $selectedLevel == $lvl->id ? 'selected' : '' }}>
+                                        {{ $lvl->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <!-- Teaching Mode Filter -->
+                            <select name="teaching_mode" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
+                                <option value="All" {{ isset($selectedTeachingMode) && $selectedTeachingMode === 'All' ? 'selected' : '' }}>All Modes</option>
+                                <option value="physical" {{ isset($selectedTeachingMode) && $selectedTeachingMode === 'physical' ? 'selected' : '' }}>Physical (In-Person)</option>
+                                <option value="online" {{ isset($selectedTeachingMode) && $selectedTeachingMode === 'online' ? 'selected' : '' }}>Online</option>
+                                <option value="both" {{ isset($selectedTeachingMode) && $selectedTeachingMode === 'both' ? 'selected' : '' }}>Physical & Online</option>
+                            </select>
+
+                            <!-- Min Rating Filter -->
+                            <select name="min_rating" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
+                                <option value="0" {{ isset($selectedMinRating) && $selectedMinRating == 0 ? 'selected' : '' }}>All Ratings</option>
+                                <option value="4.5" {{ isset($selectedMinRating) && $selectedMinRating == 4.5 ? 'selected' : '' }}>★ 4.5 & above</option>
+                                <option value="4.0" {{ isset($selectedMinRating) && $selectedMinRating == 4.0 ? 'selected' : '' }}>★ 4.0 & above</option>
+                                <option value="3.0" {{ isset($selectedMinRating) && $selectedMinRating == 3.0 ? 'selected' : '' }}>★ 3.0 & above</option>
+                            </select>
+
+                            @if((isset($selectedSubject) && $selectedSubject) || (isset($selectedLevel) && $selectedLevel) || (isset($selectedTeachingMode) && $selectedTeachingMode !== 'All') || (isset($selectedMinRating) && $selectedMinRating > 0))
+                                <a href="{{ route('dashboard.talent') }}" class="text-sky-400 hover:text-sky-300 font-medium text-[11px] underline ml-auto px-1">
+                                    Clear Filters
+                                </a>
+                            @endif
                         </div>
 
                         <!-- Sub-bar Filter Pills -->

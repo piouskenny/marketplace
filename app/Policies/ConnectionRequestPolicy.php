@@ -2,6 +2,8 @@
 
 namespace App\Policies;
 
+use App\Enums\ConnectionStatus;
+use App\Models\ConnectionRequest;
 use App\Models\User;
 
 /**
@@ -17,45 +19,62 @@ class ConnectionRequestPolicy
     /**
      * Only the initiator or recipient can view a connection request.
      */
-    public function view(User $user, mixed $connectionRequest): bool
+    public function view(User $user, ConnectionRequest $connectionRequest): bool
     {
-        // Placeholder — will check $user->id matches initiator_id or recipient_id
-        return false;
+        return (int) $connectionRequest->initiator_id === (int) $user->id
+            || (int) $connectionRequest->recipient_id === (int) $user->id;
     }
 
     /**
      * Only the recipient can accept a request.
      */
-    public function accept(User $user, mixed $connectionRequest): bool
+    public function accept(User $user, ConnectionRequest $connectionRequest): bool
     {
-        // Placeholder — will check $user->id === $connectionRequest->recipient_id
-        //            && $connectionRequest->status === ConnectionStatus::Pending
-        return false;
+        $statusValue = $connectionRequest->status instanceof ConnectionStatus
+            ? $connectionRequest->status->value
+            : (string) $connectionRequest->status;
+
+        return (int) $connectionRequest->recipient_id === (int) $user->id
+            && $statusValue === ConnectionStatus::Pending->value;
     }
 
     /**
      * Only the recipient can decline a request.
      */
-    public function decline(User $user, mixed $connectionRequest): bool
+    public function decline(User $user, ConnectionRequest $connectionRequest): bool
     {
-        return false;
+        $statusValue = $connectionRequest->status instanceof ConnectionStatus
+            ? $connectionRequest->status->value
+            : (string) $connectionRequest->status;
+
+        return (int) $connectionRequest->recipient_id === (int) $user->id
+            && $statusValue === ConnectionStatus::Pending->value;
     }
 
     /**
      * Only the initiator can cancel a pending request.
      */
-    public function cancel(User $user, mixed $connectionRequest): bool
+    public function cancel(User $user, ConnectionRequest $connectionRequest): bool
     {
-        return false;
+        $statusValue = $connectionRequest->status instanceof ConnectionStatus
+            ? $connectionRequest->status->value
+            : (string) $connectionRequest->status;
+
+        return (int) $connectionRequest->initiator_id === (int) $user->id
+            && $statusValue === ConnectionStatus::Pending->value;
     }
 
     /**
      * Only the initiator can pay for an accepted request.
      */
-    public function pay(User $user, mixed $connectionRequest): bool
+    public function pay(User $user, ConnectionRequest $connectionRequest): bool
     {
-        // Placeholder — will check $user->id === $connectionRequest->initiator_id
-        //            && $connectionRequest->status === ConnectionStatus::PaymentPending
-        return false;
+        $statusValue = $connectionRequest->status instanceof ConnectionStatus
+            ? $connectionRequest->status->value
+            : (string) $connectionRequest->status;
+
+        return (int) $connectionRequest->initiator_id === (int) $user->id
+            && ($statusValue === ConnectionStatus::Accepted->value || $statusValue === ConnectionStatus::PaymentPending->value);
     }
 }
+

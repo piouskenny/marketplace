@@ -179,15 +179,52 @@
                                             self.handleIncomingBroadcast(e);
                                         };
 
+                                        var readHandler = function(e) {
+                                            console.log('[RT-DIAG EVENT] MessagesRead event received on channel', targetChannel, e);
+                                            self.handleIncomingReadReceipt(e);
+                                        };
+
                                         convChannel
                                             .listen('.message.sent', msgHandler)
                                             .listen('message.sent', msgHandler)
-                                            .listen('MessageSent', msgHandler);
+                                            .listen('MessageSent', msgHandler)
+                                            .listen('.messages.read', readHandler)
+                                            .listen('messages.read', readHandler)
+                                            .listen('MessagesRead', readHandler);
                                     } else {
                                         console.log('[RT-DIAG] Already subscribed to channel:', targetChannel);
                                     }
                                 } else {
                                     console.log('[RT-DIAG SKIP] Conversation', conv.id, 'has NO db_conversation_id yet.');
+                                }
+                            });
+                        }
+                    },
+
+                    handleIncomingReadReceipt: function(e) {
+                        console.log('[RT-DIAG ENTRY] handleIncomingReadReceipt()', e);
+                        if (!e || !e.conversation_id) return;
+                        var self = this;
+                        var conv = self.conversations.find(function(c) {
+                            return (e.conversation_id && (String(c.db_conversation_id) === String(e.conversation_id) || String(c.id) === 'db_conv_' + e.conversation_id)) ||
+                                   (e.connection_id && (String(c.connection_id) === String(e.connection_id) || String(c.id) === 'conn_' + e.connection_id));
+                        });
+
+                        if (!conv) {
+                            console.warn('[RT-DIAG READ RECEIPT NO MATCH]', e);
+                            return;
+                        }
+
+                        var readAt = e.read_at || new Date().toISOString();
+                        var messageIds = e.message_ids || [];
+
+                        if (conv.messages && conv.messages.length > 0) {
+                            conv.messages.forEach(function(m) {
+                                if (m.sender === 'me') {
+                                    if (messageIds.length === 0 || messageIds.map(String).indexOf(String(m.id)) !== -1) {
+                                        m.read_at = readAt;
+                                        m.pending = false;
+                                    }
                                 }
                             });
                         }
@@ -206,6 +243,11 @@
                         var msgTime = payload.created_at || payload.time_formatted || n.created_at || new Date().toISOString();
 
                         console.log('[RT-DIAG NOTIF PARSED]', { type: type, messageText: messageText, convId: convId, connReqId: connReqId });
+
+                        if (type === 'messages_read' || type === 'messages.read') {
+                            self.handleIncomingReadReceipt(payload);
+                            return;
+                        }
 
                         if (type === 'new_message' || messageText) {
                             var conv = self.conversations.find(function(c) {
@@ -244,6 +286,7 @@
                                         sender: 'them',
                                         text: messageText || 'New message received',
                                         time: msgTime,
+                                        read_at: null,
                                         pending: false
                                     });
 
@@ -743,7 +786,7 @@
                 <div class="p-4 border-b border-slate-200/80 space-y-3 bg-white">
                     <div class="flex items-center justify-between">
                         <h2 class="text-xl font-bold text-slate-900 tracking-tight">Messages</h2>
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#0F172B] text-white" x-text="conversations.length + ' Chats'"></span>
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#0F172B] text-white" x-text="unreadConversationsCount > 0 ? unreadConversationsCount + ' Unread Chats' : conversations.length + ' Chats'"></span>
                     </div>
                     <div class="relative">
                         <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -1048,7 +1091,14 @@
                                         >
                                             <span x-text="formatTime(msg.time)"></span>
                                             <template x-if="msg.sender === 'me'">
-                                                <svg class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                <span class="inline-flex items-center ml-0.5" :title="msg.read_at ? 'Read' : 'Sent'">
+                                                    <template x-if="msg.read_at">
+                                                        <span class="text-emerald-400 font-bold text-[11px] leading-none tracking-tighter">✓✓</span>
+                                                    </template>
+                                                    <template x-if="!msg.read_at">
+                                                        <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                                    </template>
+                                                </span>
                                             </template>
                                         </div>
                                     </div>

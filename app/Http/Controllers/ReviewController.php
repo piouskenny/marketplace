@@ -20,6 +20,16 @@ class ReviewController extends Controller
         $cleanId = str_replace('conn_', '', $connectionId);
         $connectionRequest = ConnectionRequest::findOrFail($cleanId);
 
+        if ($user->cannot('create', [\App\Models\Review::class, $connectionRequest])) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Reviews can only be submitted for active, connected requests once per participant.',
+                ], 422);
+            }
+            return redirect()->back()->with('error', 'Reviews can only be submitted for active, connected requests once per participant.');
+        }
+
         $validated = $request->validate([
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:1000',

@@ -88,7 +88,7 @@
                     </p>
 
                     <!-- Search Filter Form -->
-                    <form action="{{ route('talent.index') }}" method="GET" class="pt-2">
+                    <form action="{{ route('talent.index') }}" method="GET" class="pt-2 space-y-2.5">
                         <div class="bg-white p-2.5 sm:p-3 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center gap-2.5 border border-slate-200">
                             <!-- Keyword Input -->
                             <div class="relative flex-1 w-full">
@@ -130,7 +130,55 @@
                                 Search
                             </button>
                         </div>
+
+                        <!-- Specialized Education & Rating Filters Row -->
+                        <div class="bg-slate-800/90 backdrop-blur-xs p-2.5 rounded-xl border border-slate-700/80 flex flex-wrap items-center gap-2 text-xs">
+                            <span class="text-slate-400 font-semibold px-1 text-[11px] uppercase tracking-wider">Tutor Filters:</span>
+                            
+                            <!-- Subject Filter -->
+                            <select name="subject_id" class="bg-slate-900 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
+                                <option value="">All Subjects</option>
+                                @foreach($subjects as $sub)
+                                    <option value="{{ $sub->id }}" {{ $selectedSubject == $sub->id ? 'selected' : '' }}>
+                                        🎓 {{ $sub->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <!-- Education Level Filter -->
+                            <select name="education_level_id" class="bg-slate-900 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
+                                <option value="">All Levels</option>
+                                @foreach($educationLevels as $lvl)
+                                    <option value="{{ $lvl->id }}" {{ $selectedLevel == $lvl->id ? 'selected' : '' }}>
+                                        {{ $lvl->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <!-- Teaching Mode Filter -->
+                            <select name="teaching_mode" class="bg-slate-900 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
+                                <option value="All" {{ $selectedTeachingMode === 'All' ? 'selected' : '' }}>All Modes</option>
+                                <option value="physical" {{ $selectedTeachingMode === 'physical' ? 'selected' : '' }}>Physical (In-Person)</option>
+                                <option value="online" {{ $selectedTeachingMode === 'online' ? 'selected' : '' }}>Online</option>
+                                <option value="both" {{ $selectedTeachingMode === 'both' ? 'selected' : '' }}>Physical & Online</option>
+                            </select>
+
+                            <!-- Min Rating Filter -->
+                            <select name="min_rating" class="bg-slate-900 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
+                                <option value="0" {{ $selectedMinRating == 0 ? 'selected' : '' }}>All Ratings</option>
+                                <option value="4.5" {{ $selectedMinRating == 4.5 ? 'selected' : '' }}>★ 4.5 & above</option>
+                                <option value="4.0" {{ $selectedMinRating == 4.0 ? 'selected' : '' }}>★ 4.0 & above</option>
+                                <option value="3.0" {{ $selectedMinRating == 3.0 ? 'selected' : '' }}>★ 3.0 & above</option>
+                            </select>
+
+                            @if($selectedSubject || $selectedLevel || $selectedTeachingMode !== 'All' || $selectedMinRating > 0)
+                                <a href="{{ route('talent.index') }}" class="text-sky-400 hover:text-sky-300 font-medium text-[11px] underline ml-auto px-1">
+                                    Clear Filters
+                                </a>
+                            @endif
+                        </div>
                     </form>
+
                 </div>
             </section>
 

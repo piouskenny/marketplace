@@ -63,4 +63,81 @@ class ProfessionalProfile extends Model
     {
         return $this->hasMany(ConnectionRequest::class);
     }
+
+    /**
+     * Determine whether a given user can see unmasked private contact information.
+     */
+    public function canSeeContactDetails(?User $viewer): bool
+    {
+        if (!$viewer) {
+            return false;
+        }
+
+        // Profile owner can always view their own contact details
+        if ((int) $viewer->id === (int) $this->user_id) {
+            return true;
+        }
+
+        // Check if there is an active Connected request between viewer and profile owner
+        return ConnectionRequest::where(function ($q) use ($viewer) {
+                $q->where('initiator_id', $viewer->id)
+                  ->where('recipient_id', $this->user_id);
+            })->orWhere(function ($q) use ($viewer) {
+                $q->where('initiator_id', $this->user_id)
+                  ->where('recipient_id', $viewer->id);
+            })
+            ->where(function ($q) {
+                $q->where('status', \App\Enums\ConnectionStatus::Connected)
+                  ->orWhere('status', 'connected');
+            })
+            ->exists();
+    }
+
+    /**
+     * Return full phone number if authorized, or a masked phone string otherwise.
+     */
+    public function getDisplayPhone(?User $viewer): string
+    {
+        $rawPhone = $this->phone ?? ($this->user ? $this->user->phone : null);
+        if (empty($rawPhone)) {
+            return 'Not provided';
+        }
+
+        if ($this->canSeeContactDetails($viewer)) {
+            return $rawPhone;
+        }
+
+        $len = strlen($rawPhone);
+        if ($len <= 5) {
+            return '••••••••';
+        }
+
+        return substr($rawPhone, 0, 4) . ' •••• ' . substr($rawPhone, -2);
+    }
+
+    /**
+     * Return full email if authorized, or a masked email string otherwise.
+     */
+    public function getDisplayEmail(?User $viewer): string
+    {
+        $rawEmail = $this->contact_email ?? ($this->user ? $this->user->email : null);
+        if (empty($rawEmail)) {
+            return 'Not provided';
+        }
+
+        if ($this->canSeeContactDetails($viewer)) {
+            return $rawEmail;
+        }
+
+        $parts = explode('@', $rawEmail);
+        $namePart = $parts[0];
+        $domain = $parts[1] ?? 'email.com';
+
+        $maskedName = strlen($namePart) > 2 
+            ? substr($namePart, 0, 2) . '••••'
+            : '••';
+
+        return $maskedName . '@' . $domain;
+    }
 }
+
