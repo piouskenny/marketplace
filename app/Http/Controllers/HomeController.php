@@ -23,34 +23,36 @@ class HomeController extends Controller
             'educationProfile.educationLevels',
         ]);
 
+        $likeOp = \Illuminate\Support\Facades\DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
+
         if (!empty($searchQuery)) {
-            $query->where(function ($q) use ($searchQuery) {
-                $q->where('display_name', 'LIKE', "%{$searchQuery}%")
-                  ->orWhere('bio', 'LIKE', "%{$searchQuery}%")
-                  ->orWhere('location', 'LIKE', "%{$searchQuery}%")
-                  ->orWhereHas('user', function ($uq) use ($searchQuery) {
-                      $uq->where('name', 'LIKE', "%{$searchQuery}%")
-                         ->orWhere('location', 'LIKE', "%{$searchQuery}%");
+            $query->where(function ($q) use ($searchQuery, $likeOp) {
+                $q->where('display_name', $likeOp, "%{$searchQuery}%")
+                  ->orWhere('bio', $likeOp, "%{$searchQuery}%")
+                  ->orWhere('location', $likeOp, "%{$searchQuery}%")
+                  ->orWhereHas('user', function ($uq) use ($searchQuery, $likeOp) {
+                      $uq->where('name', $likeOp, "%{$searchQuery}%")
+                         ->orWhere('location', $likeOp, "%{$searchQuery}%");
                   })
-                  ->orWhereHas('category', function ($cq) use ($searchQuery) {
-                      $cq->where('name', 'LIKE', "%{$searchQuery}%");
+                  ->orWhereHas('category', function ($cq) use ($searchQuery, $likeOp) {
+                      $cq->where('name', $likeOp, "%{$searchQuery}%");
                   })
-                  ->orWhereHas('skills', function ($sq) use ($searchQuery) {
-                      $sq->where('name', 'LIKE', "%{$searchQuery}%");
+                  ->orWhereHas('skills', function ($sq) use ($searchQuery, $likeOp) {
+                      $sq->where('name', $likeOp, "%{$searchQuery}%");
                   })
-                  ->orWhereHas('educationProfile.subjects', function ($subq) use ($searchQuery) {
-                      $subq->where('name', 'LIKE', "%{$searchQuery}%");
+                  ->orWhereHas('educationProfile.subjects', function ($subq) use ($searchQuery, $likeOp) {
+                      $subq->where('name', $likeOp, "%{$searchQuery}%");
                   });
             });
         }
 
         if (!empty($selectedCategory) && $selectedCategory !== 'All') {
-            $query->where(function ($q) use ($selectedCategory) {
-                $q->whereHas('category', function ($cq) use ($selectedCategory) {
-                    $cq->where('name', 'LIKE', "%{$selectedCategory}%")
-                       ->orWhere('slug', 'LIKE', "%{$selectedCategory}%");
-                })->orWhereHas('category.parent', function ($pq) use ($selectedCategory) {
-                    $pq->where('name', 'LIKE', "%{$selectedCategory}%");
+            $query->where(function ($q) use ($selectedCategory, $likeOp) {
+                $q->whereHas('category', function ($cq) use ($selectedCategory, $likeOp) {
+                    $cq->where('name', $likeOp, "%{$selectedCategory}%")
+                       ->orWhere('slug', $likeOp, "%{$selectedCategory}%");
+                })->orWhereHas('category.parent', function ($pq) use ($selectedCategory, $likeOp) {
+                    $pq->where('name', $likeOp, "%{$selectedCategory}%");
                 });
             });
         }

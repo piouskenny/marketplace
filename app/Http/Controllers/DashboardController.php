@@ -75,9 +75,10 @@ class DashboardController extends Controller
                 'onboarding_completed' => true,
             ]);
 
-            $eduCat = \App\Models\Category::where('slug', 'LIKE', '%education%')->first() ?? Category::first();
-            $homeCat = \App\Models\Category::where('slug', 'LIKE', '%home%')->first() ?? Category::first();
-            $creativeCat = \App\Models\Category::where('slug', 'LIKE', '%creative%')->first() ?? Category::first();
+            $likeOp = \Illuminate\Support\Facades\DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
+            $eduCat = \App\Models\Category::where('slug', $likeOp, '%education%')->first() ?? Category::first();
+            $homeCat = \App\Models\Category::where('slug', $likeOp, '%home%')->first() ?? Category::first();
+            $creativeCat = \App\Models\Category::where('slug', $likeOp, '%creative%')->first() ?? Category::first();
 
             $initialOpps = [
                 [

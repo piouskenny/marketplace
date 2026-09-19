@@ -42,25 +42,27 @@ class ProfessionalDiscoveryService
                 'educationProfile.educationLevels',
             ]);
 
+        $likeOp = \Illuminate\Support\Facades\DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
+
         // Keyword Search Query
         if (!empty($filters['query'])) {
             $search = trim($filters['query']);
-            $query->where(function (Builder $q) use ($search) {
-                $q->where('display_name', 'LIKE', "%{$search}%")
-                  ->orWhere('bio', 'LIKE', "%{$search}%")
-                  ->orWhere('location', 'LIKE', "%{$search}%")
-                  ->orWhereHas('user', function (Builder $uq) use ($search) {
-                      $uq->where('name', 'LIKE', "%{$search}%")
-                         ->orWhere('location', 'LIKE', "%{$search}%");
+            $query->where(function (Builder $q) use ($search, $likeOp) {
+                $q->where('display_name', $likeOp, "%{$search}%")
+                  ->orWhere('bio', $likeOp, "%{$search}%")
+                  ->orWhere('location', $likeOp, "%{$search}%")
+                  ->orWhereHas('user', function (Builder $uq) use ($search, $likeOp) {
+                      $uq->where('name', $likeOp, "%{$search}%")
+                         ->orWhere('location', $likeOp, "%{$search}%");
                   })
-                  ->orWhereHas('category', function (Builder $cq) use ($search) {
-                      $cq->where('name', 'LIKE', "%{$search}%");
+                  ->orWhereHas('category', function (Builder $cq) use ($search, $likeOp) {
+                      $cq->where('name', $likeOp, "%{$search}%");
                   })
-                  ->orWhereHas('skills', function (Builder $sq) use ($search) {
-                      $sq->where('name', 'LIKE', "%{$search}%");
+                  ->orWhereHas('skills', function (Builder $sq) use ($search, $likeOp) {
+                      $sq->where('name', $likeOp, "%{$search}%");
                   })
-                  ->orWhereHas('educationProfile.subjects', function (Builder $subq) use ($search) {
-                      $subq->where('name', 'LIKE', "%{$search}%");
+                  ->orWhereHas('educationProfile.subjects', function (Builder $subq) use ($search, $likeOp) {
+                      $subq->where('name', $likeOp, "%{$search}%");
                   });
             });
         }
@@ -70,16 +72,16 @@ class ProfessionalDiscoveryService
             $query->where('category_id', $filters['category_id']);
         } elseif (!empty($filters['category']) && $filters['category'] !== 'All') {
             $cat = $filters['category'];
-            $query->whereHas('category', function (Builder $cq) use ($cat) {
-                $cq->where('name', 'LIKE', "%{$cat}%")
-                   ->orWhere('slug', 'LIKE', "%{$cat}%");
+            $query->whereHas('category', function (Builder $cq) use ($cat, $likeOp) {
+                $cq->where('name', $likeOp, "%{$cat}%")
+                   ->orWhere('slug', $likeOp, "%{$cat}%");
             });
         }
 
         // Location Filter
         if (!empty($filters['location']) && $filters['location'] !== 'All') {
             $loc = $filters['location'];
-            $query->where('location', 'LIKE', "%{$loc}%");
+            $query->where('location', $likeOp, "%{$loc}%");
         }
 
         // Minimum Rating Filter
