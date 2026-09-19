@@ -133,4 +133,26 @@ class ChatController extends Controller
         $conversation = $createConversationAction->execute($connectionRequest);
         return $this->store($request, $conversation, $sendMessageAction);
     }
+
+    /**
+     * Delete a conversation and its messages.
+     */
+    public function destroy(Request $request, Conversation $conversation)
+    {
+        Gate::authorize('view', $conversation);
+
+        $conn = $conversation->connectionRequest;
+
+        $conversation->messages()->delete();
+        $conversation->delete();
+
+        if ($conn) {
+            $conn->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Chat deleted successfully.',
+        ]);
+    }
 }

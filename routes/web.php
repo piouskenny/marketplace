@@ -39,11 +39,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/opportunities', [OpportunityController::class, 'store'])->name('opportunities.store');
     Route::delete('/opportunities/{opportunity}', [OpportunityController::class, 'destroy'])->name('opportunities.destroy');
     Route::post('/opportunities/{opportunity}/apply', [ConnectionController::class, 'apply'])->name('opportunities.apply');
+    Route::post('/connections/hire', [ConnectionController::class, 'hireDirect'])->name('connections.hire');
     Route::post('/connections/{connection}/accept', [ConnectionController::class, 'accept'])->name('connections.accept');
     Route::post('/connections/{connection}/reject', [ConnectionController::class, 'reject'])->name('connections.reject');
     Route::post('/connections/{connection}/pay', [ConnectionController::class, 'pay'])->name('connections.pay');
     Route::post('/connections/{connection}/review', [\App\Http\Controllers\ReviewController::class, 'store'])->name('connections.review');
     Route::get('/connections/status', [ConnectionController::class, 'status'])->name('connections.status');
+    Route::post('/connections/{connection}/read', [ConnectionController::class, 'markRead'])->name('connections.read');
+    Route::delete('/connections/{connection}/chat', [ConnectionController::class, 'deleteChat'])->name('connections.delete-chat');
 
     // Notifications Routes
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
@@ -56,6 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/conversations/{conversation}/messages', [App\Http\Controllers\ChatController::class, 'store'])->name('chat.send');
     Route::post('/connections/{connectionRequest}/messages', [App\Http\Controllers\ChatController::class, 'storeByConnection'])->name('chat.send-by-connection');
     Route::post('/conversations/{conversation}/read', [App\Http\Controllers\ChatController::class, 'markRead'])->name('chat.read');
+    Route::delete('/conversations/{conversation}', [App\Http\Controllers\ChatController::class, 'destroy'])->name('chat.destroy');
 
     // Email Verification Routes
     Route::get('/email/verify', [VerificationController::class, 'notice'])->name('verification.notice');

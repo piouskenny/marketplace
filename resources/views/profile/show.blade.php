@@ -1,6 +1,7 @@
 <x-dashboard-layout 
     title="{{ $user->name }} — Profile — {{ config('app.name', 'Skill Marketplace') }}"
     active="talent"
+    xData="{ hireModalOpen: false }"
 >
 
     <!-- Main Profile Viewport -->
@@ -127,10 +128,10 @@
                             <span>Go to Chat / Message Now →</span>
                         </a>
                     @else
-                        <a href="{{ url('/dashboard/talent') }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#0F172B] hover:bg-slate-800 text-white font-bold text-xs sm:text-sm py-3 px-6 rounded-xl shadow-xs transition-colors cursor-pointer">
+                        <button @click="hireModalOpen = true" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#0F172B] hover:bg-slate-800 text-white font-bold text-xs sm:text-sm py-3 px-6 rounded-xl shadow-xs transition-colors cursor-pointer">
                             <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                             <span>Connect & Hire Professional →</span>
-                        </a>
+                        </button>
                     @endif
                 </div>
             </div>
@@ -291,6 +292,84 @@
         </div>
 
     </main>
+
+    <!-- Connect & Hire Modal Popup -->
+    <div 
+        x-show="hireModalOpen" 
+        x-transition:enter="transition-opacity ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition-opacity ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        @click="hireModalOpen = false" 
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
+        style="display: none;"
+    >
+        <div 
+            @click.stop
+            x-show="hireModalOpen"
+            x-transition:enter="transition transform ease-out duration-200"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition transform ease-in duration-150"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 border border-slate-200 space-y-5"
+        >
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200/80">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+                    <span class="text-sm font-bold text-slate-900">Connect & Hire Request</span>
+                </div>
+                <button @click="hireModalOpen = false" class="p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-slate-900">{{ $user->name }}</h3>
+                </div>
+                <p class="text-xs text-slate-600 font-medium">{{ $profile->display_name ?? ($profile->category->name ?? 'Service Provider') }}</p>
+                <div class="text-[11px] text-slate-500 flex items-center justify-between gap-2 pt-1">
+                    <span>{{ $user->location ?? 'Nigeria' }}</span>
+                </div>
+            </div>
+
+            <div class="bg-sky-50 border border-sky-200 text-sky-950 rounded-xl p-3.5 text-xs space-y-1">
+                <div class="flex items-center justify-between font-bold text-slate-900">
+                    <span>Connection Fee:</span>
+                    <span class="text-sm font-extrabold text-[#0F172B]">₦1,000</span>
+                </div>
+                <p class="text-[11px] text-slate-600 font-normal leading-relaxed">
+                    Note: The ₦1,000 fee is only charged after your connection request is accepted by the expert.
+                </p>
+            </div>
+
+            <form action="{{ route('connections.hire') }}" method="POST" class="space-y-3">
+                @csrf
+                <input type="hidden" name="recipient_id" value="{{ $user->id }}" />
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Your Job or Project Brief</label>
+                    <textarea 
+                        name="brief"
+                        rows="3" 
+                        placeholder="Describe your tutoring or task requirements (e.g., SS2 Physics tutoring 3 days a week in Ikeja)..."
+                        class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white rounded-xl p-3 text-xs text-slate-900 font-normal outline-none transition-all"
+                    ></textarea>
+                </div>
+
+                <button 
+                    type="submit"
+                    class="w-full bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl shadow-xs transition-colors cursor-pointer"
+                >
+                    Submit Connection Request →
+                </button>
+            </form>
+        </div>
+    </div>
 
     <!-- Profile Slide-Over Drawer Modal for Top Header Trigger -->
     <x-profile-drawer :user="auth()->user()" />

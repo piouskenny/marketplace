@@ -489,6 +489,15 @@ class DashboardController extends Controller
                 ? $dbConv->last_message_at->timestamp 
                 : ($req->created_at ? $req->created_at->timestamp : time());
 
+            $calcUnread = 0;
+            if ($dbConv && $dbConv->messages->isNotEmpty()) {
+                $calcUnread = $dbConv->messages->where('sender_id', '!=', $user->id)->whereNull('read_at')->count();
+            } else {
+                if ($isIncoming && is_null($req->read_at)) {
+                    $calcUnread = 1;
+                }
+            }
+
             $dynamicConversations[] = [
                 'id' => 'conn_' . $req->id,
                 'connection_id' => $req->id,
@@ -502,7 +511,7 @@ class DashboardController extends Controller
                 'online' => true,
                 'location' => $profile ? ($profile->location ?? 'Lagos, Nigeria') : ($req->opportunity ? $req->opportunity->location : 'Lagos, Nigeria'),
                 'category' => $req->opportunity && $req->opportunity->category ? $req->opportunity->category->name : 'General Service',
-                'unread' => $dbConv ? $dbConv->messages->where('sender_id', '!=', $user->id)->whereNull('read_at')->count() : ($isIncoming ? 1 : 0),
+                'unread' => $calcUnread,
                 'last_time' => $dbConv && $dbConv->last_message_at ? $dbConv->last_message_at->diffForHumans() : ($req->created_at ? $req->created_at->diffForHumans() : 'Just now'),
                 'updated_timestamp' => $lastTimestamp,
                 'status' => $currentStatus,

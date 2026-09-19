@@ -24,6 +24,7 @@ class ConnectionRequest extends Model
         'connected_at',
         'declined_at',
         'cancelled_at',
+        'read_at',
     ];
 
     protected $casts = [
@@ -33,6 +34,7 @@ class ConnectionRequest extends Model
         'connected_at' => 'datetime',
         'declined_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'read_at' => 'datetime',
     ];
 
     public function initiator()

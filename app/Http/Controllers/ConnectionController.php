@@ -87,6 +87,109 @@ class ConnectionController extends Controller
     }
 
     /**
+     * Submit a direct Connect & Hire request to a professional / tutor
+     */
+    public function hireDirect(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        // Enforce onboarding/profile completion before connecting
+        if (!$user->isProfileComplete()) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Complete your profile before connecting with professionals.',
+                    'redirect' => route('onboarding'),
+                ], 403);
+            }
+
+            return redirect()->to(route('onboarding'))
+                ->with('error', 'Complete your profile before connecting with professionals.');
+        }
+
+        $request->validate([
+            'recipient_id' => 'required|exists:users,id',
+            'brief' => 'nullable|string|max:1000',
+        ]);
+
+        $recipientId = (int) $request->input('recipient_id');
+
+        // Block connecting with yourself
+        if ($recipientId === $user->id) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'You cannot send a connection request to yourself.',
+                ], 422);
+            }
+            return redirect()->back()->with('error', 'You cannot send a connection request to yourself.');
+        }
+
+        $recipient = \App\Models\User::findOrFail($recipientId);
+        $note = trim($request->input('brief', '')) ?: $request->input('note', 'I am interested in hiring your services and would like to connect.');
+
+        // Check if an existing connection request already exists between these 2 users (without opportunity or pending)
+        $existing = ConnectionRequest::where('initiator_id', $user->id)
+            ->where('recipient_id', $recipientId)
+            ->whereNull('opportunity_id')
+            ->whereIn('status', [ConnectionStatus::Pending, ConnectionStatus::Accepted, ConnectionStatus::Connected])
+            ->first();
+
+        if ($existing) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'You already have an active or pending connection request with ' . $recipient->name . '.',
+                    'redirect' => url('/dashboard/messages?conn_id=' . $existing->id),
+                    'connection_id' => $existing->id,
+                ]);
+            }
+            return redirect()->to(url('/dashboard/messages?conn_id=' . $existing->id))
+                ->with('status', 'You already have an active or pending connection request with ' . $recipient->name . '.');
+        }
+
+        $connectionRequest = ConnectionRequest::create([
+            'initiator_id' => $user->id,
+            'recipient_id' => $recipientId,
+            'opportunity_id' => null,
+            'type' => ConnectionType::ProfessionalRequest,
+            'status' => ConnectionStatus::Pending,
+            'initial_message' => $note,
+        ]);
+
+        \App\Events\ConnectionRequestCreated::dispatch($connectionRequest->id);
+
+        // Push pending application to session array for fallback preview
+        $pendingApps = session()->get('pending_applications', []);
+        $pendingApps[] = [
+            'id' => $connectionRequest->id,
+            'name' => $recipient->name,
+            'title' => 'Connect & Hire Request',
+            'category' => $recipient->professionalProfile?->category?->name ?? 'Direct Hire',
+            'avatar' => $recipient->avatar_url,
+            'location' => $recipient->location ?? 'Nigeria',
+            'status' => 'pending',
+            'last_time' => 'Just now',
+            'note' => $note,
+            'unread' => 0,
+        ];
+        session()->put('pending_applications', $pendingApps);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Connection request sent to ' . $recipient->name . '! Your request is currently pending their approval.',
+                'redirect' => url('/dashboard/messages?applied=1&conn_id=' . $connectionRequest->id),
+                'connection_id' => $connectionRequest->id,
+            ]);
+        }
+
+        return redirect()->to(url('/dashboard/messages?applied=1&conn_id=' . $connectionRequest->id))
+            ->with('status', 'Your connection request has been sent to ' . $recipient->name . '! It is currently pending their approval. Once accepted, you can make the ₦1,000 payment to unlock direct chat & contact details.');
+    }
+
+    /**
      * Accept an incoming connection request
      */
     public function accept(Request $request, $id)
@@ -316,6 +419,65 @@ class ConnectionController extends Controller
         return response()->json([
             'success' => true,
             'connections' => $statuses,
+        ]);
+    }
+
+    /**
+     * Mark a connection request and its conversation messages as read.
+     */
+    public function markRead(Request $request, $id)
+    {
+        $user = Auth::user();
+        $cleanId = str_replace('conn_', '', $id);
+        $conn = ConnectionRequest::with('conversation')->find($cleanId);
+
+        if (!$conn) {
+            return response()->json(['success' => false, 'message' => 'Connection not found.'], 404);
+        }
+
+        if ((int) $conn->initiator_id !== (int) $user->id && (int) $conn->recipient_id !== (int) $user->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        $conn->update(['read_at' => now()]);
+
+        if ($conn->conversation) {
+            app(\App\Actions\Messages\MarkMessagesAsReadAction::class)->execute($conn->conversation, $user);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Marked as read.',
+        ]);
+    }
+
+    /**
+     * Delete a chat conversation and soft delete its connection request.
+     */
+    public function deleteChat(Request $request, $id)
+    {
+        $user = Auth::user();
+        $cleanId = str_replace('conn_', '', $id);
+        $conn = ConnectionRequest::with('conversation')->find($cleanId);
+
+        if (!$conn) {
+            return response()->json(['success' => false, 'message' => 'Connection not found.'], 404);
+        }
+
+        if ((int) $conn->initiator_id !== (int) $user->id && (int) $conn->recipient_id !== (int) $user->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        if ($conn->conversation) {
+            $conn->conversation->messages()->delete();
+            $conn->conversation->delete();
+        }
+
+        $conn->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Chat deleted successfully.',
         ]);
     }
 }

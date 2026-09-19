@@ -221,4 +221,51 @@ class ChatTest extends TestCase
         $msgFromB->refresh();
         $this->assertNull($msgFromB->read_at);
     }
+
+    /** @test */
+    public function user_can_mark_connection_request_as_read()
+    {
+        $connection = ConnectionRequest::create([
+            'initiator_id' => $this->userA->id,
+            'recipient_id' => $this->userB->id,
+            'type' => ConnectionType::OpportunityApplication,
+            'status' => ConnectionStatus::Pending,
+        ]);
+
+        $this->assertNull($connection->read_at);
+
+        $this->actingAs($this->userB);
+
+        $response = $this->postJson("/connections/{$connection->id}/read");
+        $response->assertStatus(200)->assertJsonPath('success', true);
+
+        $connection->refresh();
+        $this->assertNotNull($connection->read_at);
+    }
+
+    /** @test */
+    public function user_can_delete_chat_and_connection_request()
+    {
+        $connection = ConnectionRequest::create([
+            'initiator_id' => $this->userA->id,
+            'recipient_id' => $this->userB->id,
+            'type' => ConnectionType::OpportunityApplication,
+            'status' => ConnectionStatus::Connected,
+        ]);
+
+        $conversation = (new CreateConversationAction())->execute($connection);
+        Message::create([
+            'conversation_id' => $conversation->id,
+            'sender_id' => $this->userA->id,
+            'body' => 'Test message to delete',
+        ]);
+
+        $this->actingAs($this->userA);
+
+        $response = $this->deleteJson("/connections/{$connection->id}/chat");
+        $response->assertStatus(200)->assertJsonPath('success', true);
+
+        $this->assertSoftDeleted('connection_requests', ['id' => $connection->id]);
+        $this->assertDatabaseMissing('conversations', ['id' => $conversation->id]);
+    }
 }

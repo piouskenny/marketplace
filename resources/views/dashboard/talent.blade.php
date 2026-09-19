@@ -564,10 +564,14 @@
                     </p>
                 </div>
 
-                <div class="space-y-3">
+                <form action="{{ route('connections.hire') }}" method="POST" class="space-y-3">
+                    @csrf
+                    <input type="hidden" name="recipient_id" :value="selectedTalent ? (selectedTalent.user_id || selectedTalent.id) : ''" />
+
                     <div>
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Your Job or Project Brief</label>
                         <textarea 
+                            name="brief"
                             rows="3" 
                             placeholder="Describe your tutoring or task requirements (e.g., SS2 Physics tutoring 3 days a week in Ikeja)..."
                             class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white rounded-xl p-3 text-xs text-slate-900 font-normal outline-none transition-all"
@@ -575,12 +579,12 @@
                     </div>
 
                     <button 
-                        @click="alert('Connection request sent! You will be notified when accepted.'); hireModalOpen = false;"
+                        type="submit"
                         class="w-full bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl shadow-xs transition-colors cursor-pointer"
                     >
-                        Submit Connection Request (₦1,000) →
+                        Submit Connection Request →
                     </button>
-                </div>
+                </form>
             </div>
         </div>
 

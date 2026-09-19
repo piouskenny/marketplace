@@ -393,23 +393,41 @@
                 </div>
 
                 <!-- Request Form -->
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Your Job or Project Brief</label>
-                        <textarea 
-                            rows="3" 
-                            placeholder="Describe your tutoring or task requirements (e.g., SS2 Physics tutoring 3 days a week in Ikeja)..."
-                            class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white rounded-xl p-3 text-xs text-slate-900 font-normal outline-none transition-all"
-                        ></textarea>
-                    </div>
+                @auth
+                    <form action="{{ route('connections.hire') }}" method="POST" class="space-y-3">
+                        @csrf
+                        <input type="hidden" name="recipient_id" :value="selectedTalent ? (selectedTalent.user_id || selectedTalent.id) : ''" />
 
-                    <button 
-                        @click="alert('Connection request sent! You will be notified when accepted.'); hireModalOpen = false;"
-                        class="w-full bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl shadow-xs transition-colors cursor-pointer"
-                    >
-                        Submit Connection Request (₦1,000) →
-                    </button>
-                </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Your Job or Project Brief</label>
+                            <textarea 
+                                name="brief"
+                                rows="3" 
+                                placeholder="Describe your tutoring or task requirements (e.g., SS2 Physics tutoring 3 days a week in Ikeja)..."
+                                class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white rounded-xl p-3 text-xs text-slate-900 font-normal outline-none transition-all"
+                            ></textarea>
+                        </div>
+
+                        <button 
+                            type="submit"
+                            class="w-full bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl shadow-xs transition-colors cursor-pointer"
+                        >
+                            Submit Connection Request →
+                        </button>
+                    </form>
+                @else
+                    <div class="space-y-3">
+                        <p class="text-xs text-slate-600 font-normal">
+                            Please log in or register to send a connection request to this professional.
+                        </p>
+                        <a 
+                            href="{{ route('login') }}"
+                            class="w-full inline-flex items-center justify-center bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl shadow-xs transition-colors cursor-pointer"
+                        >
+                            Log In & Submit Connection Request →
+                        </a>
+                    </div>
+                @endauth
             </div>
         </div>
 
