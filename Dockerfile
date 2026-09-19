@@ -9,15 +9,44 @@ RUN npm ci
 
 COPY . .
 
+# Pusher configuration for Vite
+ARG VITE_PUSHER_APP_KEY
+ARG VITE_PUSHER_APP_CLUSTER
+
+ENV VITE_PUSHER_APP_KEY=${VITE_PUSHER_APP_KEY}
+ENV VITE_PUSHER_APP_CLUSTER=${VITE_PUSHER_APP_CLUSTER}
+
 RUN npm run build
 
 
 # Stage 2: Install PHP dependencies
-FROM composer:2 AS vendor
+FROM php:8.2-cli AS vendor
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y libpq-dev && docker-php-ext-install pdo_mysql pdo_pgsql pgsql
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    libzip-dev \
+    libicu-dev \
+    libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
+    libonig-dev \
+    unzip \
+    git \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+        pdo_mysql \
+        pdo_pgsql \
+        pgsql \
+        mbstring \
+        zip \
+        intl \
+        gd \
+        bcmath \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY composer.json composer.lock ./
 
