@@ -180,65 +180,7 @@
 
             </section>
 
-            <!-- Trusted By Companies & Guilds Logo Bar -->
-            <section class="py-14 sm:py-16 bg-white/80 border-y border-slate-200/80 backdrop-blur-md">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Trusted by 2,000+ companies, guilds & households across Nigeria</p>
-                    
-                    <!-- Demo Black Logos Bar -->
-                    <div class="flex flex-wrap items-center justify-center gap-8 sm:gap-12 md:gap-16 opacity-85 hover:opacity-100 transition-opacity duration-300">
-                        
-                        <!-- Logo 1: Slack -->
-                        <div class="flex items-center gap-2 text-[#0F172B] font-extrabold text-lg sm:text-xl tracking-tight hover:scale-105 transition-transform">
-                            <svg class="w-6 h-6 text-[#0F172B]" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M6 15a3 3 0 0 1-3-3 3 3 0 0 1 3-3h3v3a3 3 0 0 1-3 3zm0-6a3 3 0 0 1 3-3 3 3 0 0 1 3 3v3H9a3 3 0 0 1-3-3zm6-3a3 3 0 0 1 3-3 3 3 0 0 1 3 3v3h-3a3 3 0 0 1-3-3zm6 6a3 3 0 0 1 3 3 3 3 0 0 1-3 3h-3v-3a3 3 0 0 1 3-3zm-6 6a3 3 0 0 1-3 3 3 3 0 0 1-3-3v-3h3a3 3 0 0 1 3 3z"/>
-                            </svg>
-                            <span>Slack</span>
-                        </div>
 
-                        <!-- Logo 2: Spotify -->
-                        <div class="flex items-center gap-2 text-[#0F172B] font-extrabold text-lg sm:text-xl tracking-tight hover:scale-105 transition-transform">
-                            <svg class="w-6 h-6 text-[#0F172B]" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.623.623 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.625.625 0 0 1-.277-1.218c3.811-.872 7.076-.495 9.712 1.118a.624.624 0 0 1 .207.857zm1.222-2.722a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.131-9.965-1.166a.78.78 0 1 1-.453-1.492c3.633-1.103 8.147-.568 11.234 1.328a.78.78 0 0 1 .256 1.073zm.105-2.835c-3.224-1.914-8.54-2.091-11.611-1.159a.936.936 0 1 1-.546-1.79c3.565-1.082 9.431-.87 13.141 1.332a.936.936 0 0 1-.984 1.617z"/>
-                            </svg>
-                            <span>Spotify</span>
-                        </div>
-
-                        <!-- Logo 3: Google -->
-                        <div class="flex items-center gap-2 text-[#0F172B] font-extrabold text-lg sm:text-xl tracking-tight hover:scale-105 transition-transform">
-                            <svg class="w-6 h-6 text-[#0F172B]" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 15.987 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/>
-                            </svg>
-                            <span>Google</span>
-                        </div>
-
-                        <!-- Logo 4: Stripe -->
-                        <div class="flex items-center gap-1.5 text-[#0F172B] font-extrabold text-xl sm:text-2xl tracking-tighter hover:scale-105 transition-transform">
-                            <svg class="w-6 h-6 text-[#0F172B]" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C17.708.747 15.015 0 12.247 0 6.848 0 3.013 2.92 3.013 7.37c0 5.485 7.423 5.765 7.423 8.74 0 1.024-.916 1.488-2.227 1.488-2.61 0-5.464-1.189-7.391-2.24l-.946 5.619C1.862 21.996 4.792 23 8.36 23c5.688 0 9.873-2.76 9.873-7.518 0-5.753-7.382-6.07-7.382-8.74 0-.858.683-1.282 1.834-1.282 2.227 0 4.515.858 6.09 1.631z"/>
-                            </svg>
-                            <span>stripe</span>
-                        </div>
-
-                        <!-- Logo 5: Amazon -->
-                        <div class="flex items-center gap-2 text-[#0F172B] font-extrabold text-lg sm:text-xl tracking-tight hover:scale-105 transition-transform">
-                            <svg class="w-6 h-6 text-[#0F172B]" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M15.93 17.09c-2.84 2.1-7.14 3.23-10.74 1.25-.49-.27-1.05.15-.65.65 2.87 3.55 8.76 4.3 12.78 1.49.52-.37.95-.91.56-1.57-.33-.56-1.42-2.48-1.95-1.82zM18.8 15.65c-.32.42-1.07.45-1.55.2-1.63-.86-3.76-1.24-5.69-1.24-2.82 0-5.48.9-7.44 2.6-.32.28-.79.23-1.04-.12l-.47-.64c-.26-.35-.2-.84.14-1.14 2.37-2.07 5.6-3.15 9.03-3.15 2.32 0 4.88.46 6.84 1.5.47.25.64.84.37 1.31l-.19.68zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
-                            </svg>
-                            <span>amazon</span>
-                        </div>
-
-                        <!-- Logo 6: CSISS Guild -->
-                        <div class="flex items-center gap-2 text-[#0F172B] font-black text-lg sm:text-xl tracking-tight hover:scale-105 transition-transform">
-                            <svg class="w-6 h-6 text-[#0F172B]" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
-                            </svg>
-                            <span>CSISS GUILD</span>
-                        </div>
-
-                    </div>
-                </div>
-            </section>
 
             <!-- Section: How It Works (Skill Marketplace 3 Cards Layout) -->
             <section id="how-it-works" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 text-center space-y-14 sm:space-y-16 relative">
