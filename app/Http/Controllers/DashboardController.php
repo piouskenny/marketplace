@@ -297,7 +297,18 @@ class DashboardController extends Controller
         $userNotifications = $user->notifications()->take(15)->get();
         $unreadCount = $user->unreadNotifications()->count();
 
-        return view('dashboard', compact('user', 'completionPercentage', 'categories', 'subjects', 'levels', 'opportunities', 'suggestedJobs', 'userNotifications', 'unreadCount'));
+        $pendingCount = \App\Models\ConnectionRequest::where('recipient_id', $user->id)
+            ->where('status', \App\Enums\ConnectionStatus::Pending)
+            ->count();
+
+        $connectedCount = \App\Models\ConnectionRequest::where(function ($q) use ($user) {
+                $q->where('initiator_id', $user->id)
+                  ->orWhere('recipient_id', $user->id);
+            })
+            ->where('status', \App\Enums\ConnectionStatus::Connected)
+            ->count();
+
+        return view('dashboard', compact('user', 'completionPercentage', 'categories', 'subjects', 'levels', 'opportunities', 'suggestedJobs', 'userNotifications', 'unreadCount', 'pendingCount', 'connectedCount'));
     }
 
 
@@ -475,10 +486,11 @@ class DashboardController extends Controller
             } else {
                 $msgs = [
                     [
-                        'id' => 1,
+                        'id' => 'init_conn_' . $req->id,
                         'sender' => $isIncoming ? 'them' : 'me',
                         'text' => $req->initial_message ?? ($isIncoming ? 'Hello! I am interested in your opportunity.' : 'Application & Connection Request Submitted.'),
                         'time' => $req->created_at ? $req->created_at->toIso8601String() : 'Just now',
+                        'is_placeholder' => true,
                     ]
                 ];
             }
@@ -519,7 +531,7 @@ class DashboardController extends Controller
                 'applicant_profile' => $isIncoming ? [
                     'name' => $otherUser ? $otherUser->name : 'Applicant User',
                     'avatar' => asset('images/avatars/babajide.png'),
-                    'title' => $profile->headline ?? 'Verified Skill Marketplace Talent',
+                    'title' => $profile->headline ?? 'Verified Skill Link Talent',
                     'category' => $profile && $profile->category ? $profile->category->name : 'Academic Tutoring',
                     'location' => $profile->location ?? 'Lagos, Nigeria',
                     'phone' => $otherUser->phone ?? '+234 802 345 6789',

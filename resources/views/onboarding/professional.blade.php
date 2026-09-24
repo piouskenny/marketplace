@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <title>Professional Profile Setup — {{ config('app.name', 'Skill Marketplace') }}</title>
+        <title>Professional Profile Setup — {{ config('app.name', 'Skill Link NG') }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -26,7 +26,7 @@
                     <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white shadow-md">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/></svg>
                     </div>
-                    <span class="font-extrabold text-base text-slate-900">Skill Marketplace</span>
+                    <span class="font-extrabold text-base text-slate-900">Skill Link NG</span>
                 </a>
                 <a href="{{ route('onboarding') }}" class="text-xs font-bold text-slate-600 hover:text-sky-700">
                     ← Back to step 1
@@ -171,7 +171,7 @@
 
         <!-- Footer -->
         <footer class="relative z-10 w-full py-4 text-center text-xs text-slate-500 border-t border-slate-200">
-            &copy; {{ date('Y') }} Skill Marketplace® Global LLC. All rights reserved.
+            &copy; {{ date('Y') }} Skill Link NG® Global LLC. All rights reserved.
         </footer>
 
         @livewireScripts

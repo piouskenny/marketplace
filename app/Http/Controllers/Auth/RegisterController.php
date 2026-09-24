@@ -34,6 +34,6 @@ class RegisterController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard')->with('status', 'Welcome to Skill Marketplace! Please complete your profile to get started.');
+        return redirect()->route('dashboard')->with('status', 'Welcome to Skill Link NG! Please complete your profile to get started.');
     }
 }

@@ -151,4 +151,108 @@ class RealtimeChatTest extends TestCase
         $this->assertEquals('private-conversation.' . $this->connectedConversation->id, $channels[0]->name);
         $this->assertEquals('message.sent', $event->broadcastAs());
     }
+
+    /** @test */
+    public function user_a_can_send_first_message_immediately_after_activation_and_triggers_broadcast_and_user_notification()
+    {
+        \Illuminate\Support\Facades\Event::fake([MessageSent::class]);
+        \Illuminate\Support\Facades\Notification::fake();
+
+        // 1. Connection accepted and paid
+        $conn = ConnectionRequest::create([
+            'initiator_id' => $this->participantB->id,
+            'recipient_id' => $this->participantA->id,
+            'type' => ConnectionType::OpportunityApplication,
+            'status' => ConnectionStatus::Accepted,
+        ]);
+
+        $response = $this->actingAs($this->participantB)->postJson("/connections/{$conn->id}/pay");
+        $response->assertStatus(200)->assertJson(['success' => true]);
+
+        $convId = $response->json('conversation_id');
+        $this->assertNotNull($convId);
+
+        // 2. User A (Job Owner) sends first message immediately
+        $msgResponse = $this->actingAs($this->participantA)->postJson("/conversations/{$convId}/messages", [
+            'body' => 'Hello User B, thanks for applying!',
+            'client_msg_id' => 'cmsg_test_a1',
+        ]);
+
+        $msgResponse->assertStatus(200)
+            ->assertJson(['success' => true]);
+
+        $messageId = $msgResponse->json('message.id');
+        $this->assertNotNull($messageId);
+
+        // Assert MessageSent event was broadcasted to conversation channel
+        \Illuminate\Support\Facades\Event::assertDispatched(MessageSent::class, function ($event) use ($convId, $messageId) {
+            return (int)$event->message->conversation_id === (int)$convId 
+                && (int)$event->message->id === (int)$messageId
+                && $event->clientMsgId === 'cmsg_test_a1';
+        });
+
+        // Assert NewMessageNotification was sent to User B's user channel
+        \Illuminate\Support\Facades\Notification::assertSentTo(
+            $this->participantB,
+            \App\Notifications\NewMessageNotification::class,
+            function ($notif) use ($convId, $messageId) {
+                $payload = $notif->toArray($this->participantB);
+                return (int)$payload['conversation_id'] === (int)$convId
+                    && (int)$payload['message_id'] === (int)$messageId
+                    && $notif->broadcastOn()[0]->name === 'private-user.' . $this->participantB->id;
+            }
+        );
+    }
+
+    /** @test */
+    public function user_b_can_send_first_message_immediately_after_activation()
+    {
+        \Illuminate\Support\Facades\Event::fake([MessageSent::class]);
+        \Illuminate\Support\Facades\Notification::fake();
+
+        $conn = ConnectionRequest::create([
+            'initiator_id' => $this->participantB->id,
+            'recipient_id' => $this->participantA->id,
+            'type' => ConnectionType::OpportunityApplication,
+            'status' => ConnectionStatus::Accepted,
+        ]);
+
+        $response = $this->actingAs($this->participantB)->postJson("/connections/{$conn->id}/pay");
+        $response->assertStatus(200);
+
+        $convId = $response->json('conversation_id');
+
+        // User B sends first message
+        $msgResponse = $this->actingAs($this->participantB)->postJson("/connections/{$conn->id}/messages", [
+            'body' => 'Hi User A, I just completed payment!',
+            'client_msg_id' => 'cmsg_test_b1',
+        ]);
+
+        $msgResponse->assertStatus(200)->assertJson(['success' => true]);
+
+        \Illuminate\Support\Facades\Event::assertDispatched(MessageSent::class);
+        \Illuminate\Support\Facades\Notification::assertSentTo(
+            $this->participantA,
+            \App\Notifications\NewMessageNotification::class
+        );
+    }
+
+    /** @test */
+    public function initial_placeholder_message_has_non_numeric_synthetic_id()
+    {
+        $conn = ConnectionRequest::create([
+            'initiator_id' => $this->participantB->id,
+            'recipient_id' => $this->participantA->id,
+            'type' => ConnectionType::OpportunityApplication,
+            'status' => ConnectionStatus::Accepted,
+            'initial_message' => 'Application initial note',
+        ]);
+
+        $response = $this->actingAs($this->participantB)->get('/dashboard/messages');
+        $response->assertStatus(200);
+
+        // Verify that initial placeholder message ID is synthetic 'init_conn_...'
+        $response->assertSee('init_conn_' . $conn->id);
+    }
 }
+

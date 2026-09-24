@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <title>{{ config('app.name', 'Skill Marketplace') }} — Powered by CSISS | Find Skilled Talent & Tutors Near You</title>
+        <title>{{ config('app.name', 'Skill Link NG') }} — Powered by CSISS | Find Skilled Talent & Tutors Near You</title>
 
         <!-- Fonts (Inter) -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,7 +37,7 @@
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="text-slate-900 font-extrabold text-base sm:text-lg tracking-tight leading-none block">Skill Marketplace</span>
+                            <span class="text-slate-900 font-extrabold text-base sm:text-lg tracking-tight leading-none block">Skill Link NG</span>
                             <span class="hidden sm:inline-block px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600 tracking-wide uppercase">CSISS</span>
                         </div>
                         <span class="text-[10px] text-slate-500 font-medium tracking-wide block sm:inline-block">Powered by CSISS</span>
@@ -90,7 +90,7 @@
                     
                     <!-- Pre-Header Text -->
                     <span class="text-sky-600 text-xs font-extrabold uppercase tracking-widest block">
-                        Powered by CSISS — No. 1 Skill Marketplace
+                        Powered by CSISS — No. 1 Skill Link Platform
                     </span>
 
                     <!-- Main Hero Title (Solid Crisp Text without Gradient) -->
@@ -146,7 +146,7 @@
                         
                         <!-- Dashboard Screen Image -->
                         <div class="rounded-2xl overflow-hidden border border-slate-200/80 shadow-xs bg-slate-900 relative">
-                            <img src="{{ asset('images/dashboard_screen.png') }}" alt="Skill Marketplace Member Dashboard" class="w-full h-auto object-cover object-top max-h-[500px]" />
+                            <img src="{{ asset('images/dashboard_screen.png') }}" alt="Skill Link NG Member Dashboard" class="w-full h-auto object-cover object-top max-h-[500px]" />
                         </div>
 
                         <!-- Smooth Fading Bottom Effect Overlay -->
@@ -1252,7 +1252,7 @@
                             <span class="px-3 py-1 rounded-full bg-white/10 text-sky-200 text-[10px] font-bold border border-white/20">FEATURED TUTOR STORY</span>
                             <div class="flex items-center gap-1 text-amber-300 pt-2">★★★★★</div>
                             <h4 class="text-xl font-black text-white leading-snug">
-                                "Skill Marketplace helped me build a full-time tutoring practice safely."
+                                "Skill Link NG helped me build a full-time tutoring practice safely."
                             </h4>
                             <p class="text-slate-300 text-xs leading-relaxed">
                                 "Protected phone numbers until clients accept gave me total safety. I now tutor 5 students weekly across Abuja."
@@ -1409,7 +1409,7 @@
                             </div>
                             <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Frequently Asked Questions</h2>
                             <p class="text-slate-500 text-xs sm:text-sm leading-relaxed font-normal">
-                                Have questions about hiring verified tutors or listing your trade skills on Skill Marketplace — Powered by CSISS? Find clear answers below.
+                                Have questions about hiring verified tutors or listing your trade skills on Skill Link NG — Powered by CSISS? Find clear answers below.
                             </p>
                         </div>
 
@@ -1419,11 +1419,11 @@
                             <!-- FAQ 1 -->
                             <div class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-2xs">
                                 <button @click="activeFaq = (activeFaq === 1 ? null : 1)" class="w-full px-5 py-4 flex items-center justify-between text-left font-bold text-xs sm:text-sm text-slate-900 hover:text-sky-600 transition-colors">
-                                    <span>What is Skill Marketplace — Powered by CSISS?</span>
+                                    <span>What is Skill Link NG — Powered by CSISS?</span>
                                     <span class="w-7 h-7 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-base font-bold shrink-0 ml-2" x-text="activeFaq === 1 ? '−' : '+'"></span>
                                 </button>
                                 <div x-show="activeFaq === 1" x-collapse class="px-5 pb-4 text-xs text-slate-500 leading-relaxed font-normal pt-1 border-t border-slate-100">
-                                    Skill Marketplace is Nigeria's premier digital directory connecting parents, households, and businesses with verified academic tutors (for WAEC, JAMB, primary & secondary subjects) and skilled trade artisans (electricians, plumbers, carpenters, technicians) near them.
+                                    Skill Link NG is Nigeria's premier digital directory connecting parents, households, and businesses with verified academic tutors (for WAEC, JAMB, primary & secondary subjects) and skilled trade artisans (electricians, plumbers, carpenters, technicians) near them.
                                 </div>
                             </div>
 
@@ -1456,14 +1456,14 @@
                                     <span class="w-7 h-7 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-base font-bold shrink-0 ml-2" x-text="activeFaq === 4 ? '−' : '+'"></span>
                                 </button>
                                 <div x-show="activeFaq === 4" x-collapse class="px-5 pb-4 text-xs text-slate-500 leading-relaxed font-normal pt-1 border-t border-slate-100">
-                                    Yes! Joining Skill Marketplace as a talent or tutor is completely free. You can create a detailed profile showcasing your subjects, skills, past work, location, and hourly or monthly rates.
+                                    Yes! Joining Skill Link NG as a talent or tutor is completely free. You can create a detailed profile showcasing your subjects, skills, past work, location, and hourly or monthly rates.
                                 </div>
                             </div>
 
                             <!-- FAQ 5 -->
                             <div class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-2xs">
                                 <button @click="activeFaq = (activeFaq === 5 ? null : 5)" class="w-full px-5 py-4 flex items-center justify-between text-left font-bold text-xs sm:text-sm text-slate-900 hover:text-sky-600 transition-colors">
-                                    <span>What locations in Nigeria are covered by the marketplace?</span>
+                                    <span>What locations in Nigeria are covered by Skill Link NG?</span>
                                     <span class="w-7 h-7 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-base font-bold shrink-0 ml-2" x-text="activeFaq === 5 ? '−' : '+'"></span>
                                 </button>
                                 <div x-show="activeFaq === 5" x-collapse class="px-5 pb-4 text-xs text-slate-500 leading-relaxed font-normal pt-1 border-t border-slate-100">
@@ -1569,7 +1569,7 @@
                             <div class="w-8 h-8 rounded-full bg-[#0F172B] text-white font-bold flex items-center justify-center text-sm shadow-xs">
                                 ⚡
                             </div>
-                            <span class="text-xl font-bold text-slate-900 tracking-tight">Skill Marketplace</span>
+                            <span class="text-xl font-bold text-slate-900 tracking-tight">Skill Link NG</span>
                         </div>
 
                         <p class="text-xs text-slate-500 font-normal leading-relaxed max-w-xs">
@@ -1638,7 +1638,7 @@
                 <!-- Copyright & Bottom Links -->
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm font-semibold text-slate-600">
                     <div>
-                        © 2026 Skill Marketplace — Powered by CSISS. All rights reserved.
+                        © 2026 Skill Link NG — Powered by CSISS. All rights reserved.
                     </div>
 
                     <div class="flex items-center gap-6 text-sm font-semibold text-slate-600">
@@ -1652,7 +1652,7 @@
 
             <!-- Massive Background Watermark Text Positioned at Very Bottom -->
             <div class="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 text-[5.5rem] sm:text-[9.5rem] md:text-[12.5rem] lg:text-[15.5rem] font-black text-slate-900/[0.04] pointer-events-none select-none tracking-tighter whitespace-nowrap z-0 uppercase leading-none">
-                Skill Marketplace
+                Skill Link NG
             </div>
 
         </footer>

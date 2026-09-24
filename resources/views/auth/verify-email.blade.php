@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Verify Email Address — {{ config('app.name', 'Skill Marketplace') }}</title>
+        <title>Verify Email Address — {{ config('app.name', 'Skill Link NG') }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -25,7 +25,7 @@
                     <div class="w-10 h-10 rounded-2xl bg-[#0F172B] text-white flex items-center justify-center font-bold shadow-md">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/></svg>
                     </div>
-                    <span class="text-slate-900 font-extrabold text-xl tracking-tight">Skill Marketplace</span>
+                    <span class="text-slate-900 font-extrabold text-xl tracking-tight">Skill Link NG</span>
                 </a>
             </div>
 
@@ -38,7 +38,7 @@
                 </div>
                 <h2 class="text-2xl font-black text-slate-900 tracking-tight">Verify Your Email Address</h2>
                 <p class="text-sm text-slate-600 leading-relaxed font-medium">
-                    Thanks for joining Skill Marketplace! We sent a verification link to <strong class="text-slate-900">{{ auth()->user()->email }}</strong>. Please check your inbox and click the verification link to activate your account.
+                    Thanks for joining Skill Link NG! We sent a verification link to <strong class="text-slate-900">{{ auth()->user()->email }}</strong>. Please check your inbox and click the verification link to activate your account.
                 </p>
             </div>
 

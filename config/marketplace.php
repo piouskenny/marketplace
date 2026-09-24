@@ -33,6 +33,6 @@ return [
     |
     */
 
-    'name' => env('MARKETPLACE_NAME', 'Service Marketplace'),
+    'name' => env('MARKETPLACE_NAME', 'Skill Link NG'),
 
 ];

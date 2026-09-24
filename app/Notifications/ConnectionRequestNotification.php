@@ -50,7 +50,7 @@ class ConnectionRequestNotification extends Notification implements ShouldBroadc
         return [
             'type' => 'connection_request',
             'title' => 'New Connection Request',
-            'message' => "{$initiatorName} sent you a connection request.",
+            'message' => "{$initiatorName} applied for '{$opportunityTitle}'.",
             'url' => url('/dashboard/messages?conn_id=' . $this->connectionRequest->id),
             'icon' => 'user-plus',
             'connection_request_id' => $this->connectionRequest->id,
@@ -63,7 +63,7 @@ class ConnectionRequestNotification extends Notification implements ShouldBroadc
             'applicant_profile' => [
                 'name' => $initiatorName,
                 'avatar' => asset('images/avatars/babajide.png'),
-                'title' => $profile->headline ?? 'Verified Skill Marketplace Talent',
+                'title' => $profile->headline ?? 'Verified Skill Link Talent',
                 'category' => $categoryName,
                 'location' => $profile ? ($profile->location ?? 'Lagos, Nigeria') : ($opportunity ? $opportunity->location : 'Lagos, Nigeria'),
                 'phone' => $initiator ? $initiator->phone : '+234 802 345 6789',

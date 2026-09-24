@@ -86,5 +86,10 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+// Job Alert Unsubscribe Route (Signed URL)
+Route::get('/unsubscribe-job-alerts/{user}', [ProfileController::class, 'unsubscribeJobAlerts'])
+    ->name('job-alerts.unsubscribe')
+    ->middleware('signed');
+
 
 

@@ -91,7 +91,7 @@ class OnboardingController extends Controller
             return redirect()->to('/onboarding/tutor')->with('status', 'Basic profile saved! Please complete your academic tutoring details.');
         }
 
-        return redirect()->to('/dashboard')->with('status', 'Professional profile created! Welcome to Skill Marketplace.');
+        return redirect()->to('/dashboard')->with('status', 'Professional profile created! Welcome to Skill Link NG.');
     }
 
     /**

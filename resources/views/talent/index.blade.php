@@ -11,7 +11,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <title>Find Talent & Tutors — {{ config('app.name', 'Skill Marketplace') }}</title>
+        <title>Find Talent & Tutors — {{ config('app.name', 'Skill Link NG') }}</title>
 
         <!-- Modern Clean Typography (Inter) -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,7 +42,7 @@
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/></svg>
                         </div>
                         <div>
-                            <span class="text-slate-900 font-bold text-base tracking-tight block">Skill Marketplace</span>
+                            <span class="text-slate-900 font-bold text-base tracking-tight block">Skill Link NG</span>
                             <span class="text-[11px] text-slate-500 font-medium tracking-wide">Find Talent & Tutors</span>
                         </div>
                     </a>
@@ -327,7 +327,7 @@
 
         <!-- Footer -->
         <footer class="py-6 text-center text-xs text-slate-400 font-normal border-t border-slate-200/80 bg-white">
-            &copy; {{ date('Y') }} {{ config('app.name', 'Skill Marketplace') }}. All rights reserved.
+            &copy; {{ date('Y') }} {{ config('app.name', 'Skill Link NG') }}. All rights reserved.
         </footer>
 
         <!-- Connect & Hire Modal Popup (Slide-up / Modal) -->

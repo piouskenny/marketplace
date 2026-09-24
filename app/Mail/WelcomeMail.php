@@ -30,7 +30,7 @@ class WelcomeMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Welcome to Skill Marketplace! 🎉 Your Email is Verified',
+            subject: 'Welcome to Skill Link NG! 🎉 Your Email is Verified',
         );
     }
 

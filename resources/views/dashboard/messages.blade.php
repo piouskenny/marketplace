@@ -1,5 +1,5 @@
 <x-dashboard-layout 
-    title="Messages & Direct Chat — {{ config('app.name', 'Skill Marketplace') }}"
+    title="Messages & Direct Chat — {{ config('app.name', 'Skill Link NG') }}"
     active="messages"
     xData="messagesApp()"
     xInit="init()"
@@ -53,6 +53,11 @@
                         }
 
                         console.log('[RT-DIAG BOOT] calling ensureEchoSubscribed');
+                        window.addEventListener('realtime-notification-received', function(evt) {
+                            if (evt && evt.detail) {
+                                self.handleIncomingUserNotification(evt.detail);
+                            }
+                        });
                         self.ensureEchoSubscribed();
                         self.startRealtimePolling();
                     },
@@ -278,10 +283,11 @@
                                     applicant_profile: payload.applicant_profile || null,
                                     messages: [
                                         {
-                                            id: 1,
+                                            id: 'init_conn_' + connReqId,
                                             sender: 'them',
                                             text: payload.initial_message || payload.message || 'Application & Connection Request Submitted.',
-                                            time: self.formatTime(msgTime)
+                                            time: self.formatTime(msgTime),
+                                            is_placeholder: true
                                         }
                                     ]
                                 };
@@ -309,6 +315,9 @@
                                 }
 
                                 if (!conv.messages) conv.messages = [];
+                                conv.messages = conv.messages.filter(function(m) {
+                                    return !m.is_placeholder && !String(m.id).startsWith('init_');
+                                });
                                 var dbId = payload.message_id || n.message_id;
                                 var clientMsgId = payload.client_msg_id || n.client_msg_id;
 
@@ -323,6 +332,7 @@
                                     if (dbId) existing.id = dbId;
                                     existing.pending = false;
                                     existing.time = msgTime;
+                                    if (messageText) existing.text = messageText;
                                 } else {
                                     console.log('[RT-DIAG NOTIF DEDUP] Appending NEW message to conversation:', conv.id);
                                     conv.messages.push({
@@ -404,6 +414,9 @@
                         }
 
                         if (!conv.messages) conv.messages = [];
+                        conv.messages = conv.messages.filter(function(m) {
+                            return !m.is_placeholder && !String(m.id).startsWith('init_');
+                        });
 
                         var msgTime = e.created_at || e.time_formatted || new Date().toISOString();
                         var dbId = e.id;
@@ -420,6 +433,7 @@
                             if (dbId) existing.id = dbId;
                             existing.pending = false;
                             existing.time = msgTime;
+                            if (e.body) existing.text = e.body;
                         } else {
                             var isMe = String(e.sender_id) === String(self.currentUserId);
                             console.log('[RT-DIAG BROADCAST DEDUP] Appending NEW message from', isMe ? 'me' : 'them', 'to conv:', conv.id);
@@ -800,48 +814,8 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <!-- Notifications Popover Bell Icon -->
-                <div class="relative">
-                    <button @click="notificationsOpen = !notificationsOpen" class="w-9 h-9 rounded-xl border border-slate-200/80 bg-slate-50 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors relative cursor-pointer" title="View notifications">
-                        <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                        <span class="w-2 h-2 rounded-full bg-sky-500 absolute top-2 right-2 ring-2 ring-white"></span>
-                    </button>
-
-                    <!-- Notifications Dropdown Panel -->
-                    <div 
-                        x-show="notificationsOpen" 
-                        @click.outside="notificationsOpen = false"
-                        x-transition
-                        class="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-slate-200/90 rounded-2xl shadow-xl z-50 overflow-hidden space-y-0"
-                        style="display: none;"
-                    >
-                        <div class="px-4 py-3 bg-slate-50/80 border-b border-slate-200/80 flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold text-slate-900">Notifications</span>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#0F172B] text-white">2 New</span>
-                            </div>
-                            <button @click="notificationsOpen = false" class="text-xs text-slate-400 hover:text-slate-600 font-medium cursor-pointer">Close</button>
-                        </div>
-
-                        <div class="divide-y divide-slate-100 max-h-80 overflow-y-auto">
-                            <div x-data="{ show: true }" x-show="show" x-transition class="p-3.5 hover:bg-slate-50 transition-colors flex items-start justify-between gap-3">
-                                <div class="flex items-start gap-3 min-w-0">
-                                    <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200 mt-0.5">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                    </div>
-                                    <div class="flex-1 min-w-0 space-y-0.5">
-                                        <p class="text-xs font-bold text-slate-900">Welcome to Skill Marketplace</p>
-                                        <p class="text-[11px] text-slate-500 font-normal">Your account is active! Browse opportunities and connect with clients or tutors.</p>
-                                        <span class="text-[10px] text-slate-400 font-medium block">10 minutes ago</span>
-                                    </div>
-                                </div>
-                                <button @click="show = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors cursor-pointer shrink-0" title="Dismiss notification">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Notifications Popover Bell Icon & Panel -->
+                <x-header-notifications :userNotifications="$userNotifications ?? []" :unreadCount="$unreadCount ?? 0" />
 
                 <div class="h-5 w-px bg-slate-200 hidden sm:block"></div>
 

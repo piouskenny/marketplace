@@ -1,5 +1,5 @@
 <x-dashboard-layout 
-    title="{{ $user->name }} — Profile — {{ config('app.name', 'Skill Marketplace') }}"
+    title="{{ $user->name }} — Profile — {{ config('app.name', 'Skill Link NG') }}"
     active="talent"
     xData="{ hireModalOpen: false }"
 >
@@ -36,6 +36,7 @@
                 <a href="{{ url()->previous() !== url()->current() ? url()->previous() : url('/dashboard/talent') }}" class="text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 px-3.5 py-2 rounded-xl transition-colors">
                     ← Back
                 </a>
+                <x-header-notifications :userNotifications="$userNotifications ?? []" :unreadCount="$unreadCount ?? 0" />
                 <button @click="profileModalOpen = true" class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
                     @if(auth()->user()->avatar_url)
                         <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0" />
@@ -87,13 +88,13 @@
                                 </span>
                             @else
                                 <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                                    Marketplace Member
+                                    Skill Link Member
                                 </span>
                             @endif
                         </div>
 
                         <p class="text-xs sm:text-sm font-semibold text-slate-700">
-                            {{ $profile->display_name ?? ($profile->category->name ?? 'Skill Marketplace User') }}
+                            {{ $profile->display_name ?? ($profile->category->name ?? 'Skill Link User') }}
                         </p>
 
                         <div class="flex items-center gap-4 text-xs text-slate-500 flex-wrap pt-0.5">

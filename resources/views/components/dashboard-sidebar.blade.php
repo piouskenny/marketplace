@@ -33,12 +33,12 @@
         
         <!-- Sidebar Header & Logo -->
         <div class="flex items-center justify-between pb-4 border-b border-slate-200/80" :class="sidebarCollapsed ? 'lg:justify-center' : ''">
-            <a href="{{ url('/dashboard') }}" class="flex items-center gap-3 group shrink-0" :title="sidebarCollapsed ? 'Skill Marketplace' : ''">
+            <a href="{{ url('/dashboard') }}" class="flex items-center gap-3 group shrink-0" :title="sidebarCollapsed ? 'Skill Link NG' : ''">
                 <div class="w-9 h-9 rounded-xl bg-[#0F172B] flex items-center justify-center text-white shadow-xs group-hover:bg-slate-800 transition-colors shrink-0">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/></svg>
                 </div>
                 <div x-show="!sidebarCollapsed" class="transition-all duration-200">
-                    <span class="text-slate-900 font-bold text-base tracking-tight block">Skill Marketplace</span>
+                    <span class="text-slate-900 font-bold text-base tracking-tight block">Skill Link NG</span>
                     <span class="text-[11px] text-slate-500 font-medium tracking-wide">Member Dashboard</span>
                 </div>
             </a>

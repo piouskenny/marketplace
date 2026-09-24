@@ -25,7 +25,7 @@ class VerificationController extends Controller
     {
         $request->fulfill();
 
-        return redirect()->route('dashboard')->with('status', 'Your email address has been verified! Welcome to Skill Marketplace.');
+        return redirect()->route('dashboard')->with('status', 'Your email address has been verified! Welcome to Skill Link NG.');
     }
 
     /**

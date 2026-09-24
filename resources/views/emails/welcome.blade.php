@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Skill Marketplace</title>
+    <title>Welcome to Skill Link NG</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -75,7 +75,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Skill Marketplace</h1>
+            <h1>Skill Link NG</h1>
         </div>
         <div class="content">
             <h2 class="greeting">Welcome, {{ $user->name }}! 🎉</h2>
@@ -94,7 +94,7 @@
             <p style="font-size: 13px; color: #64748b; margin-top: 30px;">If you have any questions or need support, reply directly to this email or reach out to our support team.</p>
         </div>
         <div class="footer">
-            &copy; {{ date('Y') }} Skill Marketplace. All rights reserved. • Nigeria
+            &copy; {{ date('Y') }} Skill Link NG. All rights reserved. • Nigeria
         </div>
     </div>
 </body>

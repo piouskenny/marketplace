@@ -15,16 +15,17 @@ class NotificationController extends Controller
         $user = Auth::user();
 
         $notifications = $user->notifications()->take(20)->get()->map(function ($n) {
-            return [
+            $data = is_array($n->data) ? $n->data : [];
+            return array_merge([
                 'id' => $n->id,
-                'type' => $n->data['type'] ?? 'general',
-                'title' => $n->data['title'] ?? 'Notification',
-                'message' => $n->data['message'] ?? '',
-                'url' => $n->data['url'] ?? '#',
-                'icon' => $n->data['icon'] ?? 'bell',
+                'type' => $data['type'] ?? 'general',
+                'title' => $data['title'] ?? 'Notification',
+                'message' => $data['message'] ?? '',
+                'url' => $data['url'] ?? '#',
+                'icon' => $data['icon'] ?? 'bell',
                 'read_at' => $n->read_at ? $n->read_at->toIso8601String() : null,
-                'created_at' => $n->created_at->diffForHumans(),
-            ];
+                'created_at' => $n->created_at ? $n->created_at->diffForHumans() : 'Just now',
+            ], $data);
         });
 
         return response()->json([

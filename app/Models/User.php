@@ -26,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'avatar',
         'onboarding_completed',
         'onboarding_intent',
+        'job_alerts_enabled',
         'password',
     ];
 
@@ -70,6 +71,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'onboarding_completed' => 'boolean',
+            'job_alerts_enabled' => 'boolean',
         ];
     }
 

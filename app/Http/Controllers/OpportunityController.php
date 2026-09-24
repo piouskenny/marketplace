@@ -75,6 +75,9 @@ class OpportunityController extends Controller
             ]);
         }
 
+        // Dispatch queued email notification job for matching professionals
+        \App\Jobs\SendJobOpportunityAlertsJob::dispatch($opportunity);
+
         return redirect()->to(url('/dashboard#opportunities-section'))
             ->with('status', 'Your opportunity "' . $opportunity->title . '" has been published successfully!');
     }
@@ -112,13 +115,18 @@ class OpportunityController extends Controller
             ->latest()
             ->get();
 
+        $userNotifications = $user->notifications()->take(15)->get();
+        $unreadCount = $user->unreadNotifications()->count();
+
         return view('dashboard.my-jobs', compact(
             'user', 
             'completionPercentage', 
             'myOpportunities', 
             'categories', 
             'subjects', 
-            'levels'
+            'levels',
+            'userNotifications',
+            'unreadCount'
         ));
     }
 

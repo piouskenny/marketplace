@@ -1,5 +1,5 @@
 <x-dashboard-layout 
-    title="Find Talent & Tutors — Dashboard — {{ config('app.name', 'Skill Marketplace') }}"
+    title="Find Talent & Tutors — Dashboard — {{ config('app.name', 'Skill Link NG') }}"
     active="talent"
     xData="{ 
         pageLoading: true,
@@ -66,79 +66,7 @@
                     <!-- Right Header Icons -->
                     <div class="flex items-center gap-3 shrink-0">
                         
-                        <!-- Notifications Popup Trigger Button -->
-                        <div class="relative">
-                            <button 
-                                @click="notificationsOpen = !notificationsOpen" 
-                                class="w-9 h-9 rounded-xl border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600 relative transition-colors cursor-pointer" 
-                                title="Notifications"
-                            >
-                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                                <span class="w-2 h-2 rounded-full bg-sky-500 absolute top-2 right-2 ring-2 ring-white"></span>
-                            </button>
-
-                            <!-- Notifications Popup Dropdown Panel -->
-                            <div 
-                                x-show="notificationsOpen" 
-                                @click.outside="notificationsOpen = false"
-                                x-transition:enter="transition ease-out duration-200"
-                                x-transition:enter-start="opacity-0 scale-95 translate-y-1"
-                                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                                x-transition:leave="transition ease-in duration-150"
-                                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                                x-transition:leave-end="opacity-0 scale-95 translate-y-1"
-                                class="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-slate-200/90 rounded-2xl shadow-xl z-50 overflow-hidden space-y-0"
-                                style="display: none;"
-                            >
-                                <div class="px-4 py-3 bg-slate-50/80 border-b border-slate-200/80 flex items-center justify-between">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs font-bold text-slate-900">Notifications</span>
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#0F172B] text-white">3 New</span>
-                                    </div>
-                                    <button @click="notificationsOpen = false" class="text-xs text-slate-400 hover:text-slate-600 font-medium cursor-pointer">Close</button>
-                                </div>
-
-                                <div class="divide-y divide-slate-100 max-h-80 overflow-y-auto">
-                                    @if (!$user->hasVerifiedEmail())
-                                        <div x-data="{ show: true }" x-show="show" x-transition class="p-3.5 hover:bg-slate-50 transition-colors flex items-start justify-between gap-3">
-                                            <div class="flex items-start gap-3 min-w-0">
-                                                <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200 mt-0.5">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                                </div>
-                                                <div class="flex-1 min-w-0 space-y-0.5">
-                                                    <p class="text-xs font-bold text-slate-900">Action Required: Verify Email</p>
-                                                    <p class="text-[11px] text-slate-500 font-normal">Please confirm {{ $user->email }} to unlock full access to application requests.</p>
-                                                    <span class="text-[10px] text-slate-400 font-medium block">Just now</span>
-                                                </div>
-                                            </div>
-                                            <button @click="show = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors cursor-pointer shrink-0" title="Dismiss notification">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                            </button>
-                                        </div>
-                                    @endif
-
-                                    <div x-data="{ show: true }" x-show="show" x-transition class="p-3.5 hover:bg-slate-50 transition-colors flex items-start justify-between gap-3">
-                                        <div class="flex items-start gap-3 min-w-0">
-                                            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200 mt-0.5">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                            </div>
-                                            <div class="flex-1 min-w-0 space-y-0.5">
-                                                <p class="text-xs font-bold text-slate-900">Welcome to Skill Marketplace</p>
-                                                <p class="text-[11px] text-slate-500 font-normal">Your account is active! Browse opportunities and connect with clients or tutors.</p>
-                                                <span class="text-[10px] text-slate-400 font-medium block">10 minutes ago</span>
-                                            </div>
-                                        </div>
-                                        <button @click="show = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-md transition-colors cursor-pointer shrink-0" title="Dismiss notification">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="p-2.5 bg-slate-50/80 border-t border-slate-200/80 text-center">
-                                    <span class="text-[11px] text-slate-500 font-medium">All notifications up to date</span>
-                                </div>
-                            </div>
-                        </div>
+                        <x-header-notifications :userNotifications="$userNotifications ?? []" :unreadCount="$unreadCount ?? 0" />
 
                         <div class="h-5 w-px bg-slate-200 hidden sm:block"></div>
 
@@ -413,7 +341,7 @@
 
                 <!-- Footer -->
                 <footer class="py-6 text-center text-xs text-slate-400 font-normal border-t border-slate-200/80">
-                    &copy; {{ date('Y') }} {{ config('app.name', 'Skill Marketplace') }}. All rights reserved.
+                    &copy; {{ date('Y') }} {{ config('app.name', 'Skill Link NG') }}. All rights reserved.
                 </footer>
 
             </main>

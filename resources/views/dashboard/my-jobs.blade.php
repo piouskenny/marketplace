@@ -1,5 +1,5 @@
 <x-dashboard-layout 
-    title="My Job Postings — {{ config('app.name', 'Skill Marketplace') }}"
+    title="My Job Postings — {{ config('app.name', 'Skill Link NG') }}"
     active="my-jobs"
     xData="{
         pageLoading: true,
@@ -67,6 +67,9 @@
                         </button>
 
                         <div class="h-5 w-px bg-slate-200 hidden sm:block"></div>
+
+                        <!-- Right Header Icons: Notifications Dropdown & Profile Avatar Trigger -->
+                        <x-header-notifications :userNotifications="$userNotifications ?? []" :unreadCount="$unreadCount ?? 0" />
 
                         <!-- Profile Avatar Button -->
                         <button @click="profileModalOpen = true" class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">

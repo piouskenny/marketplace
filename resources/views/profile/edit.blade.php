@@ -1,5 +1,5 @@
 <x-dashboard-layout 
-    title="Edit Profile — {{ config('app.name', 'Skill Marketplace') }}"
+    title="Edit Profile — {{ config('app.name', 'Skill Link NG') }}"
     active="settings"
 >
 
@@ -32,6 +32,9 @@
                     </div>
 
                     <div class="flex items-center gap-3">
+                        <!-- Right Header Icons: Notifications Dropdown & Profile Avatar Trigger -->
+                        <x-header-notifications :userNotifications="$userNotifications ?? []" :unreadCount="$unreadCount ?? 0" />
+
                         <!-- Header Profile Button Trigger -->
                         <button @click="profileModalOpen = true" class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
                             @if($user->avatar_url)
@@ -204,6 +207,33 @@
                                             <span>{{ $lvl->name }}</span>
                                         </label>
                                     @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 4: Email Notification Preferences -->
+                        <div class="space-y-4 pt-6 border-t border-slate-100">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">4. Email Notification Preferences</h3>
+                            
+                            <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-4 flex items-start justify-between gap-4">
+                                <div class="space-y-1">
+                                    <label for="job_alerts_enabled" class="block text-xs font-bold text-slate-900 cursor-pointer">
+                                        Opportunity & Job Match Email Alerts
+                                    </label>
+                                    <p class="text-xs text-slate-500 font-normal">
+                                        Receive automated email alerts whenever a new job matching your profile skills, location, or tutoring subjects is published.
+                                    </p>
+                                </div>
+                                <div class="shrink-0 flex items-center">
+                                    <input type="hidden" name="job_alerts_enabled" value="0" />
+                                    <input 
+                                        type="checkbox" 
+                                        id="job_alerts_enabled"
+                                        name="job_alerts_enabled" 
+                                        value="1" 
+                                        {{ old('job_alerts_enabled', $user->job_alerts_enabled ?? true) ? 'checked' : '' }}
+                                        class="w-4 h-4 accent-[#0F172B] rounded cursor-pointer"
+                                    />
                                 </div>
                             </div>
                         </div>

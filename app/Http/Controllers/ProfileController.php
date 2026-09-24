@@ -25,7 +25,11 @@ class ProfileController extends Controller
         $subjects = Subject::all();
         $levels = EducationLevel::all();
 
-        return view('profile.edit', compact('user', 'categories', 'skills', 'subjects', 'levels'));
+        $authUser = $request->user();
+        $userNotifications = $authUser ? $authUser->notifications()->take(15)->get() : collect();
+        $unreadCount = $authUser ? $authUser->unreadNotifications()->count() : 0;
+
+        return view('profile.edit', compact('user', 'categories', 'skills', 'subjects', 'levels', 'userNotifications', 'unreadCount'));
     }
 
     /**
@@ -40,6 +44,7 @@ class ProfileController extends Controller
             'name' => 'required|string|max:100',
             'phone' => 'nullable|string|max:30',
             'location' => 'nullable|string|max:100',
+            'job_alerts_enabled' => 'nullable|boolean',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
         ]);
 
@@ -55,6 +60,9 @@ class ProfileController extends Controller
         if (array_key_exists('location', $validatedUser)) {
             $user->location = $validatedUser['location'];
         }
+        if ($request->has('job_alerts_enabled')) {
+            $user->job_alerts_enabled = (bool) $request->input('job_alerts_enabled');
+        }
         $user->save();
 
         // 2. If professional form data is present
@@ -68,7 +76,7 @@ class ProfileController extends Controller
             ]);
 
             $validatedPro['display_name'] = !empty($validatedPro['display_name']) ? $validatedPro['display_name'] : $user->name;
-            $validatedPro['bio'] = !empty($validatedPro['bio']) ? $validatedPro['bio'] : 'Service provider on Skill Marketplace.';
+            $validatedPro['bio'] = !empty($validatedPro['bio']) ? $validatedPro['bio'] : 'Service provider on Skill Link NG.';
             $validatedPro['years_of_experience'] = isset($validatedPro['years_of_experience']) ? (int)$validatedPro['years_of_experience'] : 1;
             $validatedPro['location'] = $user->location;
             $validatedPro['phone'] = $user->phone;
@@ -170,6 +178,10 @@ class ProfileController extends Controller
         $rating = $profile ? ($profile->average_rating ?? 5.0) : 5.0;
         $reviews = $user->reviewsReceived()->with('reviewer')->latest()->get();
 
+        $authUser = auth()->user();
+        $userNotifications = $authUser ? $authUser->notifications()->take(15)->get() : collect();
+        $unreadCount = $authUser ? $authUser->unreadNotifications()->count() : 0;
+
         return view('profile.show', compact(
             'user',
             'profile',
@@ -181,8 +193,21 @@ class ProfileController extends Controller
             'connection',
             'dbStatus',
             'rating',
-            'reviews'
+            'reviews',
+            'userNotifications',
+            'unreadCount'
         ));
+    }
+
+    /**
+     * Unsubscribe user from job alert emails (Signed URL)
+     */
+    public function unsubscribeJobAlerts(Request $request, User $user)
+    {
+        $user->job_alerts_enabled = false;
+        $user->save();
+
+        return view('emails.job-alerts-unsubscribed', compact('user'));
     }
 }
 
