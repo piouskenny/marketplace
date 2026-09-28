@@ -25,6 +25,8 @@
                     applicantModalOpen: false,
                     paymentModalOpen: false,
                     payingConnection: false,
+                    paymentState: 'idle',
+                    paymentError: '',
                     reviewModalOpen: false,
                     reviewRating: 5,
                     reviewComment: '',
@@ -680,6 +682,9 @@
                     payConnectionFee: function(conv) {
                         var self = this;
                         self.payingConnection = true;
+                        self.paymentState = 'processing';
+                        self.paymentError = '';
+
                         var connId = conv.connection_id || conv.id;
                         if (typeof connId === 'string' && connId.indexOf('conn_') === 0) {
                             connId = connId.replace('conn_', '');
@@ -688,28 +693,33 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
+                                'Accept': 'application/json',
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
                             }
                         })
-                        .then(function(res) { return res.json(); })
-                        .then(function(data) {
-                            self.payingConnection = false;
-                            conv.status = 'connected';
-                            if (data.conversation_id) {
-                                conv.db_conversation_id = data.conversation_id;
+                        .then(function(res) {
+                            if (!res.ok) {
+                                return res.json().then(function(err) { throw new Error(err.message || 'Payment initialization failed.'); });
                             }
-                            self.paymentModalOpen = false;
-                            self.$nextTick(function() {
-                                self.scrollToBottom();
-                                self.initRealtimeEcho();
-                            });
+                            return res.json();
                         })
-                        .catch(function() {
+                        .then(function(data) {
+                            if (data.success && data.authorization_url) {
+                                self.paymentState = 'verifying';
+                                window.location.href = data.authorization_url;
+                            } else {
+                                self.payingConnection = false;
+                                self.paymentState = 'failed';
+                                self.paymentError = data.message || 'Payment initialization failed.';
+                            }
+                        })
+                        .catch(function(err) {
                             self.payingConnection = false;
-                            conv.status = 'connected';
-                            self.paymentModalOpen = false;
+                            self.paymentState = 'failed';
+                            self.paymentError = err.message || 'An error occurred while contacting Paystack.';
                         });
                     },
+
 
                     openReviewModal: function(conv) {
                         this.reviewRating = 5;
@@ -1363,6 +1373,16 @@
             </div>
 
             <div class="space-y-3">
+                <template x-if="paymentError">
+                    <div class="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs space-y-1">
+                        <div class="font-bold flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span>Payment Error</span>
+                        </div>
+                        <p x-text="paymentError" class="text-[11px]"></p>
+                    </div>
+                </template>
+
                 <p class="text-xs text-slate-600 leading-relaxed">
                     Pay the <strong>₦1,000 platform connection fee</strong> via Paystack to activate your direct line, messaging history, and contact details.
                 </p>
@@ -1374,23 +1394,47 @@
                     </div>
                     <div class="flex justify-between text-[11px] text-slate-500">
                         <span>Payment Method</span>
-                        <span>Paystack Checkout / Card / Transfer</span>
+                        <span>Paystack Checkout / Card / Bank Transfer</span>
+                    </div>
+                    <div class="flex justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-200/60">
+                        <span>Status</span>
+                        <span class="font-bold" :class="{
+                            'text-amber-600': paymentState === 'idle',
+                            'text-indigo-600': paymentState === 'processing' || paymentState === 'verifying',
+                            'text-rose-600': paymentState === 'failed',
+                            'text-emerald-600': paymentState === 'success'
+                        }" x-text="
+                            paymentState === 'processing' ? 'Initializing Paystack...' :
+                            (paymentState === 'verifying' ? 'Redirecting to Paystack...' :
+                            (paymentState === 'failed' ? 'Payment Failed' : 'Awaiting Payment'))
+                        "></span>
                     </div>
                 </div>
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-2">
-                <button @click="paymentModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                <button @click="paymentModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50" :disabled="payingConnection">
                     Cancel
                 </button>
                 <button 
                     @click="payConnectionFee(activeConversation)" 
-                    class="px-5 py-2.5 rounded-xl bg-[#0F172B] hover:bg-slate-800 text-white text-xs font-bold shadow-xs flex items-center gap-2 transition-colors cursor-pointer"
+                    class="px-5 py-2.5 rounded-xl bg-[#0F172B] hover:bg-slate-800 text-white text-xs font-bold shadow-xs flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
                     :disabled="payingConnection"
                 >
-                    <span x-text="payingConnection ? 'Processing...' : 'Pay ₦1,000 Now →'"></span>
+                    <template x-if="payingConnection">
+                        <svg class="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </template>
+                    <span x-text="
+                        paymentState === 'processing' ? 'Initializing Paystack...' :
+                        (paymentState === 'verifying' ? 'Redirecting to Checkout...' :
+                        (paymentState === 'failed' ? 'Retry Payment →' : 'Pay ₦1,000 via Paystack →'))
+                    "></span>
                 </button>
             </div>
+
         </div>
     </div>
 

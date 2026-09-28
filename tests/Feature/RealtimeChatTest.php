@@ -154,6 +154,7 @@ class RealtimeChatTest extends TestCase
 
     /** @test */
     public function user_a_can_send_first_message_immediately_after_activation_and_triggers_broadcast_and_user_notification()
+
     {
         \Illuminate\Support\Facades\Event::fake([MessageSent::class]);
         \Illuminate\Support\Facades\Notification::fake();
@@ -166,10 +167,33 @@ class RealtimeChatTest extends TestCase
             'status' => ConnectionStatus::Accepted,
         ]);
 
+        $ref = 'CONN-FEE-RTC1';
+        \Illuminate\Support\Facades\Http::fake([
+            'https://api.paystack.co/transaction/initialize' => \Illuminate\Support\Facades\Http::response([
+                'status' => true,
+                'data' => [
+                    'authorization_url' => 'https://checkout.paystack.com/rtc1',
+                    'reference' => $ref,
+                ],
+            ]),
+            'https://api.paystack.co/transaction/verify/*' => \Illuminate\Support\Facades\Http::response([
+                'status' => true,
+                'data' => [
+                    'status' => 'success',
+                    'id' => 991122,
+                    'amount' => 100000,
+                    'currency' => 'NGN',
+                    'reference' => $ref,
+                    'metadata' => ['connection_request_id' => $conn->id],
+                ],
+            ]),
+        ]);
+
         $response = $this->actingAs($this->participantB)->postJson("/connections/{$conn->id}/pay");
         $response->assertStatus(200)->assertJson(['success' => true]);
 
-        $convId = $response->json('conversation_id');
+        $activatedConn = app(\App\Actions\Payment\VerifyAndActivatePayment::class)->execute($ref);
+        $convId = $activatedConn->conversation?->id;
         $this->assertNotNull($convId);
 
         // 2. User A (Job Owner) sends first message immediately
@@ -217,10 +241,32 @@ class RealtimeChatTest extends TestCase
             'status' => ConnectionStatus::Accepted,
         ]);
 
+        $ref = 'CONN-FEE-RTC2';
+        \Illuminate\Support\Facades\Http::fake([
+            'https://api.paystack.co/transaction/initialize' => \Illuminate\Support\Facades\Http::response([
+                'status' => true,
+                'data' => [
+                    'authorization_url' => 'https://checkout.paystack.com/rtc2',
+                    'reference' => $ref,
+                ],
+            ]),
+            'https://api.paystack.co/transaction/verify/*' => \Illuminate\Support\Facades\Http::response([
+                'status' => true,
+                'data' => [
+                    'status' => 'success',
+                    'id' => 991123,
+                    'amount' => 100000,
+                    'currency' => 'NGN',
+                    'reference' => $ref,
+                    'metadata' => ['connection_request_id' => $conn->id],
+                ],
+            ]),
+        ]);
+
         $response = $this->actingAs($this->participantB)->postJson("/connections/{$conn->id}/pay");
         $response->assertStatus(200);
 
-        $convId = $response->json('conversation_id');
+        app(\App\Actions\Payment\VerifyAndActivatePayment::class)->execute($ref);
 
         // User B sends first message
         $msgResponse = $this->actingAs($this->participantB)->postJson("/connections/{$conn->id}/messages", [
@@ -236,6 +282,7 @@ class RealtimeChatTest extends TestCase
             \App\Notifications\NewMessageNotification::class
         );
     }
+
 
     /** @test */
     public function initial_placeholder_message_has_non_numeric_synthetic_id()

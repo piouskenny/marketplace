@@ -135,15 +135,41 @@ class OnboardingAndPaymentScopingTest extends TestCase
             'status' => ConnectionStatus::Accepted,
         ]);
 
+        \Illuminate\Support\Facades\Http::fake([
+            'https://api.paystack.co/transaction/initialize' => \Illuminate\Support\Facades\Http::response([
+                'status' => true,
+                'data' => [
+                    'authorization_url' => 'https://checkout.paystack.com/test-code',
+                    'reference' => 'CONN-FEE-SCOPE123',
+                ],
+            ]),
+            'https://api.paystack.co/transaction/verify/*' => \Illuminate\Support\Facades\Http::response([
+                'status' => true,
+                'data' => [
+                    'status' => 'success',
+                    'id' => 998811,
+                    'amount' => 100000,
+                    'currency' => 'NGN',
+                    'reference' => 'CONN-FEE-SCOPE123',
+                    'metadata' => ['connection_request_id' => $connection->id],
+                ],
+            ]),
+        ]);
+
         $response = $this->actingAs($this->applicantComplete)
             ->post("/connections/{$connection->id}/pay");
 
-        $response->assertRedirect();
+        $response->assertRedirect('https://checkout.paystack.com/test-code');
+
+        $this->actingAs($this->applicantComplete)
+            ->get("/connections/pay/callback?reference=CONN-FEE-SCOPE123");
+
         $this->assertDatabaseHas('connection_requests', [
             'id' => $connection->id,
             'status' => ConnectionStatus::Connected->value,
         ]);
     }
+
 
     /** @test */
     public function connection_request_notification_contains_rich_payload_for_realtime_ui()

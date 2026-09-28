@@ -43,6 +43,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/connections/{connection}/accept', [ConnectionController::class, 'accept'])->name('connections.accept');
     Route::post('/connections/{connection}/reject', [ConnectionController::class, 'reject'])->name('connections.reject');
     Route::post('/connections/{connection}/pay', [ConnectionController::class, 'pay'])->name('connections.pay');
+    Route::get('/connections/pay/callback', [ConnectionController::class, 'handleCallback'])->name('connections.pay.callback');
+    Route::post('/connections/pay/verify', [ConnectionController::class, 'verifyPayment'])->name('connections.pay.verify');
     Route::post('/connections/{connection}/review', [\App\Http\Controllers\ReviewController::class, 'store'])->name('connections.review');
     Route::get('/connections/status', [ConnectionController::class, 'status'])->name('connections.status');
     Route::post('/connections/{connection}/read', [ConnectionController::class, 'markRead'])->name('connections.read');
@@ -86,10 +88,14 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+// Paystack Webhook (Public route, exempt from CSRF)
+Route::post('/paystack/webhook', [ConnectionController::class, 'handleWebhook'])->name('paystack.webhook');
+
 // Job Alert Unsubscribe Route (Signed URL)
 Route::get('/unsubscribe-job-alerts/{user}', [ProfileController::class, 'unsubscribeJobAlerts'])
     ->name('job-alerts.unsubscribe')
     ->middleware('signed');
+
 
 
 

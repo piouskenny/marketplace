@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
+        $middleware->validateCsrfTokens(except: [
+            'paystack/webhook',
+        ]);
+
         // Trust Render's reverse proxy
         $middleware->trustProxies(
             at: '*',
@@ -25,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
     })
+
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

@@ -282,67 +282,137 @@ class ConnectionController extends Controller
     }
 
     /**
-     * Process connection fee payment (₦1,000) and unlock direct chat (Status: Connected)
+     * Initialize connection fee payment (₦1,000) via Paystack
      */
-    public function pay(Request $request, $id)
+    public function pay(Request $request, $id, \App\Actions\Payment\InitializeConnectionPayment $initializeAction)
     {
         $user = Auth::user();
+        $cleanId = (int) str_replace('conn_', '', $id);
+        $conn = ConnectionRequest::findOrFail($cleanId);
 
-        $cleanId = str_replace('conn_', '', $id);
-        $conn = ConnectionRequest::find($cleanId);
-        $conversation = null;
+        $this->authorize('pay', $conn);
 
-        if ($conn) {
-            $this->authorize('pay', $conn);
+        try {
+            $initData = $initializeAction->execute($conn->id, $user->id);
 
-            \Illuminate\Support\Facades\DB::transaction(function () use ($conn, $user, &$conversation) {
-                $conn->update([
-                    'status' => ConnectionStatus::Connected,
-                    'connected_at' => now(),
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment initialized successfully.',
+                    'authorization_url' => $initData['authorization_url'],
+                    'reference' => $initData['reference'],
+                    'access_code' => $initData['access_code'] ?? null,
+                    'status' => 'payment_pending',
                 ]);
-
-                $payment = \App\Models\Payment::create([
-                    'user_id' => $user->id,
-                    'connection_request_id' => $conn->id,
-                    'reference' => 'CONN-FEE-' . strtoupper(uniqid()),
-                    'provider' => 'paystack_demo',
-                    'amount' => 1000,
-                    'currency' => 'NGN',
-                    'status' => \App\Enums\PaymentStatus::Successful,
-                    'paid_at' => now(),
-                ]);
-
-                $createConversationAction = new \App\Actions\Conversations\CreateConversationAction();
-                $conversation = $createConversationAction->execute($conn);
-
-                \App\Events\ConnectionActivated::dispatch($conn->id, $payment->id);
-            });
-        }
-
-        $paidConns = session()->get('paid_connections', []);
-        $paidConns[] = (int) $cleanId;
-        session()->put('paid_connections', array_unique($paidConns));
-
-        $pendingApps = session()->get('pending_applications', []);
-        foreach ($pendingApps as &$app) {
-            if (isset($app['id']) && (string) $app['id'] === (string) $cleanId) {
-                $app['status'] = 'connected';
             }
-        }
-        session()->put('pending_applications', $pendingApps);
 
-        if ($request->wantsJson()) {
+            return redirect()->away($initData['authorization_url']);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Payment initialization error: ' . $e->getMessage(), ['connection_id' => $conn->id]);
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage() ?: 'Could not initialize payment. Please try again.',
+                ], 422);
+            }
+
+            return redirect()->back()->with('error', $e->getMessage() ?: 'Could not initialize payment.');
+        }
+    }
+
+    /**
+     * Verify payment status server-side after Paystack payment (AJAX / API)
+     */
+    public function verifyPayment(Request $request, \App\Actions\Payment\VerifyAndActivatePayment $verifyAction)
+    {
+        $request->validate([
+            'reference' => 'required|string',
+        ]);
+
+        $reference = $request->input('reference');
+
+        try {
+            $conn = $verifyAction->execute($reference);
+
             return response()->json([
                 'success' => true,
-                'message' => 'Connection fee of ₦1,000 paid successfully! Direct messaging is now permanently unlocked.',
+                'message' => 'Payment verified! Direct messaging is now permanently unlocked.',
                 'status' => 'connected',
-                'conversation_id' => $conversation ? $conversation->id : null,
+                'conversation_id' => $conn->conversation?->id,
             ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('Payment verification error: ' . $e->getMessage(), ['reference' => $reference]);
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Payment verification failed.',
+            ], 422);
+        }
+    }
+
+    /**
+     * Handle Paystack browser callback redirect
+     */
+    public function handleCallback(Request $request, \App\Actions\Payment\VerifyAndActivatePayment $verifyAction)
+    {
+        $reference = $request->query('reference') ?? $request->query('trxref');
+
+        if (!$reference) {
+            return redirect()->to(url('/dashboard/messages'))
+                ->with('error', 'No payment reference provided.');
         }
 
-        return redirect()->to(url('/dashboard/messages?conn_id=' . $cleanId))
-            ->with('status', 'Connection fee of ₦1,000 paid! Direct messaging is now unlocked.');
+        try {
+            $conn = $verifyAction->execute($reference);
+
+            // Sync session paid connections for immediate preview
+            $paidConns = session()->get('paid_connections', []);
+            $paidConns[] = (int) $conn->id;
+            session()->put('paid_connections', array_unique($paidConns));
+
+            return redirect()->to(url('/dashboard/messages?conn_id=' . $conn->id))
+                ->with('status', 'Payment of ₦1,000 verified successfully! Direct chat & contact details are now unlocked.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Callback verification failed: ' . $e->getMessage(), ['reference' => $reference]);
+
+            return redirect()->to(url('/dashboard/messages'))
+                ->with('error', 'Payment verification failed: ' . $e->getMessage());
+        }
     }
+
+    /**
+     * Handle Paystack asynchronous Webhook event
+     */
+    public function handleWebhook(Request $request, \App\Actions\Payment\VerifyAndActivatePayment $verifyAction)
+    {
+        $signature = $request->header('x-paystack-signature');
+        $secretKey = config('services.paystack.secret_key');
+        $payload = $request->getContent();
+
+        if (!$signature || !$secretKey || !hash_equals(hash_hmac('sha512', $payload, $secretKey), $signature)) {
+            \Illuminate\Support\Facades\Log::warning('Paystack webhook signature verification failed.');
+            return response()->json(['message' => 'Invalid signature'], 400);
+        }
+
+        $event = json_decode($payload, true);
+
+        if (isset($event['event']) && $event['event'] === 'charge.success') {
+            $reference = $event['data']['reference'] ?? null;
+            if ($reference) {
+                try {
+                    $verifyAction->execute($reference);
+                    return response()->json(['status' => 'success', 'message' => 'Payment processed successfully.']);
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Paystack Webhook execution error: ' . $e->getMessage(), ['reference' => $reference]);
+                    return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+                }
+            }
+        }
+
+        return response()->json(['status' => 'ignored'], 200);
+    }
+
 
     /**
      * Get real-time connection status list for polling
