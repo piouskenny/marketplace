@@ -30,6 +30,10 @@ class PaystackGateway implements PaymentGateway
 
     public function initialize(PaymentInitiationData $data): array
     {
+        if (empty($this->secretKey)) {
+            throw new \RuntimeException('Paystack secret key is missing. Please add PAYSTACK_SECRET_KEY=sk_live_... (or PAYSTACK_LIVE_SECRET_KEY) to your .env file and clear config cache.');
+        }
+
         $response = Http::withToken($this->secretKey)
             ->acceptJson()
             ->post("{$this->baseUrl}/transaction/initialize", array_filter([
