@@ -10,6 +10,8 @@ use App\Models\Skill;
 use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 
 class ProfileController extends Controller
@@ -48,61 +50,85 @@ class ProfileController extends Controller
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp,gif|max:5120',
         ]);
 
+        $oldAvatarPath = $user->avatar;
+        $newAvatarPath = null;
+
         if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar = $path;
+            $newAvatarPath = $request->file('avatar')->store('avatars', 'public');
         }
 
-        $user->name = $validatedUser['name'];
-        if (array_key_exists('phone', $validatedUser)) {
-            $user->phone = $validatedUser['phone'];
+        try {
+            DB::transaction(function () use ($user, $validatedUser, $newAvatarPath, $request, $proAction, $eduAction) {
+                if ($newAvatarPath !== null) {
+                    $user->avatar = $newAvatarPath;
+                }
+
+                $user->name = $validatedUser['name'];
+                if (array_key_exists('phone', $validatedUser)) {
+                    $user->phone = $validatedUser['phone'];
+                }
+                if (array_key_exists('location', $validatedUser)) {
+                    $user->location = $validatedUser['location'];
+                }
+                if ($request->has('job_alerts_enabled')) {
+                    $user->job_alerts_enabled = (bool) $request->input('job_alerts_enabled');
+                }
+                $user->save();
+
+                // 2. If professional form data is present
+                if ($request->has('category_id')) {
+                    $validatedPro = $request->validate([
+                        'category_id' => 'required|exists:categories,id',
+                        'display_name' => 'nullable|string|max:100',
+                        'bio' => 'nullable|string',
+                        'years_of_experience' => 'nullable|integer|min:0',
+                        'skills' => 'nullable|array',
+                    ]);
+
+                    $validatedPro['display_name'] = !empty($validatedPro['display_name']) ? $validatedPro['display_name'] : $user->name;
+                    $validatedPro['bio'] = !empty($validatedPro['bio']) ? $validatedPro['bio'] : 'Service provider on Skill Link NG.';
+                    $validatedPro['years_of_experience'] = isset($validatedPro['years_of_experience']) ? (int)$validatedPro['years_of_experience'] : 1;
+                    $validatedPro['location'] = $user->location;
+                    $validatedPro['phone'] = $user->phone;
+
+                    // Pass forClassification: null so editing settings NEVER automatically attaches Professional classification
+                    $proAction->execute($user, $validatedPro, forClassification: null);
+                }
+
+                // 3. If education tutor form data is present
+                if ($request->has('subject_ids') || $request->has('level_ids') || $request->has('teaching_mode')) {
+                    $validatedEdu = $request->validate([
+                        'teaching_mode' => 'nullable|in:physical,online,both',
+                        'qualifications' => 'nullable|string|max:255',
+                        'rate_min' => 'nullable|numeric|min:0',
+                        'rate_max' => 'nullable|numeric|min:0',
+                        'subject_ids' => 'nullable|array',
+                        'level_ids' => 'nullable|array',
+                    ]);
+
+                    $validatedEdu['teaching_mode'] = $validatedEdu['teaching_mode'] ?? 'both';
+                    $validatedEdu['subject_ids'] = $validatedEdu['subject_ids'] ?? [];
+                    $validatedEdu['level_ids'] = $validatedEdu['level_ids'] ?? [];
+
+                    $eduAction->execute($user, $validatedEdu);
+                }
+            });
+        } catch (\Throwable $e) {
+            // Transaction failed: clean up newly uploaded avatar if one was stored
+            if ($newAvatarPath !== null && Storage::disk('public')->exists($newAvatarPath)) {
+                Storage::disk('public')->delete($newAvatarPath);
+            }
+            throw $e;
         }
-        if (array_key_exists('location', $validatedUser)) {
-            $user->location = $validatedUser['location'];
-        }
-        if ($request->has('job_alerts_enabled')) {
-            $user->job_alerts_enabled = (bool) $request->input('job_alerts_enabled');
-        }
-        $user->save();
 
-        // 2. If professional form data is present
-        if ($request->has('category_id')) {
-            $validatedPro = $request->validate([
-                'category_id' => 'required|exists:categories,id',
-                'display_name' => 'nullable|string|max:100',
-                'bio' => 'nullable|string',
-                'years_of_experience' => 'nullable|integer|min:0',
-                'skills' => 'nullable|array',
-            ]);
-
-            $validatedPro['display_name'] = !empty($validatedPro['display_name']) ? $validatedPro['display_name'] : $user->name;
-            $validatedPro['bio'] = !empty($validatedPro['bio']) ? $validatedPro['bio'] : 'Service provider on Skill Link NG.';
-            $validatedPro['years_of_experience'] = isset($validatedPro['years_of_experience']) ? (int)$validatedPro['years_of_experience'] : 1;
-            $validatedPro['location'] = $user->location;
-            $validatedPro['phone'] = $user->phone;
-
-            $proAction->execute($user, $validatedPro);
+        // Transaction succeeded: remove previous avatar from disk if replaced
+        if ($newAvatarPath !== null && $oldAvatarPath !== null && $oldAvatarPath !== $newAvatarPath) {
+            if (Storage::disk('public')->exists($oldAvatarPath)) {
+                Storage::disk('public')->delete($oldAvatarPath);
+            }
         }
 
-        // 3. If education tutor form data is present
-        if ($request->has('subject_ids') || $request->has('level_ids') || $request->has('teaching_mode')) {
-            $validatedEdu = $request->validate([
-                'teaching_mode' => 'nullable|in:physical,online,both',
-                'qualifications' => 'nullable|string|max:255',
-                'rate_min' => 'nullable|numeric|min:0',
-                'rate_max' => 'nullable|numeric|min:0',
-                'subject_ids' => 'nullable|array',
-                'level_ids' => 'nullable|array',
-            ]);
-
-            $validatedEdu['teaching_mode'] = $validatedEdu['teaching_mode'] ?? 'both';
-            $validatedEdu['subject_ids'] = $validatedEdu['subject_ids'] ?? [];
-            $validatedEdu['level_ids'] = $validatedEdu['level_ids'] ?? [];
-
-            $eduAction->execute($user, $validatedEdu);
-        }
-
-        return redirect()->back()->with('status', 'Profile details and avatar updated successfully!');
+        return redirect()->back()->with('status', 'Profile updated successfully.');
     }
 
     /**

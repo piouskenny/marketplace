@@ -51,6 +51,23 @@
                     </p>
                 </div>
 
+                @if(session('status'))
+                    <div class="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4 text-emerald-800 text-sm font-medium">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 text-rose-700 text-sm font-medium space-y-1">
+                        <p class="font-bold">Please correct the errors below before continuing:</p>
+                        <ul class="list-disc list-inside space-y-0.5 text-xs">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <!-- Form -->
                 <form action="{{ url('/onboarding/tutor') }}" method="POST" class="space-y-6">
                     @csrf
@@ -66,13 +83,17 @@
                                     <input 
                                         type="checkbox" 
                                         name="subject_ids[]" 
-                                        value="{{ $sub->id }}" 
+                                        value="{{ $sub->id }}"
+                                        {{ in_array($sub->id, old('subject_ids', [])) ? 'checked' : '' }}
                                         class="w-4 h-4 accent-sky-600 rounded"
                                     />
                                     <span>{{ $sub->name }}</span>
                                 </label>
                             @endforeach
                         </div>
+                        @error('subject_ids')
+                            <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Target Education Levels Checkboxes -->
@@ -86,13 +107,17 @@
                                     <input 
                                         type="checkbox" 
                                         name="level_ids[]" 
-                                        value="{{ $lvl->id }}" 
+                                        value="{{ $lvl->id }}"
+                                        {{ in_array($lvl->id, old('level_ids', [])) ? 'checked' : '' }}
                                         class="w-4 h-4 accent-sky-600 rounded"
                                     />
                                     <span>{{ $lvl->name }}</span>
                                 </label>
                             @endforeach
                         </div>
+                        @error('level_ids')
+                            <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Teaching Mode & Qualifications Grid -->
@@ -107,10 +132,13 @@
                                 required 
                                 class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all cursor-pointer"
                             >
-                                <option value="physical">Physical (In-Person Only)</option>
-                                <option value="online">Online Only</option>
-                                <option value="both" selected>Both Physical & Online</option>
+                                <option value="physical" {{ old('teaching_mode') == 'physical' ? 'selected' : '' }}>Physical (In-Person Only)</option>
+                                <option value="online" {{ old('teaching_mode') == 'online' ? 'selected' : '' }}>Online Only</option>
+                                <option value="both" {{ old('teaching_mode', 'both') == 'both' ? 'selected' : '' }}>Both Physical & Online</option>
                             </select>
+                            @error('teaching_mode')
+                                <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
@@ -121,9 +149,13 @@
                                 type="text" 
                                 id="qualifications" 
                                 name="qualifications" 
+                                value="{{ old('qualifications') }}"
                                 placeholder="e.g. B.Sc. Mathematics, NCE"
                                 class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all"
                             />
+                            @error('qualifications')
+                                <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
@@ -138,9 +170,13 @@
                                 id="rate_min" 
                                 name="rate_min" 
                                 min="0"
+                                value="{{ old('rate_min') }}"
                                 placeholder="e.g. 5000"
                                 class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all"
                             />
+                            @error('rate_min')
+                                <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div>
                             <label for="rate_max" class="block text-sm font-extrabold text-slate-900 mb-1.5">
@@ -151,9 +187,13 @@
                                 id="rate_max" 
                                 name="rate_max" 
                                 min="0"
+                                value="{{ old('rate_max') }}"
                                 placeholder="e.g. 10000"
                                 class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all"
                             />
+                            @error('rate_max')
+                                <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 

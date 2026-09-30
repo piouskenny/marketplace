@@ -51,6 +51,30 @@
                     </p>
                 </div>
 
+                @php
+                    $hasTeacher = $user->isTeacher();
+                    $hasSkilledLabour = $user->isSkilledLabour();
+                    $requiresStructuredLocation = $hasTeacher || $hasSkilledLabour;
+                    $prof = $user->professionalProfile;
+                @endphp
+
+                @if(session('status'))
+                    <div class="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4 text-emerald-800 text-sm font-medium">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 text-rose-700 text-sm font-medium space-y-1">
+                        <p class="font-bold">Please correct the errors below before continuing:</p>
+                        <ul class="list-disc list-inside space-y-0.5 text-xs">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <!-- Form -->
                 <form action="{{ url('/onboarding/professional') }}" method="POST" class="space-y-5">
                     @csrf
@@ -66,13 +90,16 @@
                             required 
                             class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all cursor-pointer"
                         >
-                            <option value="" disabled selected>Select your trade or service area...</option>
+                            <option value="" disabled {{ old('category_id', $prof?->category_id) ? '' : 'selected' }}>Select your trade or service area...</option>
                             @foreach($categories as $cat)
-                                <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>
+                                <option value="{{ $cat->id }}" {{ old('category_id', $prof?->category_id) == $cat->id ? 'selected' : '' }}>
                                     {{ $cat->parent ? $cat->parent->name . ' → ' : '' }}{{ $cat->name }}
                                 </option>
                             @endforeach
                         </select>
+                        @error('category_id')
+                            <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Display Name -->
@@ -85,10 +112,13 @@
                             id="display_name" 
                             name="display_name" 
                             required
-                            value="{{ old('display_name', $user->name) }}"
+                            value="{{ old('display_name', $prof?->display_name ?? $user->name) }}"
                             placeholder="e.g. Master Plumber John"
                             class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all"
                         />
+                        @error('display_name')
+                            <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Experience & Location -->
@@ -104,9 +134,12 @@
                                 required
                                 min="0" 
                                 max="50"
-                                value="{{ old('years_of_experience', 3) }}"
+                                value="{{ old('years_of_experience', $prof?->years_of_experience ?? 3) }}"
                                 class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all"
                             />
+                            @error('years_of_experience')
+                                <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
@@ -118,46 +151,77 @@
                                 id="location" 
                                 name="location" 
                                 required
-                                value="{{ old('location', $user->location ?? 'Nigeria') }}"
+                                value="{{ old('location', $prof?->location ?? $user->location ?? 'Nigeria') }}"
                                 placeholder="e.g. Ikeja, Lagos"
                                 class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all"
                             />
+                            @error('location')
+                                <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
                     <!-- Structured Location -->
                     <fieldset class="border-2 border-slate-200 rounded-2xl p-4 space-y-4">
-                        <legend class="text-xs font-extrabold text-slate-700 px-1 uppercase tracking-wide">Structured Location (helps clients find you nearby)</legend>
+                        <legend class="text-xs font-extrabold text-slate-700 px-1 uppercase tracking-wide">
+                            Structured Location
+                            @if($requiresStructuredLocation)
+                                <span class="text-rose-500">* (Required for local client search)</span>
+                            @else
+                                <span class="text-slate-400 font-normal">(Helps clients find you nearby)</span>
+                            @endif
+                        </legend>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label for="location_state" class="block text-xs font-bold text-slate-700 mb-1">State</label>
+                                <label for="location_state" class="block text-xs font-bold text-slate-700 mb-1">
+                                    State @if($requiresStructuredLocation)<span class="text-rose-500">*</span>@endif
+                                </label>
                                 <input type="text" id="location_state" name="location_state"
-                                       value="{{ old('location_state') }}"
+                                       @if($requiresStructuredLocation) required @endif
+                                       value="{{ old('location_state', $prof?->location_state) }}"
                                        placeholder="e.g. Lagos"
                                        class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all" />
+                                @error('location_state')
+                                    <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div>
-                                <label for="location_city" class="block text-xs font-bold text-slate-700 mb-1">City / LGA</label>
+                                <label for="location_city" class="block text-xs font-bold text-slate-700 mb-1">
+                                    City / LGA @if($requiresStructuredLocation)<span class="text-rose-500">*</span>@endif
+                                </label>
                                 <input type="text" id="location_city" name="location_city"
-                                       value="{{ old('location_city') }}"
+                                       @if($requiresStructuredLocation) required @endif
+                                       value="{{ old('location_city', $prof?->location_city) }}"
                                        placeholder="e.g. Ikeja"
                                        class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all" />
+                                @error('location_city')
+                                    <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div>
-                                <label for="location_neighbourhood" class="block text-xs font-bold text-slate-700 mb-1">Neighbourhood</label>
+                                <label for="location_neighbourhood" class="block text-xs font-bold text-slate-700 mb-1">
+                                    Neighbourhood @if($requiresStructuredLocation)<span class="text-rose-500">*</span>@endif
+                                </label>
                                 <input type="text" id="location_neighbourhood" name="location_neighbourhood"
-                                       value="{{ old('location_neighbourhood') }}"
+                                       @if($requiresStructuredLocation) required @endif
+                                       value="{{ old('location_neighbourhood', $prof?->location_neighbourhood) }}"
                                        placeholder="e.g. Opebi"
                                        class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all" />
+                                @error('location_neighbourhood')
+                                    <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div>
                                 <label for="location_landmark" class="block text-xs font-bold text-slate-700 mb-1">
-                                    Nearest Landmark <span class="text-slate-400 font-normal">(private — post-connection only)</span>
+                                    Nearest Landmark <span class="text-slate-400 font-normal">(optional — private)</span>
                                 </label>
                                 <input type="text" id="location_landmark" name="location_landmark"
-                                       value="{{ old('location_landmark') }}"
+                                       value="{{ old('location_landmark', $prof?->location_landmark) }}"
                                        placeholder="e.g. Near Allen Avenue junction"
                                        class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all" />
+                                @error('location_landmark')
+                                    <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
                     </fieldset>
@@ -172,10 +236,13 @@
                             id="phone" 
                             name="phone" 
                             required
-                            value="{{ old('phone', $user->phone) }}"
+                            value="{{ old('phone', $prof?->phone ?? $user->phone) }}"
                             placeholder="e.g. +234 802 345 6789"
                             class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all"
                         />
+                        @error('phone')
+                            <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Bio -->
@@ -190,7 +257,10 @@
                             required
                             placeholder="Describe your services, trade background, equipment, or teaching approach..."
                             class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl p-4 outline-none transition-all"
-                        >{{ old('bio') }}</textarea>
+                        >{{ old('bio', $prof?->bio) }}</textarea>
+                        @error('bio')
+                            <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Submit Button -->

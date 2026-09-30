@@ -101,7 +101,7 @@
 
                                 <div class="space-y-1 flex-1 text-center sm:text-left">
                                     <label class="block text-xs font-semibold text-slate-900">Profile Photo</label>
-                                    <p class="text-xs text-slate-500 font-normal">Upload a clear photo (JPG, PNG or WEBP, max 3MB). This will display on your profile and header.</p>
+                                    <p class="text-xs text-slate-500 font-normal">Upload a clear photo (JPG, PNG or WEBP, max 5MB). This will display on your profile and header.</p>
                                     
                                     <div class="pt-1 flex flex-wrap items-center justify-center sm:justify-start gap-2">
                                         <label class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-[#0F172B] text-white font-semibold text-xs hover:bg-slate-800 cursor-pointer shadow-xs transition-colors">
@@ -123,6 +123,9 @@
                                             />
                                         </label>
                                     </div>
+                                    @error('avatar')
+                                        <p class="text-xs font-semibold text-rose-600 mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
                             </div>
 

@@ -50,15 +50,20 @@
                     </p>
                 </div>
 
-                @if($errors->any())
-                    <div class="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 text-rose-700 text-sm font-medium space-y-1">
-                        @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach
-                    </div>
-                @endif
-
                 @if(session('status'))
                     <div class="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4 text-emerald-800 text-sm font-medium">
                         {{ session('status') }}
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 text-rose-700 text-sm font-medium space-y-1">
+                        <p class="font-bold">Please correct the errors below before continuing:</p>
+                        <ul class="list-disc list-inside space-y-0.5 text-xs">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
                     </div>
                 @endif
 
@@ -83,6 +88,9 @@
                             @endforeach
                         </select>
                         <p class="text-xs text-slate-500 mt-1">e.g. Electrician, Plumber, Carpenter. Leave blank if your trade is not listed.</p>
+                        @error('trade_category_id')
+                            <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Display Name -->
@@ -98,6 +106,9 @@
                             placeholder="e.g. Master Electrician James"
                             class="w-full bg-slate-50 border-2 border-slate-300 focus:border-amber-500 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all"
                         />
+                        @error('display_name')
+                            <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Bio -->
@@ -113,6 +124,9 @@
                             placeholder="Describe your trade skills, tools, certifications, and years of experience. Clients see this first."
                             class="w-full bg-slate-50 border-2 border-slate-300 focus:border-amber-500 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl p-4 outline-none transition-all"
                         >{{ old('bio') }}</textarea>
+                        @error('bio')
+                            <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Experience + Phone -->
@@ -129,6 +143,9 @@
                                 value="{{ old('years_of_experience', 3) }}"
                                 class="w-full bg-slate-50 border-2 border-slate-300 focus:border-amber-500 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all"
                             />
+                            @error('years_of_experience')
+                                <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div>
                             <label for="phone" class="block text-sm font-extrabold text-slate-900 mb-1.5">
@@ -144,6 +161,9 @@
                                 placeholder="+234 802 345 6789"
                                 class="w-full bg-slate-50 border-2 border-slate-300 focus:border-amber-500 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all"
                             />
+                            @error('phone')
+                                <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
@@ -164,6 +184,9 @@
                                 placeholder="e.g. Ikeja, Lagos"
                                 class="w-full bg-slate-50 border-2 border-slate-300 focus:border-amber-500 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all"
                             />
+                            @error('location')
+                                <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -173,6 +196,9 @@
                                        value="{{ old('location_state') }}"
                                        placeholder="e.g. Lagos"
                                        class="w-full bg-slate-50 border-2 border-slate-300 focus:border-amber-500 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all" />
+                                @error('location_state')
+                                    <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div>
                                 <label for="location_city" class="block text-xs font-bold text-slate-700 mb-1">City / LGA</label>
@@ -180,6 +206,9 @@
                                        value="{{ old('location_city') }}"
                                        placeholder="e.g. Ikeja"
                                        class="w-full bg-slate-50 border-2 border-slate-300 focus:border-amber-500 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all" />
+                                @error('location_city')
+                                    <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div>
                                 <label for="location_neighbourhood" class="block text-xs font-bold text-slate-700 mb-1">Neighbourhood</label>
@@ -187,6 +216,9 @@
                                        value="{{ old('location_neighbourhood') }}"
                                        placeholder="e.g. Opebi"
                                        class="w-full bg-slate-50 border-2 border-slate-300 focus:border-amber-500 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all" />
+                                @error('location_neighbourhood')
+                                    <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div>
                                 <label for="location_landmark" class="block text-xs font-bold text-slate-700 mb-1">
@@ -196,6 +228,9 @@
                                        value="{{ old('location_landmark') }}"
                                        placeholder="e.g. Near Allen Avenue"
                                        class="w-full bg-slate-50 border-2 border-slate-300 focus:border-amber-500 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all" />
+                                @error('location_landmark')
+                                    <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
                     </fieldset>
@@ -219,6 +254,9 @@
                                 </label>
                             @endforeach
                         </div>
+                        @error('skills')
+                            <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                     @endif
 
@@ -239,6 +277,9 @@
                             <textarea id="certification_notes" name="certification_notes" rows="2"
                                       placeholder="e.g. COREN registered, NAFDAC certified, City & Guilds Level 3..."
                                       class="w-full bg-slate-50 border-2 border-slate-300 focus:border-amber-500 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl p-3 outline-none transition-all">{{ old('certification_notes') }}</textarea>
+                            @error('certification_notes')
+                                <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 

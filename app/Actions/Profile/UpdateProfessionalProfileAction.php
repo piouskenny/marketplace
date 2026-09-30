@@ -32,6 +32,8 @@ class UpdateProfessionalProfileAction
     ): ProfessionalProfile {
         $category = Category::findOrFail($data['category_id']);
 
+        $existingProfile = ProfessionalProfile::where('user_id', $user->id)->first();
+
         $profile = ProfessionalProfile::updateOrCreate(
             ['user_id' => $user->id],
             [
@@ -39,10 +41,10 @@ class UpdateProfessionalProfileAction
                 'display_name'           => $data['display_name'] ?? $user->name,
                 'bio'                    => $data['bio'],
                 'location'               => $data['location'] ?? $user->location ?? 'Nigeria',
-                'location_state'         => $data['location_state'] ?? null,
-                'location_city'          => $data['location_city'] ?? null,
-                'location_neighbourhood' => $data['location_neighbourhood'] ?? null,
-                'location_landmark'      => $data['location_landmark'] ?? null,
+                'location_state'         => array_key_exists('location_state', $data) ? $data['location_state'] : ($existingProfile?->location_state),
+                'location_city'          => array_key_exists('location_city', $data) ? $data['location_city'] : ($existingProfile?->location_city),
+                'location_neighbourhood' => array_key_exists('location_neighbourhood', $data) ? $data['location_neighbourhood'] : ($existingProfile?->location_neighbourhood),
+                'location_landmark'      => array_key_exists('location_landmark', $data) ? $data['location_landmark'] : ($existingProfile?->location_landmark),
                 'years_of_experience'    => $data['years_of_experience'] ?? 1,
                 'phone'                  => $data['phone'] ?? $user->phone,
                 'contact_email'          => $data['contact_email'] ?? $user->email,
@@ -72,11 +74,14 @@ class UpdateProfessionalProfileAction
         // registers the Teacher classification after the education form is submitted.
 
         // Update user account state
-        $user->update([
-            'phone'             => $data['phone'] ?? $user->phone,
-            'location'          => $data['location'] ?? $user->location,
-            'onboarding_intent' => 'offer_services',
-        ]);
+        $userUpdate = [
+            'phone'    => $data['phone'] ?? $user->phone,
+            'location' => $data['location'] ?? $user->location,
+        ];
+        if ($forClassification !== null || empty($user->onboarding_intent)) {
+            $userUpdate['onboarding_intent'] = $user->onboarding_intent ?? 'offer_services';
+        }
+        $user->update($userUpdate);
 
         return $profile;
     }

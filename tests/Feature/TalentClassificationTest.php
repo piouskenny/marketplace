@@ -706,5 +706,167 @@ class TalentClassificationTest extends TestCase
         $this->assertFalse($incompleteUser->onboarding_completed);
         $this->assertTrue($completeUser->onboarding_completed);
     }
+
+    public function test_teacher_base_profile_submission_without_structured_location_fails_validation(): void
+    {
+        $user = $this->verifiedUser();
+
+        $this->actingAs($user)->post('/onboarding/classification', ['classifications' => ['teacher']]);
+
+        $response = $this->actingAs($user)->post('/onboarding/professional', [
+            'category_id'         => 3,
+            'display_name'        => 'Teacher Without Location',
+            'bio'                 => 'Passionate english teacher with 5 years experience.',
+            'years_of_experience' => 4,
+            'location'            => 'Lagos',
+            'phone'               => '08022334455',
+        ]);
+
+        $response->assertSessionHasErrors(['location_state', 'location_city', 'location_neighbourhood']);
+    }
+
+    public function test_skilled_labour_base_profile_submission_without_structured_location_fails_validation(): void
+    {
+        $user = $this->verifiedUser();
+
+        $this->actingAs($user)->post('/onboarding/classification', ['classifications' => ['skilled_labour']]);
+
+        $response = $this->actingAs($user)->post('/onboarding/professional', [
+            'category_id'         => 2,
+            'display_name'        => 'Skilled Worker Without Location',
+            'bio'                 => 'Experienced electrician offering repair services.',
+            'years_of_experience' => 5,
+            'location'            => 'Lagos',
+            'phone'               => '08033445566',
+        ]);
+
+        $response->assertSessionHasErrors(['location_state', 'location_city', 'location_neighbourhood']);
+    }
+
+    public function test_teacher_base_profile_saves_successfully_when_structured_location_supplied(): void
+    {
+        $user = $this->verifiedUser();
+
+        $this->actingAs($user)->post('/onboarding/classification', ['classifications' => ['teacher']]);
+
+        $response = $this->actingAs($user)->post('/onboarding/professional', [
+            'category_id'            => 3,
+            'display_name'           => 'Teacher With Location',
+            'bio'                    => 'Passionate english teacher with 5 years experience.',
+            'years_of_experience'    => 4,
+            'location'               => 'Surulere, Lagos',
+            'location_state'         => 'Lagos',
+            'location_city'          => 'Surulere',
+            'location_neighbourhood' => 'Bode Thomas',
+            'phone'                  => '08022334455',
+        ]);
+
+        $response->assertRedirectToRoute('onboarding.tutor');
+        $response->assertSessionHas('status');
+        $this->assertDatabaseHas('professional_profiles', [
+            'user_id'          => $user->id,
+            'location_state'   => 'Lagos',
+            'location_city'    => 'Surulere',
+        ]);
+    }
+
+    public function test_skilled_labour_base_profile_saves_successfully_when_structured_location_supplied(): void
+    {
+        $user = $this->verifiedUser();
+
+        $this->actingAs($user)->post('/onboarding/classification', ['classifications' => ['skilled_labour']]);
+
+        $response = $this->actingAs($user)->post('/onboarding/professional', [
+            'category_id'            => 2,
+            'display_name'           => 'Skilled Worker With Location',
+            'bio'                    => 'Experienced electrician offering repair services.',
+            'years_of_experience'    => 5,
+            'location'               => 'Lekki, Lagos',
+            'location_state'         => 'Lagos',
+            'location_city'          => 'Lekki',
+            'location_neighbourhood' => 'Phase 1',
+            'phone'                  => '08033445566',
+        ]);
+
+        $response->assertRedirectToRoute('onboarding.skilled-labour');
+        $response->assertSessionHas('status');
+        $this->assertDatabaseHas('professional_profiles', [
+            'user_id'          => $user->id,
+            'location_state'   => 'Lagos',
+            'location_city'    => 'Lekki',
+        ]);
+    }
+
+    public function test_professional_only_onboarding_permits_structured_location_omitted(): void
+    {
+        $user = $this->verifiedUser();
+
+        $this->actingAs($user)->post('/onboarding/classification', ['classifications' => ['professional']]);
+
+        $response = $this->actingAs($user)->post('/onboarding/professional', [
+            'category_id'         => 1,
+            'display_name'        => 'Pro Only User',
+            'bio'                 => 'Experienced software engineer and tech consultant.',
+            'years_of_experience' => 6,
+            'location'            => 'Lagos',
+            'phone'               => '08044556677',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect('/dashboard');
+        $response->assertSessionHas('status');
+        $this->assertDatabaseHas('professional_profiles', [
+            'user_id'        => $user->id,
+            'location_state' => null,
+        ]);
+    }
+
+    public function test_teacher_specialisation_validation_failures_are_surfaced(): void
+    {
+        $user = $this->verifiedUser();
+
+        $this->actingAs($user)->post('/onboarding/classification', ['classifications' => ['teacher']]);
+
+        $this->actingAs($user)->post('/onboarding/professional', [
+            'category_id'            => 3,
+            'display_name'           => 'Teacher Val',
+            'bio'                    => 'Passionate english teacher with 5 years experience.',
+            'years_of_experience'    => 4,
+            'location'               => 'Surulere, Lagos',
+            'location_state'         => 'Lagos',
+            'location_city'          => 'Surulere',
+            'location_neighbourhood' => 'Bode Thomas',
+            'phone'                  => '08022334455',
+        ]);
+
+        $response = $this->actingAs($user)->post('/onboarding/tutor', []);
+
+        $response->assertSessionHasErrors(['subject_ids', 'level_ids']);
+    }
+
+    public function test_skilled_labour_specialisation_validation_failures_are_surfaced(): void
+    {
+        $user = $this->verifiedUser();
+
+        $this->actingAs($user)->post('/onboarding/classification', ['classifications' => ['skilled_labour']]);
+
+        $this->actingAs($user)->post('/onboarding/professional', [
+            'category_id'            => 2,
+            'display_name'           => 'Skilled Val',
+            'bio'                    => 'Experienced electrician offering repair services.',
+            'years_of_experience'    => 5,
+            'location'               => 'Lekki, Lagos',
+            'location_state'         => 'Lagos',
+            'location_city'          => 'Lekki',
+            'location_neighbourhood' => 'Phase 1',
+            'phone'                  => '08033445566',
+        ]);
+
+        $response = $this->actingAs($user)->post('/onboarding/skilled-labour', [
+            'trade_category_id' => 999999,
+        ]);
+
+        $response->assertSessionHasErrors('trade_category_id');
+    }
 }
 

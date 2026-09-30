@@ -7,6 +7,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class ConnectionRequestNotification extends Notification implements ShouldBroadcastNow
@@ -22,7 +23,29 @@ class ConnectionRequestNotification extends Notification implements ShouldBroadc
 
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return ['mail', 'database', 'broadcast'];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        $initiator = $this->connectionRequest->initiator;
+        $initiatorName = $initiator ? $initiator->name : 'A user';
+        $opportunity = $this->connectionRequest->opportunity;
+        $opportunityTitle = $opportunity ? $opportunity->title : 'your opportunity';
+        $targetUrl = url('/dashboard/messages?conn_id=' . $this->connectionRequest->id);
+
+        $mailMessage = (new MailMessage)
+            ->subject('New Application: ' . $opportunityTitle)
+            ->greeting('Hello ' . $notifiable->name . ',')
+            ->line($initiatorName . ' has submitted an application and connection request for your opportunity: "' . $opportunityTitle . '".');
+
+        if (!empty($this->connectionRequest->initial_message)) {
+            $mailMessage->line('Application Note: "' . $this->connectionRequest->initial_message . '"');
+        }
+
+        return $mailMessage
+            ->action('Review & Respond on Skill Link NG', $targetUrl)
+            ->line('Thank you for using Skill Link NG!');
     }
 
     public function broadcastOn(): array
@@ -62,12 +85,10 @@ class ConnectionRequestNotification extends Notification implements ShouldBroadc
             'created_at' => now()->toIso8601String(),
             'applicant_profile' => [
                 'name' => $initiatorName,
-                'avatar' => asset('images/avatars/babajide.png'),
+                'avatar' => $initiator?->avatar_url ?? asset('images/avatars/babajide.png'),
                 'title' => $profile->headline ?? 'Verified Skill Link Talent',
                 'category' => $categoryName,
                 'location' => $profile ? ($profile->location ?? 'Lagos, Nigeria') : ($opportunity ? $opportunity->location : 'Lagos, Nigeria'),
-                'phone' => $initiator ? $initiator->phone : '+234 802 345 6789',
-                'email' => $initiator ? $initiator->email : 'applicant@example.com',
                 'bio' => $profile->bio ?? 'Qualified professional offering expert tutoring and contract services.',
                 'skills' => !empty($skillsList) ? $skillsList : ['Tutoring', 'Mentorship', 'Subject Prep'],
                 'education' => 'Higher Degree — University of Lagos',

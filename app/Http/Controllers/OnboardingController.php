@@ -56,21 +56,21 @@ class OnboardingController extends Controller
         $teacherIncomplete = $user->talentTypes()->where('slug', 'teacher')->whereNull('talent_type_user.completed_at')->exists();
         if ($teacherIncomplete) {
             return redirect()->route('onboarding.tutor')
-                ->with('status', 'Please complete your teacher & tutoring details.');
+                ->with('status', 'Profile updated successfully. Please complete your teacher & tutoring details.');
         }
 
         // 3. If skilled_labour classification is pending (incomplete)
         $skilledIncomplete = $user->talentTypes()->where('slug', 'skilled_labour')->whereNull('talent_type_user.completed_at')->exists();
         if ($skilledIncomplete) {
             return redirect()->route('onboarding.skilled-labour')
-                ->with('status', 'Please complete your skilled trade details.');
+                ->with('status', 'Profile updated successfully. Please complete your skilled trade details.');
         }
 
         // 4. All selected classifications complete
         $user->update(['onboarding_completed' => true]);
 
         return redirect()->to('/dashboard')
-            ->with('status', 'Service profile setup is complete! Welcome to Skill Link NG.');
+            ->with('status', 'Profile updated successfully! Welcome to Skill Link NG.');
     }
 
     // ─── Step 2A: Customer / Hirer ────────────────────────────────────────────

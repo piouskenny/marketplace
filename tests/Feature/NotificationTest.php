@@ -108,4 +108,70 @@ class NotificationTest extends TestCase
         $readResponse->assertJson(['unread_count' => 0]);
         $this->assertEquals(0, $user->unreadNotifications()->count());
     }
+
+    public function test_applying_to_opportunity_sends_mail_notification_to_job_poster(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+
+        $poster = User::factory()->create(['name' => 'Job Poster', 'email' => 'poster@example.com']);
+        $applicant = User::factory()->create(['name' => 'Applicant User', 'phone' => '+2348011112222', 'email' => 'applicant@example.com']);
+
+        $category = \App\Models\Category::create(['name' => 'Education & Tutoring', 'slug' => 'edu-tutor']);
+        $opportunity = \App\Models\Opportunity::create([
+            'user_id' => $poster->id,
+            'category_id' => $category->id,
+            'title' => 'Senior Math Tutor Required',
+            'description' => 'Need math tutor for SS3 student.',
+            'location' => 'Lagos',
+            'opportunity_type' => 'Physical In-Person',
+            'status' => 'open',
+        ]);
+
+        $connection = ConnectionRequest::create([
+            'initiator_id' => $applicant->id,
+            'recipient_id' => $poster->id,
+            'opportunity_id' => $opportunity->id,
+            'type' => ConnectionType::OpportunityApplication,
+            'status' => ConnectionStatus::Pending,
+            'initial_message' => 'I would love to tutor your child.',
+        ]);
+
+        event(new ConnectionRequestCreated($connection->id));
+
+        $this->assertEquals(1, $poster->notifications()->count());
+        $notification = $poster->notifications()->first();
+
+        // Verify broadcast/database payload does NOT expose private phone or email
+        $payload = $notification->data;
+        $this->assertArrayNotHasKey('phone', $payload['applicant_profile'] ?? []);
+        $this->assertArrayNotHasKey('email', $payload['applicant_profile'] ?? []);
+        $this->assertEquals('Applicant User', $payload['initiator_name']);
+        $this->assertEquals('Senior Math Tutor Required', $payload['opportunity_title']);
+    }
+
+    public function test_connection_request_email_contains_safe_link_and_opportunity_context(): void
+    {
+        $poster = User::factory()->create(['name' => 'Job Poster Owner', 'email' => 'owner@example.com']);
+        $applicant = User::factory()->create(['name' => 'Talent Applicant', 'phone' => '+2348099998888', 'email' => 'talent@example.com']);
+
+        $connection = ConnectionRequest::create([
+            'initiator_id' => $applicant->id,
+            'recipient_id' => $poster->id,
+            'type' => ConnectionType::OpportunityApplication,
+            'status' => ConnectionStatus::Pending,
+            'initial_message' => 'I have 5 years experience in physics tutoring.',
+        ]);
+
+        $notification = new \App\Notifications\ConnectionRequestNotification($connection);
+        $mail = $notification->toMail($poster);
+
+        $this->assertStringContainsString('Talent Applicant', $mail->introLines[0]);
+        $this->assertStringContainsString('I have 5 years experience in physics tutoring.', $mail->introLines[1] ?? $mail->introLines[0]);
+        $this->assertStringContainsString('/dashboard/messages?conn_id=' . $connection->id, $mail->actionUrl);
+
+        // Verify email content does NOT expose raw phone or email
+        $mailContent = json_encode($mail);
+        $this->assertStringNotContainsString('+2348099998888', $mailContent);
+        $this->assertStringNotContainsString('talent@example.com', $mailContent);
+    }
 }
