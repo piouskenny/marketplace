@@ -6,6 +6,9 @@
 
         <title>{{ config('app.name', 'Skill Link NG') }} — Powered by CSISS | Find Skilled Talent & Tutors Near You</title>
 
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+
         <!-- Fonts (Inter) -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,9 +35,7 @@
                 
                 <!-- Logo & CSISS Badge -->
                 <a href="/" class="flex items-center gap-3 group shrink-0">
-                    <div class="w-10 h-10 rounded-full bg-[#0F172B] flex items-center justify-center text-white shadow-md group-hover:bg-slate-800 transition-all duration-300">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/></svg>
-                    </div>
+                    <img src="{{ asset('images/skilllingng_logo.png') }}" alt="{{ config('app.name', 'Skill Link NG') }}" class="w-10 h-10 object-contain rounded-full shrink-0" />
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="text-slate-900 font-extrabold text-base sm:text-lg tracking-tight leading-none block">Skill Link NG</span>
@@ -546,6 +547,132 @@
                     </div>
 
                 </div>
+            </section>
+
+            <!-- Section: Location Selector & Public Discovery -->
+            <section id="discovery" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-16">
+                
+                <!-- Location Selector Bar -->
+                <x-location-selector :searchLocation="$searchLocation ?? []" :hasSelectedLocation="$hasSelectedLocation ?? false" />
+
+                <!-- SECTION A: Skilled Labour Workers -->
+                <div class="space-y-8">
+                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/80 pb-5">
+                        <div>
+                            <span class="text-sky-600 text-xs font-extrabold uppercase tracking-widest block">
+                                VETTED HANDYMEN & ARTISANS
+                            </span>
+                            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-1">
+                                @if(!empty($hasSelectedLocation) && (!empty($searchLocation['location_city']) || !empty($searchLocation['location_state'])))
+                                    Find Skilled Labour Workers Near {{ $searchLocation['location_city'] ?? $searchLocation['location_state'] }}
+                                @else
+                                    Skilled Labour Workers
+                                @endif
+                            </h2>
+                            <p class="text-slate-500 text-sm font-normal mt-1">
+                                Experienced electricians, plumbers, technicians, and artisans verified by CSISS.
+                            </p>
+                        </div>
+                        <a href="{{ route('talent.index', ['talent_type' => 'skilled_labour']) }}" class="px-5 py-2.5 rounded-full text-xs font-bold text-slate-800 hover:text-white bg-slate-100 hover:bg-[#0F172B] transition-all flex items-center gap-2 shrink-0 self-start md:self-auto">
+                            <span>View all skilled workers</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </a>
+                    </div>
+
+                    <!-- Trade Shortcuts -->
+                    @if(!empty($tradeCategories) && count($tradeCategories) > 0)
+                        <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Popular Trades:</span>
+                            @foreach($tradeCategories->take(8) as $trade)
+                                <a href="{{ route('talent.index', ['talent_type' => 'skilled_labour', 'trade_category_id' => $trade->id]) }}" class="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 hover:border-[#0F172B] text-slate-700 hover:text-[#0F172B] shadow-2xs transition-all shrink-0">
+                                    {{ $trade->name }}
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <!-- Skilled Labour Talent Cards Grid -->
+                    @if(!empty($skilledLabourWorkers) && count($skilledLabourWorkers) > 0)
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            @foreach($skilledLabourWorkers as $pro)
+                                <x-talent-card :pro="$pro" talentType="skilled_labour" />
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="bg-white border border-slate-200/80 rounded-3xl p-10 text-center space-y-4 shadow-sm">
+                            <div class="w-14 h-14 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-2xl font-bold">🔧</div>
+                            <div class="space-y-1">
+                                <h3 class="text-lg font-bold text-slate-900">No skilled workers found in this area yet</h3>
+                                <p class="text-xs text-slate-500 max-w-md mx-auto">Try expanding your location search or browse all skilled workers across Nigeria.</p>
+                            </div>
+                            <div>
+                                <a href="{{ route('talent.index', ['talent_type' => 'skilled_labour']) }}" class="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-[#0F172B] rounded-full hover:bg-slate-800 transition-colors">
+                                    Browse all skilled workers
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- SECTION B: Teachers -->
+                <div class="space-y-8 pt-4">
+                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/80 pb-5">
+                        <div>
+                            <span class="text-sky-600 text-xs font-extrabold uppercase tracking-widest block">
+                                ACADEMIC TUTORS & INSTRUCTORS
+                            </span>
+                            <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-1">
+                                @if(!empty($hasSelectedLocation) && (!empty($searchLocation['location_city']) || !empty($searchLocation['location_state'])))
+                                    Find Teachers Near {{ $searchLocation['location_city'] ?? $searchLocation['location_state'] }}
+                                @else
+                                    Find Teachers
+                                @endif
+                            </h2>
+                            <p class="text-slate-500 text-sm font-normal mt-1">
+                                Qualified home tutors, WAEC/JAMB educators, and private instructors.
+                            </p>
+                        </div>
+                        <a href="{{ route('talent.index', ['talent_type' => 'teacher']) }}" class="px-5 py-2.5 rounded-full text-xs font-bold text-slate-800 hover:text-white bg-slate-100 hover:bg-[#0F172B] transition-all flex items-center gap-2 shrink-0 self-start md:self-auto">
+                            <span>View all teachers</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </a>
+                    </div>
+
+                    <!-- Subject Shortcuts -->
+                    @if(!empty($subjects) && count($subjects) > 0)
+                        <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Popular Subjects:</span>
+                            @foreach($subjects->take(8) as $subj)
+                                <a href="{{ route('talent.index', ['talent_type' => 'teacher', 'subject_id' => $subj->id]) }}" class="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 hover:border-[#0F172B] text-slate-700 hover:text-[#0F172B] shadow-2xs transition-all shrink-0">
+                                    {{ $subj->name }}
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <!-- Teacher Talent Cards Grid -->
+                    @if(!empty($teachers) && count($teachers) > 0)
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            @foreach($teachers as $pro)
+                                <x-talent-card :pro="$pro" talentType="teacher" />
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="bg-white border border-slate-200/80 rounded-3xl p-10 text-center space-y-4 shadow-sm">
+                            <div class="w-14 h-14 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-2xl font-bold">🎓</div>
+                            <div class="space-y-1">
+                                <h3 class="text-lg font-bold text-slate-900">No teachers found in this area yet</h3>
+                                <p class="text-xs text-slate-500 max-w-md mx-auto">Try expanding your location search or browse all qualified teachers across Nigeria.</p>
+                            </div>
+                            <div>
+                                <a href="{{ route('talent.index', ['talent_type' => 'teacher']) }}" class="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-[#0F172B] rounded-full hover:bg-slate-800 transition-colors">
+                                    Browse all teachers
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
             </section>
 
             <!-- Section: Categories (12 Categories Grid) -->
@@ -1508,9 +1635,7 @@
                     <!-- Brand Column -->
                     <div class="col-span-2 md:col-span-1 space-y-4 text-left">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded-full bg-[#0F172B] text-white font-bold flex items-center justify-center text-sm shadow-xs">
-                                ⚡
-                            </div>
+                            <img src="{{ asset('images/skilllingng_logo.png') }}" alt="{{ config('app.name', 'Skill Link NG') }}" class="w-8 h-8 object-contain shrink-0" />
                             <span class="text-xl font-bold text-slate-900 tracking-tight">Skill Link NG</span>
                         </div>
 

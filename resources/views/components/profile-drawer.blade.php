@@ -120,6 +120,18 @@
                         <span class="text-slate-500 font-medium">Primary Category</span>
                         <span class="font-semibold text-slate-900">{{ $user->professionalProfile->category->name ?? $user->onboarding_intent ?? 'Client / Talent' }}</span>
                     </div>
+                    <div class="p-3 flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">Services Offered</span>
+                        <div class="flex flex-wrap gap-1 justify-end">
+                            @forelse($user->talentTypes as $type)
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                                    {{ $type->label }}
+                                </span>
+                            @empty
+                                <span class="font-semibold text-slate-900">Hirer / Customer</span>
+                            @endforelse
+                        </div>
+                    </div>
                 </div>
 
                 @if($user && $user->professionalProfile && $user->professionalProfile->bio)

@@ -143,6 +143,47 @@
                             </div>
                         </div>
 
+                        <!-- Services I Offer Section -->
+                        <div class="space-y-4 pt-6 border-t border-slate-100">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Services I Offer & Classifications</h3>
+                            
+                            <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-3">
+                                <div class="flex flex-wrap gap-2">
+                                    @forelse($user->talentTypes as $type)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white text-slate-800 border border-slate-200 shadow-2xs">
+                                            <span class="w-2 h-2 rounded-full {{ $type->pivot->completed_at ? 'bg-emerald-500' : 'bg-amber-500' }}"></span>
+                                            <span>{{ $type->label }}</span>
+                                            @if($type->pivot->completed_at)
+                                                <span class="text-[10px] text-emerald-700 font-semibold">(Active)</span>
+                                            @else
+                                                <span class="text-[10px] text-amber-700 font-semibold">(Pending Setup)</span>
+                                            @endif
+                                        </span>
+                                    @empty
+                                        <span class="text-xs text-slate-500 font-normal">You currently have no active service provider classifications (Hirer/Customer account).</span>
+                                    @endforelse
+                                </div>
+
+                                <!-- Add Additional Classification Buttons -->
+                                <div class="pt-2 border-t border-slate-200/60">
+                                    <span class="text-xs font-bold text-slate-700 block mb-2">Offer another service:</span>
+                                    <div class="flex flex-wrap gap-2">
+                                        @foreach(App\Enums\TalentClassification::cases() as $type)
+                                            @if(!$user->talentTypes->contains('slug', $type->value))
+                                                <form action="{{ route('onboarding.add-classification') }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <input type="hidden" name="classification" value="{{ $type->value }}" />
+                                                    <button type="submit" class="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-xl text-xs font-bold transition-colors cursor-pointer">
+                                                        + Add {{ $type->label() }} Classification
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Section 2: Professional Profile Details -->
                         <div class="space-y-4 pt-6 border-t border-slate-100">
                             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">2. Service & Professional Listing</h3>

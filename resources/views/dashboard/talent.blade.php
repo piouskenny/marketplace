@@ -109,23 +109,119 @@
 
                     <!-- Search Engine Input & Filter Bar -->
                     <form action="{{ route('dashboard.talent') }}" method="GET" class="space-y-3">
-                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                        
+                        <!-- Classification Tabs Header -->
+                        <div class="flex items-center justify-start gap-2 overflow-x-auto no-scrollbar pb-1">
+                            @foreach([
+                                'All' => 'All Talent',
+                                'professional' => '💼 Professionals',
+                                'teacher' => '🎓 Teachers & Tutors',
+                                'skilled_labour' => '🛠️ Skilled Labour Workers'
+                            ] as $tSlug => $tLabel)
+                                <button type="submit" 
+                                        name="talent_type" 
+                                        value="{{ $tSlug }}"
+                                        class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer border {{ $selectedTalentType === $tSlug ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200' }}">
+                                    {{ $tLabel }}
+                                </button>
+                            @endforeach
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
                             
                             <!-- Search Input -->
-                            <div class="sm:col-span-6 relative">
+                            <div class="sm:col-span-5 relative">
                                 <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                                 <input 
                                     type="text" 
                                     name="query"
                                     value="{{ $searchQuery }}"
-                                    placeholder="Search by name, subject (e.g. Mathematics), or trade skill..." 
+                                    placeholder="Search by name, subject, or trade skill..." 
                                     class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white text-xs sm:text-sm text-slate-900 font-normal rounded-xl pl-10 pr-4 py-2.5 outline-none transition-all"
                                 />
                             </div>
 
-                            <!-- Category Dropdown -->
-                            <div class="sm:col-span-3">
-                                <select name="category" class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white text-xs sm:text-sm text-slate-900 font-medium rounded-xl px-3 py-2.5 outline-none transition-all">
+                            <!-- Structured Location Fields -->
+                            <div class="sm:col-span-7 grid grid-cols-3 gap-2">
+                                <input 
+                                    type="text" 
+                                    name="location_state"
+                                    value="{{ $selectedState }}"
+                                    placeholder="State (Lagos)" 
+                                    class="bg-slate-50 border border-slate-200 focus:border-slate-800 text-xs text-slate-900 rounded-xl px-3 py-2.5 outline-none font-medium"
+                                />
+                                <input 
+                                    type="text" 
+                                    name="location_city"
+                                    value="{{ $selectedCity }}"
+                                    placeholder="City (Ikeja)" 
+                                    class="bg-slate-50 border border-slate-200 focus:border-slate-800 text-xs text-slate-900 rounded-xl px-3 py-2.5 outline-none font-medium"
+                                />
+                                <input 
+                                    type="text" 
+                                    name="location_neighbourhood"
+                                    value="{{ $selectedNeighbourhood }}"
+                                    placeholder="Area (Opebi)" 
+                                    class="bg-slate-50 border border-slate-200 focus:border-slate-800 text-xs text-slate-900 rounded-xl px-3 py-2.5 outline-none font-medium"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Specialized Secondary Filters Row -->
+                        <div class="bg-slate-900 text-white p-2.5 rounded-xl border border-slate-800 flex flex-wrap items-center gap-2 text-xs">
+                            
+                            @if($selectedTalentType === 'teacher')
+                                <span class="text-sky-400 font-semibold px-1 text-[11px] uppercase tracking-wider">Tutor Filters:</span>
+                                
+                                <select name="subject_id" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
+                                    <option value="">All Subjects</option>
+                                    @foreach($subjects as $sub)
+                                        <option value="{{ $sub->id }}" {{ isset($selectedSubject) && $selectedSubject == $sub->id ? 'selected' : '' }}>
+                                            🎓 {{ $sub->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                <select name="education_level_id" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
+                                    <option value="">All Levels</option>
+                                    @foreach($educationLevels as $lvl)
+                                        <option value="{{ $lvl->id }}" {{ isset($selectedLevel) && $selectedLevel == $lvl->id ? 'selected' : '' }}>
+                                            {{ $lvl->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                <select name="teaching_mode" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
+                                    <option value="All" {{ isset($selectedTeachingMode) && $selectedTeachingMode === 'All' ? 'selected' : '' }}>All Modes</option>
+                                    <option value="physical" {{ isset($selectedTeachingMode) && $selectedTeachingMode === 'physical' ? 'selected' : '' }}>Physical (In-Person)</option>
+                                    <option value="online" {{ isset($selectedTeachingMode) && $selectedTeachingMode === 'online' ? 'selected' : '' }}>Online</option>
+                                    <option value="both" {{ isset($selectedTeachingMode) && $selectedTeachingMode === 'both' ? 'selected' : '' }}>Physical & Online</option>
+                                </select>
+
+                            @elseif($selectedTalentType === 'skilled_labour')
+                                <span class="text-amber-400 font-semibold px-1 text-[11px] uppercase tracking-wider">Skilled Trade Filters:</span>
+
+                                <select name="trade_category_id" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-amber-400 font-medium">
+                                    <option value="">All Trades</option>
+                                    @foreach($tradeCategories as $trade)
+                                        <option value="{{ $trade->id }}" {{ isset($selectedTradeCategory) && $selectedTradeCategory == $trade->id ? 'selected' : '' }}>
+                                            🛠️ {{ $trade->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                <input 
+                                    type="text" 
+                                    name="skill"
+                                    value="{{ $selectedSkill }}"
+                                    placeholder="Skill (e.g. Solar, Tiling)" 
+                                    class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-amber-400 font-medium"
+                                />
+
+                            @else
+                                <span class="text-slate-400 font-semibold px-1 text-[11px] uppercase tracking-wider">General Filters:</span>
+
+                                <select name="category" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
                                     <option value="All" {{ $selectedCategory === 'All' ? 'selected' : '' }}>All Categories</option>
                                     @foreach($categories as $cat)
                                         <option value="{{ $cat->name }}" {{ $selectedCategory === $cat->name ? 'selected' : '' }}>
@@ -133,51 +229,7 @@
                                         </option>
                                     @endforeach
                                 </select>
-                            </div>
-
-                            <!-- Location Filter -->
-                            <div class="sm:col-span-3">
-                                <select name="location" class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white text-xs sm:text-sm text-slate-900 font-medium rounded-xl px-3 py-2.5 outline-none transition-all">
-                                    <option value="All" {{ $selectedLocation === 'All' ? 'selected' : '' }}>All Locations</option>
-                                    <option value="Lagos" {{ $selectedLocation === 'Lagos' ? 'selected' : '' }}>Lagos</option>
-                                    <option value="Abuja" {{ $selectedLocation === 'Abuja' ? 'selected' : '' }}>Abuja</option>
-                                    <option value="Port Harcourt" {{ $selectedLocation === 'Port Harcourt' ? 'selected' : '' }}>Port Harcourt</option>
-                                    <option value="Enugu" {{ $selectedLocation === 'Enugu' ? 'selected' : '' }}>Enugu</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Specialized Education & Rating Filters Row -->
-                        <div class="bg-slate-900 text-white p-2.5 rounded-xl border border-slate-800 flex flex-wrap items-center gap-2 text-xs">
-                            <span class="text-slate-400 font-semibold px-1 text-[11px] uppercase tracking-wider">Tutor Filters:</span>
-                            
-                            <!-- Subject Filter -->
-                            <select name="subject_id" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
-                                <option value="">All Subjects</option>
-                                @foreach($subjects as $sub)
-                                    <option value="{{ $sub->id }}" {{ isset($selectedSubject) && $selectedSubject == $sub->id ? 'selected' : '' }}>
-                                        {{ $sub->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-
-                            <!-- Education Level Filter -->
-                            <select name="education_level_id" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
-                                <option value="">All Levels</option>
-                                @foreach($educationLevels as $lvl)
-                                    <option value="{{ $lvl->id }}" {{ isset($selectedLevel) && $selectedLevel == $lvl->id ? 'selected' : '' }}>
-                                        {{ $lvl->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-
-                            <!-- Teaching Mode Filter -->
-                            <select name="teaching_mode" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
-                                <option value="All" {{ isset($selectedTeachingMode) && $selectedTeachingMode === 'All' ? 'selected' : '' }}>All Modes</option>
-                                <option value="physical" {{ isset($selectedTeachingMode) && $selectedTeachingMode === 'physical' ? 'selected' : '' }}>Physical (In-Person)</option>
-                                <option value="online" {{ isset($selectedTeachingMode) && $selectedTeachingMode === 'online' ? 'selected' : '' }}>Online</option>
-                                <option value="both" {{ isset($selectedTeachingMode) && $selectedTeachingMode === 'both' ? 'selected' : '' }}>Physical & Online</option>
-                            </select>
+                            @endif
 
                             <!-- Min Rating Filter -->
                             <select name="min_rating" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium">
@@ -187,32 +239,39 @@
                                 <option value="3.0" {{ isset($selectedMinRating) && $selectedMinRating == 3.0 ? 'selected' : '' }}>3.0 & above</option>
                             </select>
 
-                            @if((isset($selectedSubject) && $selectedSubject) || (isset($selectedLevel) && $selectedLevel) || (isset($selectedTeachingMode) && $selectedTeachingMode !== 'All') || (isset($selectedMinRating) && $selectedMinRating > 0))
-                                <a href="{{ route('dashboard.talent') }}" class="text-sky-400 hover:text-sky-300 font-medium text-[11px] underline ml-auto px-1">
-                                    Clear Filters
+                            <!-- Sorting -->
+                            <select name="sort" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:border-sky-400 font-medium ml-auto">
+                                <option value="rating_desc" {{ isset($selectedSort) && $selectedSort === 'rating_desc' ? 'selected' : '' }}>Top Rated</option>
+                                <option value="experience_desc" {{ isset($selectedSort) && $selectedSort === 'experience_desc' ? 'selected' : '' }}>Most Experienced</option>
+                                <option value="latest" {{ isset($selectedSort) && $selectedSort === 'latest' ? 'selected' : '' }}>Newest</option>
+                            </select>
+
+                            @if($selectedTalentType !== 'All' || (isset($selectedSubject) && $selectedSubject) || (isset($selectedLevel) && $selectedLevel) || (isset($selectedTeachingMode) && $selectedTeachingMode !== 'All') || (isset($selectedTradeCategory) && $selectedTradeCategory) || (isset($selectedSkill) && $selectedSkill) || $selectedState || $selectedCity || $selectedNeighbourhood || (isset($selectedMinRating) && $selectedMinRating > 0))
+                                <a href="{{ route('dashboard.talent') }}" class="text-sky-400 hover:text-sky-300 font-medium text-[11px] underline px-1">
+                                    Reset
                                 </a>
                             @endif
                         </div>
 
-                        <!-- Sub-bar Filter Pills -->
+                        <!-- Sub-bar Filter Pills & Submit Button -->
                         <div class="flex items-center justify-between gap-3 flex-wrap pt-1">
                             <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-                                <a href="{{ route('dashboard.talent', ['category' => 'All', 'query' => $searchQuery]) }}" class="{{ $selectedCategory === 'All' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200' }} px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0">
+                                <a href="{{ route('dashboard.talent', ['category' => 'All', 'query' => $searchQuery, 'talent_type' => $selectedTalentType]) }}" class="{{ $selectedCategory === 'All' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200' }} px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0">
                                     All Experts
                                 </a>
-                                <a href="{{ route('dashboard.talent', ['category' => 'Education & Tutoring', 'query' => $searchQuery]) }}" class="{{ $selectedCategory === 'Education & Tutoring' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200' }} px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0">
+                                <a href="{{ route('dashboard.talent', ['category' => 'Education & Tutoring', 'talent_type' => 'teacher']) }}" class="{{ $selectedTalentType === 'teacher' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200' }} px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0">
                                     Academic Tutors
                                 </a>
-                                <a href="{{ route('dashboard.talent', ['category' => 'Home & Technical Services', 'query' => $searchQuery]) }}" class="{{ $selectedCategory === 'Home & Technical Services' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200' }} px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0">
+                                <a href="{{ route('dashboard.talent', ['category' => 'Home & Technical Services', 'talent_type' => 'skilled_labour']) }}" class="{{ $selectedTalentType === 'skilled_labour' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200' }} px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0">
                                     Home & Technical Trades
                                 </a>
-                                <a href="{{ route('dashboard.talent', ['category' => 'Creative & Digital Services', 'query' => $searchQuery]) }}" class="{{ $selectedCategory === 'Creative & Digital Services' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200' }} px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0">
+                                <a href="{{ route('dashboard.talent', ['category' => 'Creative & Digital Services', 'talent_type' => 'professional']) }}" class="{{ $selectedTalentType === 'professional' ? 'bg-[#0F172B] text-white border-[#0F172B]' : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200' }} px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors shrink-0">
                                     Creative & Tech
                                 </a>
                             </div>
 
                             <button type="submit" class="bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs px-5 py-2 rounded-xl transition-colors shadow-xs shrink-0 cursor-pointer">
-                                Filter Results
+                                Filter Results →
                             </button>
                         </div>
                     </form>
@@ -243,10 +302,16 @@
                                                 <h3 class="text-sm font-bold text-slate-900 truncate group-hover/link:underline">
                                                     {{ $pro->user->name }}
                                                 </h3>
-                                                <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-md">
-                                                    <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                                    <span>Verified Expert</span>
-                                                </span>
+                                                <div class="flex flex-wrap gap-1 mt-0.5">
+                                                    @foreach($pro->user->talentTypes as $tt)
+                                                        @if($tt->pivot->completed_at)
+                                                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded border 
+                                                                {{ $tt->slug === 'teacher' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($tt->slug === 'skilled_labour' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-sky-50 text-sky-700 border-sky-200') }}">
+                                                                {{ $tt->label }}
+                                                            </span>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
                                             </div>
                                         </a>
 
@@ -267,7 +332,7 @@
                                     <div class="flex flex-wrap items-center gap-2.5 text-xs text-slate-500 font-medium">
                                         <span class="flex items-center gap-1">
                                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                                            {{ $pro->location }}
+                                            {{ $pro->location_city && $pro->location_state ? $pro->location_city . ', ' . $pro->location_state : $pro->location }}
                                         </span>
                                         <span>•</span>
                                         <span>{{ $pro->years_of_experience }} yrs exp</span>

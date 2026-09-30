@@ -13,7 +13,7 @@ class DashboardController extends Controller
     /**
      * Dashboard Main Home Overview Page
      */
-    public function index()
+    public function index(Request $request, \App\Services\ProfessionalDiscoveryService $discoveryService)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
@@ -308,7 +308,63 @@ class DashboardController extends Controller
             ->where('status', \App\Enums\ConnectionStatus::Connected)
             ->count();
 
-        return view('dashboard', compact('user', 'completionPercentage', 'categories', 'subjects', 'levels', 'opportunities', 'suggestedJobs', 'userNotifications', 'unreadCount', 'pendingCount', 'connectedCount'));
+        // Resolve Search Location for authenticated user
+        $proProfile = $user->professionalProfile;
+        if ($proProfile && ($proProfile->location_state || $proProfile->location_city)) {
+            $searchLocation = [
+                'location_state' => $proProfile->location_state,
+                'location_city' => $proProfile->location_city,
+                'location_neighbourhood' => $proProfile->location_neighbourhood,
+            ];
+            $hasSelectedLocation = true;
+        } else {
+            $sessionLocation = $request->session()->get('search_location', []);
+            $selectedState = trim($request->input('location_state', $request->input('state', $sessionLocation['location_state'] ?? '')));
+            $selectedCity = trim($request->input('location_city', $request->input('city', $sessionLocation['location_city'] ?? '')));
+            $selectedNeighbourhood = trim($request->input('location_neighbourhood', $request->input('neighbourhood', $sessionLocation['location_neighbourhood'] ?? '')));
+
+            if ($selectedState || $selectedCity) {
+                $searchLocation = [
+                    'location_state' => $selectedState,
+                    'location_city' => $selectedCity,
+                    'location_neighbourhood' => $selectedNeighbourhood,
+                ];
+                $hasSelectedLocation = true;
+                $request->session()->put('search_location', $searchLocation);
+            } else {
+                $searchLocation = [];
+                $hasSelectedLocation = false;
+            }
+        }
+
+        $skilledLabourWorkers = $discoveryService->search(array_merge($searchLocation, [
+            'talent_type' => 'skilled_labour',
+        ]), 6)->items();
+
+        $teachers = $discoveryService->search(array_merge($searchLocation, [
+            'talent_type' => 'teacher',
+        ]), 6)->items();
+
+        $tradeCategories = Category::whereNotNull('parent_id')->orderBy('name')->get();
+
+        return view('dashboard', compact(
+            'user', 
+            'completionPercentage', 
+            'categories', 
+            'subjects', 
+            'levels', 
+            'opportunities', 
+            'suggestedJobs', 
+            'userNotifications', 
+            'unreadCount', 
+            'pendingCount', 
+            'connectedCount',
+            'skilledLabourWorkers',
+            'teachers',
+            'searchLocation',
+            'hasSelectedLocation',
+            'tradeCategories'
+        ));
     }
 
 
@@ -344,25 +400,44 @@ class DashboardController extends Controller
         }
 
         $searchQuery = trim($request->input('query', ''));
+        $selectedTalentType = trim($request->input('talent_type', 'All'));
         $selectedCategory = trim($request->input('category', 'All'));
         $selectedLocation = trim($request->input('location', 'All'));
+        $selectedState = trim($request->input('location_state', $request->input('state', '')));
+        $selectedCity = trim($request->input('location_city', $request->input('city', '')));
+        $selectedNeighbourhood = trim($request->input('location_neighbourhood', $request->input('neighbourhood', '')));
+        $strictLocation = $request->boolean('strict_location', false);
+
         $selectedSubject = $request->input('subject_id') ? (int) $request->input('subject_id') : null;
         $selectedLevel = $request->input('education_level_id') ? (int) $request->input('education_level_id') : null;
         $selectedTeachingMode = trim($request->input('teaching_mode', 'All'));
+
+        $selectedTradeCategory = $request->input('trade_category_id') ? (int) $request->input('trade_category_id') : null;
+        $selectedSkill = trim($request->input('skill', ''));
         $selectedMinRating = $request->input('min_rating') ? (float) $request->input('min_rating') : 0;
+        $selectedSort = trim($request->input('sort', 'rating_desc'));
 
         $categories = Category::whereNull('parent_id')->get();
+        $tradeCategories = Category::whereNotNull('parent_id')->orderBy('name')->get();
         $subjects = \App\Models\Subject::orderBy('name')->get();
         $educationLevels = \App\Models\EducationLevel::orderBy('id')->get();
 
         $filters = [
             'query' => $searchQuery,
+            'talent_type' => $selectedTalentType,
             'category' => $selectedCategory,
             'location' => $selectedLocation,
+            'location_state' => $selectedState,
+            'location_city' => $selectedCity,
+            'location_neighbourhood' => $selectedNeighbourhood,
+            'strict_location' => $strictLocation,
             'subject_id' => $selectedSubject,
             'education_level_id' => $selectedLevel,
             'teaching_mode' => $selectedTeachingMode,
+            'trade_category_id' => $selectedTradeCategory,
+            'skill' => $selectedSkill,
             'min_rating' => $selectedMinRating,
+            'sort' => $selectedSort,
         ];
 
         $paginated = $discoveryService->search($filters, 50);
@@ -374,17 +449,27 @@ class DashboardController extends Controller
         return view('dashboard.talent', compact(
             'user',
             'completionPercentage',
+            'paginated',
             'professionals',
             'categories',
+            'tradeCategories',
             'subjects',
             'educationLevels',
             'searchQuery',
+            'selectedTalentType',
             'selectedCategory',
             'selectedLocation',
+            'selectedState',
+            'selectedCity',
+            'selectedNeighbourhood',
+            'strictLocation',
             'selectedSubject',
             'selectedLevel',
             'selectedTeachingMode',
+            'selectedTradeCategory',
+            'selectedSkill',
             'selectedMinRating',
+            'selectedSort',
             'userNotifications',
             'unreadCount'
         ));

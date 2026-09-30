@@ -7,6 +7,9 @@
 
         <title>{{ $title ?? 'Dashboard — ' . config('app.name', 'Skill Link NG') }}</title>
 
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+
         <!-- Modern Clean Typography (Inter) -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

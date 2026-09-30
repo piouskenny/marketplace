@@ -3,62 +3,71 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
-use App\Models\ProfessionalProfile;
+use App\Models\Subject;
+use App\Services\ProfessionalDiscoveryService;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, ProfessionalDiscoveryService $discoveryService)
     {
         $searchQuery = trim($request->input('query', ''));
         $selectedCategory = trim($request->input('category', 'All'));
 
+        // Handle Guest / Visitor Search Location Preference
+        $state = trim($request->input('location_state', $request->input('state', '')));
+        $city = trim($request->input('location_city', $request->input('city', '')));
+        $neighbourhood = trim($request->input('location_neighbourhood', $request->input('neighbourhood', '')));
+
+        if (!empty($state) || !empty($city) || !empty($neighbourhood)) {
+            $searchLocation = [
+                'state' => $state,
+                'city' => $city,
+                'neighbourhood' => $neighbourhood,
+            ];
+            $request->session()->put('search_location', $searchLocation);
+        } else {
+            $searchLocation = $request->session()->get('search_location', []);
+        }
+
+        $hasSelectedLocation = !empty($searchLocation['state']) || !empty($searchLocation['city']) || !empty($searchLocation['neighbourhood']);
+
         $categories = Category::whereNull('parent_id')->with('children')->get();
+        $tradeCategories = Category::whereNotNull('parent_id')->orderBy('name')->take(6)->get();
+        $subjects = Subject::orderBy('name')->take(8)->get();
 
-        $query = ProfessionalProfile::with([
-            'user',
-            'category',
-            'skills',
-            'educationProfile.subjects',
-            'educationProfile.educationLevels',
+        // Section A: Skilled Labour Workers (Limit 6)
+        $skilledFilters = array_merge($searchLocation, [
+            'query' => $searchQuery,
+            'talent_type' => 'skilled_labour',
         ]);
+        $skilledLabourWorkers = $discoveryService->search($skilledFilters, 6)->items();
 
-        $likeOp = \Illuminate\Support\Facades\DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
+        // Section B: Teachers & Academic Tutors (Limit 6)
+        $teacherFilters = array_merge($searchLocation, [
+            'query' => $searchQuery,
+            'talent_type' => 'teacher',
+        ]);
+        $teachers = $discoveryService->search($teacherFilters, 6)->items();
 
-        if (!empty($searchQuery)) {
-            $query->where(function ($q) use ($searchQuery, $likeOp) {
-                $q->where('display_name', $likeOp, "%{$searchQuery}%")
-                  ->orWhere('bio', $likeOp, "%{$searchQuery}%")
-                  ->orWhere('location', $likeOp, "%{$searchQuery}%")
-                  ->orWhereHas('user', function ($uq) use ($searchQuery, $likeOp) {
-                      $uq->where('name', $likeOp, "%{$searchQuery}%")
-                         ->orWhere('location', $likeOp, "%{$searchQuery}%");
-                  })
-                  ->orWhereHas('category', function ($cq) use ($searchQuery, $likeOp) {
-                      $cq->where('name', $likeOp, "%{$searchQuery}%");
-                  })
-                  ->orWhereHas('skills', function ($sq) use ($searchQuery, $likeOp) {
-                      $sq->where('name', $likeOp, "%{$searchQuery}%");
-                  })
-                  ->orWhereHas('educationProfile.subjects', function ($subq) use ($searchQuery, $likeOp) {
-                      $subq->where('name', $likeOp, "%{$searchQuery}%");
-                  });
-            });
-        }
+        // Featured Professionals Overview (Limit 6)
+        $profFilters = array_merge($searchLocation, [
+            'query' => $searchQuery,
+            'category' => $selectedCategory,
+        ]);
+        $professionals = $discoveryService->search($profFilters, 6)->items();
 
-        if (!empty($selectedCategory) && $selectedCategory !== 'All') {
-            $query->where(function ($q) use ($selectedCategory, $likeOp) {
-                $q->whereHas('category', function ($cq) use ($selectedCategory, $likeOp) {
-                    $cq->where('name', $likeOp, "%{$selectedCategory}%")
-                       ->orWhere('slug', $likeOp, "%{$selectedCategory}%");
-                })->orWhereHas('category.parent', function ($pq) use ($selectedCategory, $likeOp) {
-                    $pq->where('name', $likeOp, "%{$selectedCategory}%");
-                });
-            });
-        }
-
-        $professionals = $query->orderBy('average_rating', 'desc')->get();
-
-        return view('index', compact('categories', 'professionals', 'searchQuery', 'selectedCategory'));
+        return view('index', compact(
+            'categories',
+            'tradeCategories',
+            'subjects',
+            'professionals',
+            'skilledLabourWorkers',
+            'teachers',
+            'searchQuery',
+            'selectedCategory',
+            'searchLocation',
+            'hasSelectedLocation'
+        ));
     }
 }

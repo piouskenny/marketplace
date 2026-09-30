@@ -75,11 +75,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/onboarding/client', [OnboardingController::class, 'showClientForm'])->name('onboarding.client');
         Route::post('/onboarding/client', [OnboardingController::class, 'submitClientForm']);
 
+        Route::get('/onboarding/classification', [OnboardingController::class, 'showClassificationForm'])->name('onboarding.classification');
+        Route::post('/onboarding/classification', [OnboardingController::class, 'submitClassificationForm']);
+
         Route::get('/onboarding/professional', [OnboardingController::class, 'showProfessionalForm'])->name('onboarding.professional');
         Route::post('/onboarding/professional', [OnboardingController::class, 'submitProfessionalForm']);
 
         Route::get('/onboarding/tutor', [OnboardingController::class, 'showTutorForm'])->name('onboarding.tutor');
         Route::post('/onboarding/tutor', [OnboardingController::class, 'submitTutorForm']);
+
+        Route::get('/onboarding/skilled-labour', [OnboardingController::class, 'showSkilledLabourForm'])->name('onboarding.skilled-labour');
+        Route::post('/onboarding/skilled-labour', [OnboardingController::class, 'submitSkilledLabourForm']);
+
+        Route::post('/onboarding/skip', [OnboardingController::class, 'skip'])->name('onboarding.skip');
+        Route::post('/onboarding/add-classification', [OnboardingController::class, 'addClassification'])->name('onboarding.add-classification');
 
         // Profile Management Hub
         Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');

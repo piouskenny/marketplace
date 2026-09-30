@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProfessionalProfile extends Model
@@ -16,6 +17,10 @@ class ProfessionalProfile extends Model
         'display_name',
         'bio',
         'location',
+        'location_state',
+        'location_city',
+        'location_neighbourhood',
+        'location_landmark',
         'years_of_experience',
         'phone',
         'contact_email',
@@ -57,6 +62,15 @@ class ProfessionalProfile extends Model
     public function educationProfile()
     {
         return $this->hasOne(EducationProfile::class);
+    }
+
+    /**
+     * Skilled Labour specialisation data (trade, certification).
+     * Presence of this record does NOT imply the user has the 'professional' classification.
+     */
+    public function skilledLabourProfile(): HasOne
+    {
+        return $this->hasOne(SkilledLabourProfile::class);
     }
 
     public function connectionRequests()

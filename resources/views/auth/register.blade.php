@@ -6,6 +6,9 @@
 
         <title>Sign Up — {{ config('app.name', 'Skill Link NG') }}</title>
 
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
@@ -25,12 +28,7 @@
             <div class="max-w-6xl mx-auto flex items-center justify-between">
                 <!-- Logo -->
                 <a href="/" class="flex items-center gap-2.5 group">
-                    <div class="w-8 h-8 rounded-full bg-sky-500/10 border border-sky-400/30 flex items-center justify-center backdrop-blur-md group-hover:border-sky-500 transition-colors shadow-xs">
-                        <svg class="w-4 h-4 text-sky-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </div>
+                    <img src="{{ asset('images/skilllingng_logo.png') }}" alt="{{ config('app.name', 'Skill Link NG') }}" class="w-8 h-8 object-contain shrink-0" />
                     <span class="text-slate-900 font-extrabold text-base tracking-tight">Skill Link NG</span>
                 </a>
 

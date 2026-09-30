@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -26,6 +27,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'avatar',
         'onboarding_completed',
         'onboarding_intent',
+        'talent_onboarding_started_at',
         'job_alerts_enabled',
         'password',
     ];
@@ -68,10 +70,11 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'onboarding_completed' => 'boolean',
-            'job_alerts_enabled' => 'boolean',
+            'email_verified_at'             => 'datetime',
+            'password'                       => 'hashed',
+            'onboarding_completed'           => 'boolean',
+            'job_alerts_enabled'             => 'boolean',
+            'talent_onboarding_started_at'   => 'datetime',
         ];
     }
 
@@ -86,6 +89,51 @@ class User extends Authenticatable implements MustVerifyEmail
     public function professionalProfile()
     {
         return $this->hasOne(ProfessionalProfile::class);
+    }
+
+    /**
+     * Talent classifications this user holds (professional, teacher, skilled_labour).
+     * One user can hold zero, one, or multiple classifications simultaneously.
+     */
+    public function talentTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(TalentType::class, 'talent_type_user')
+                    ->withPivot('completed_at')
+                    ->withTimestamps();
+    }
+
+    // ─── Classification helpers ─────────────────────────────────────────────
+    // Call these after eager-loading talentTypes to avoid extra DB queries.
+
+    public function isProfessional(): bool
+    {
+        return $this->relationLoaded('talentTypes')
+            ? $this->talentTypes->contains('slug', 'professional')
+            : $this->talentTypes()->where('slug', 'professional')->exists();
+    }
+
+    public function isTeacher(): bool
+    {
+        return $this->relationLoaded('talentTypes')
+            ? $this->talentTypes->contains('slug', 'teacher')
+            : $this->talentTypes()->where('slug', 'teacher')->exists();
+    }
+
+    public function isSkilledLabour(): bool
+    {
+        return $this->relationLoaded('talentTypes')
+            ? $this->talentTypes->contains('slug', 'skilled_labour')
+            : $this->talentTypes()->where('slug', 'skilled_labour')->exists();
+    }
+
+    /**
+     * True if the user holds at least one talent classification.
+     */
+    public function isAnyTalent(): bool
+    {
+        return $this->relationLoaded('talentTypes')
+            ? $this->talentTypes->isNotEmpty()
+            : $this->talentTypes()->exists();
     }
 
     public function socialAccounts()

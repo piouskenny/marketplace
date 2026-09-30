@@ -39,12 +39,17 @@ class JobMatchingService
         $oppLevelId = $eduDetails?->education_level_id;
         $oppSubjectName = strtolower($eduDetails?->subject?->name ?? '');
 
-        // 1. Fetch candidate pool (onboarded, email verified, opted-in, non-author)
+        // 1. Fetch candidate pool (onboarded, email verified, opted-in, non-author, completed talent type)
         $candidates = User::query()
             ->where('onboarding_completed', true)
             ->whereNotNull('email_verified_at')
             ->where('job_alerts_enabled', true)
             ->where('id', '!=', $opportunity->user_id)
+            ->where(function ($q) {
+                $q->whereHas('talentTypes', function ($t) {
+                    $t->whereNotNull('talent_type_user.completed_at');
+                })->orWhereDoesntHave('talentTypes');
+            })
             ->with([
                 'professionalProfile.category',
                 'professionalProfile.skills',

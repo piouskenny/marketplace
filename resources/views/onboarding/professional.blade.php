@@ -6,6 +6,9 @@
 
         <title>Professional Profile Setup — {{ config('app.name', 'Skill Link NG') }}</title>
 
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700,800" rel="stylesheet" />
@@ -23,9 +26,7 @@
         <header class="relative z-10 w-full px-6 lg:px-12 py-5 bg-white/90 backdrop-blur-md border-b border-slate-200">
             <div class="max-w-6xl mx-auto flex items-center justify-between">
                 <a href="/" class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white shadow-md">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/></svg>
-                    </div>
+                    <img src="{{ asset('images/skilllingng_logo.png') }}" alt="{{ config('app.name', 'Skill Link NG') }}" class="w-10 h-10 object-contain rounded-xl shrink-0" />
                     <span class="font-extrabold text-base text-slate-900">Skill Link NG</span>
                 </a>
                 <a href="{{ route('onboarding') }}" class="text-xs font-bold text-slate-600 hover:text-sky-700">
@@ -90,7 +91,7 @@
                         />
                     </div>
 
-                    <!-- Experience & Location Grid -->
+                    <!-- Experience & Location -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="years_of_experience" class="block text-sm font-extrabold text-slate-900 mb-1.5">
@@ -110,7 +111,7 @@
 
                         <div>
                             <label for="location" class="block text-sm font-extrabold text-slate-900 mb-1.5">
-                                Primary Location / City <span class="text-rose-500">*</span>
+                                General Location <span class="text-rose-500">*</span>
                             </label>
                             <input 
                                 type="text" 
@@ -123,6 +124,43 @@
                             />
                         </div>
                     </div>
+
+                    <!-- Structured Location -->
+                    <fieldset class="border-2 border-slate-200 rounded-2xl p-4 space-y-4">
+                        <legend class="text-xs font-extrabold text-slate-700 px-1 uppercase tracking-wide">Structured Location (helps clients find you nearby)</legend>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="location_state" class="block text-xs font-bold text-slate-700 mb-1">State</label>
+                                <input type="text" id="location_state" name="location_state"
+                                       value="{{ old('location_state') }}"
+                                       placeholder="e.g. Lagos"
+                                       class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all" />
+                            </div>
+                            <div>
+                                <label for="location_city" class="block text-xs font-bold text-slate-700 mb-1">City / LGA</label>
+                                <input type="text" id="location_city" name="location_city"
+                                       value="{{ old('location_city') }}"
+                                       placeholder="e.g. Ikeja"
+                                       class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all" />
+                            </div>
+                            <div>
+                                <label for="location_neighbourhood" class="block text-xs font-bold text-slate-700 mb-1">Neighbourhood</label>
+                                <input type="text" id="location_neighbourhood" name="location_neighbourhood"
+                                       value="{{ old('location_neighbourhood') }}"
+                                       placeholder="e.g. Opebi"
+                                       class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all" />
+                            </div>
+                            <div>
+                                <label for="location_landmark" class="block text-xs font-bold text-slate-700 mb-1">
+                                    Nearest Landmark <span class="text-slate-400 font-normal">(private — post-connection only)</span>
+                                </label>
+                                <input type="text" id="location_landmark" name="location_landmark"
+                                       value="{{ old('location_landmark') }}"
+                                       placeholder="e.g. Near Allen Avenue junction"
+                                       class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all" />
+                            </div>
+                        </div>
+                    </fieldset>
 
                     <!-- Phone Number -->
                     <div>
