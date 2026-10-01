@@ -173,13 +173,9 @@
                                     <div class="flex flex-wrap gap-2">
                                         @foreach(App\Enums\TalentClassification::cases() as $type)
                                             @if(!$user->talentTypes->contains('slug', $type->value))
-                                                <form action="{{ route('onboarding.add-classification') }}" method="POST" class="inline">
-                                                    @csrf
-                                                    <input type="hidden" name="classification" value="{{ $type->value }}" />
-                                                    <button type="submit" class="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-xl text-xs font-bold transition-colors cursor-pointer">
-                                                        + Add {{ $type->label() }} Classification
-                                                    </button>
-                                                </form>
+                                                <button type="submit" form="add-classification-form-{{ $type->value }}" class="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-xl text-xs font-bold transition-colors cursor-pointer">
+                                                    + Add {{ $type->label() }} Classification
+                                                </button>
                                             @endif
                                         @endforeach
                                     </div>
@@ -297,5 +293,14 @@
 
             <!-- Profile Slide-Over Drawer Modal -->
             <x-profile-drawer :user="$user" />
+
+            @foreach(App\Enums\TalentClassification::cases() as $type)
+                @if(!$user->talentTypes->contains('slug', $type->value))
+                    <form id="add-classification-form-{{ $type->value }}" action="{{ route('onboarding.add-classification') }}" method="POST" class="hidden">
+                        @csrf
+                        <input type="hidden" name="classification" value="{{ $type->value }}" />
+                    </form>
+                @endif
+            @endforeach
 </x-dashboard-layout>
 
