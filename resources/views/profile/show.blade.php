@@ -1,7 +1,18 @@
 <x-dashboard-layout 
     title="{{ $user->name }} — Profile — {{ config('app.name', 'Skill Link NG') }}"
     active="talent"
-    xData="{ hireModalOpen: false }"
+    xData="{ 
+        pageLoading: true,
+        sidebarOpen: false, 
+        sidebarCollapsed: localStorage.getItem('sidebar_collapsed') === 'true',
+        toggleSidebar() {
+            this.sidebarCollapsed = !this.sidebarCollapsed;
+            localStorage.setItem('sidebar_collapsed', this.sidebarCollapsed);
+        },
+        profileModalOpen: false, 
+        notificationsOpen: false,
+        hireModalOpen: false
+    }"
 >
 
     <!-- Main Profile Viewport -->

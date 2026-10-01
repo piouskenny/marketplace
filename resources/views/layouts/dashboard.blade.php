@@ -27,9 +27,25 @@
         </style>
         {{ $head ?? '' }}
     </head>
+@php
+    $defaultXData = "{ pageLoading: true, sidebarOpen: false, sidebarCollapsed: localStorage.getItem('sidebar_collapsed') === 'true', toggleSidebar() { this.sidebarCollapsed = !this.sidebarCollapsed; localStorage.setItem('sidebar_collapsed', this.sidebarCollapsed); }, profileModalOpen: false, notificationsOpen: false }";
+
+    if (isset($xData) && !empty($xData)) {
+        $trimmed = trim($xData);
+        if (str_starts_with($trimmed, '{') && str_ends_with($trimmed, '}')) {
+            $inner = trim(substr($trimmed, 1, -1));
+            $xDataOutput = "{ pageLoading: true, sidebarOpen: false, sidebarCollapsed: localStorage.getItem('sidebar_collapsed') === 'true', toggleSidebar() { this.sidebarCollapsed = !this.sidebarCollapsed; localStorage.setItem('sidebar_collapsed', this.sidebarCollapsed); }, profileModalOpen: false, notificationsOpen: false, " . $inner . " }";
+        } else {
+            $xDataOutput = $trimmed;
+        }
+    } else {
+        $xDataOutput = $defaultXData;
+    }
+@endphp
+
     <body 
         class="bg-slate-100/70 font-sans antialiased text-slate-900 min-h-full selection:bg-slate-900 selection:text-white"
-        x-data="{{ $xData ?? '{ pageLoading: true, sidebarOpen: false, sidebarCollapsed: localStorage.getItem(\'sidebar_collapsed\') === \'true\', toggleSidebar() { this.sidebarCollapsed = !this.sidebarCollapsed; localStorage.setItem(\'sidebar_collapsed\', this.sidebarCollapsed); }, profileModalOpen: false, notificationsOpen: false }' }}"
+        x-data="{{ $xDataOutput }}"
         x-init="setTimeout(() => pageLoading = false, 350)"
     >
 
