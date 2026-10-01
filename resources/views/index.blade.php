@@ -341,7 +341,7 @@
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
                 </a>
                 <a href="#find-talent" @click="mobileMenuOpen = false" class="text-[#2563eb] font-bold">
-                    <span>📍 Find Talent Near You</span>
+                    <span>Find Talent Near You</span>
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
                 </a>
                 <a href="#how-it-works" @click="mobileMenuOpen = false">
