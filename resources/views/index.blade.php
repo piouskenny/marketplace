@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth" x-data="{ searchQuery: '{{ $searchQuery ?? '' }}', selectedCategory: '{{ $selectedCategory ?? 'All' }}', mobileMenuOpen: false }">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth" x-data="{ searchQuery: '{{ $searchQuery ?? '' }}', selectedCategory: '{{ $selectedCategory ?? 'All' }}', mobileMenuOpen: false }" x-on:keydown.escape.window="mobileMenuOpen = false">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,49 +25,395 @@
                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             }
             [x-cloak] { display: none !important; }
+
+            /* ── Desktop Navbar Wrapper (Floating Pill — visible on md+) ── */
+            .desktop-nav-wrapper {
+                display: none;
+                position: sticky;
+                top: 1rem;
+                z-index: 50;
+                width: 100%;
+                max-width: 80rem;
+                margin-left: auto;
+                margin-right: auto;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            @media (min-width: 768px) {
+                .desktop-nav-wrapper { display: block !important; }
+                .site-navbar        { display: none !important; }
+                .drawer-overlay     { display: none !important; }
+                .drawer-panel       { display: none !important; }
+            }
+            @media (max-width: 767.98px) {
+                .desktop-nav-wrapper { display: none !important; }
+                .site-navbar        { display: flex !important; }
+            }
+
+            /* ── Mobile Navbar ── */
+            .site-navbar {
+                position: sticky;
+                top: 0;
+                z-index: 50;
+                background: #ffffff;
+                border-bottom: 1px solid #e2e8f0;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 1rem;
+                height: 64px;
+            }
+
+            /* hamburger button */
+            .nav-hamburger {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                gap: 5px;
+                width: 40px;
+                height: 40px;
+                cursor: pointer;
+                border: none;
+                background: transparent;
+                padding: 6px;
+                border-radius: 8px;
+                transition: background 0.15s;
+            }
+            .nav-hamburger:hover { background: #f1f5f9; }
+            .nav-hamburger span {
+                display: block;
+                height: 2.5px;
+                width: 24px;
+                background: #0f172b;
+                border-radius: 2px;
+                transition: all 0.25s ease;
+                transform-origin: center;
+            }
+            /* animate to X when open */
+            .nav-hamburger.is-open span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); }
+            .nav-hamburger.is-open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+            .nav-hamburger.is-open span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
+
+            /* nav logo alone (mobile) */
+            .nav-logo {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+                position: absolute;
+                left: 45%;
+                transform: translateX(-50%);
+            }
+            .nav-logo img {
+                height: 40px;
+                width: auto;
+                max-width: 175px;
+                object-fit: contain;
+                border-radius: 0;
+                box-shadow: none;
+                transition: transform 0.2s ease;
+            }
+            .nav-logo img:hover {
+                transform: scale(1.04);
+            }
+            .nav-logo-text { font-size: 1rem; font-weight: 800; color: #0f172b; letter-spacing: -0.01em; }
+
+            /* right CTA button */
+            .nav-cta {
+                text-decoration: none;
+                font-size: 0.75rem;
+                font-weight: 700;
+                padding: 0.5rem 1.1rem;
+                border-radius: 9999px;
+                background: #2563eb;
+                color: #ffffff;
+                transition: background 0.15s, transform 0.15s;
+                white-space: nowrap;
+            }
+            .nav-cta:hover { background: #1d4ed8; transform: scale(1.04); }
+
+            /* ── Drawer Overlay ── */
+            .drawer-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.35);
+                z-index: 49;
+                backdrop-filter: blur(2px);
+            }
+
+            /* ── Drawer Panel ── */
+            .drawer-panel {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: min(340px, 90vw);
+                background: #ffffff;
+                z-index: 60;
+                display: flex;
+                flex-direction: column;
+                box-shadow: 6px 0 30px rgba(0,0,0,0.12);
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+            }
+            .drawer-panel.is-open { transform: translateX(0); }
+
+            /* drawer header */
+            .drawer-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 1.25rem;
+                height: 64px;
+                border-bottom: 1px solid #f1f5f9;
+            }
+            .drawer-close {
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: none;
+                background: transparent;
+                cursor: pointer;
+                border-radius: 8px;
+                font-size: 1.25rem;
+                color: #64748b;
+                transition: background 0.15s;
+            }
+            .drawer-close:hover { background: #f1f5f9; color: #0f172b; }
+
+            /* nav links inside drawer */
+            .drawer-nav {
+                flex: 1;
+                padding: 1rem 0;
+                overflow-y: auto;
+            }
+            .drawer-nav a {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0.85rem 1.5rem;
+                font-size: 1rem;
+                font-weight: 500;
+                color: #1e293b;
+                text-decoration: none;
+                transition: background 0.12s;
+            }
+            .drawer-nav a:hover { background: #f8fafc; color: #2563eb; }
+            .drawer-nav a svg { color: #94a3b8; }
+
+            /* drawer footer */
+            .drawer-footer {
+                padding: 1rem 1.25rem 1.5rem;
+                border-top: 1px solid #f1f5f9;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+            .drawer-login-btn {
+                flex: 0 0 auto;
+                font-size: 0.875rem;
+                font-weight: 600;
+                color: #1e293b;
+                text-decoration: none;
+                padding: 0.65rem 1.1rem;
+                border-radius: 9999px;
+                transition: background 0.15s;
+            }
+            .drawer-login-btn:hover { background: #f1f5f9; }
+            .drawer-signup-btn {
+                flex: 1;
+                text-align: center;
+                font-size: 0.875rem;
+                font-weight: 700;
+                color: #ffffff;
+                background: #2563eb;
+                text-decoration: none;
+                padding: 0.7rem 1rem;
+                border-radius: 9999px;
+                transition: background 0.15s, transform 0.15s;
+            }
+            .drawer-signup-btn:hover { background: #1d4ed8; transform: scale(1.02); }
+            .drawer-dashboard-btn {
+                flex: 1;
+                text-align: center;
+                font-size: 0.875rem;
+                font-weight: 700;
+                color: #ffffff;
+                background: #0f172b;
+                text-decoration: none;
+                padding: 0.7rem 1rem;
+                border-radius: 9999px;
+                transition: background 0.15s;
+            }
+            .drawer-dashboard-btn:hover { background: #1e293b; }
         </style>
     </head>
     <body class="bg-[#F8FAFC] font-sans antialiased text-slate-900 selection:bg-[#0F172B] selection:text-white">
 
-        <!-- Floating Glassmorphism Navbar (Skill Marketplace Style) -->
-        <div class="sticky top-4 z-50 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-            <header class="bg-white/85 backdrop-blur-2xl border border-slate-200/80 shadow-[0_10px_30px_-10px_rgba(15,23,42,0.08)] rounded-full px-5 sm:px-7 py-3 flex items-center justify-between gap-4 transition-all duration-300">
-                
-                <!-- Logo & CSISS Badge -->
+        <!-- ══════════════════════════════════════════════
+             HERO WRAPPER CONTAINER (hosts Navbar + Hero Section + Dark Background Image Overlay)
+        ══════════════════════════════════════════════ -->
+        <div class="relative w-full overflow-hidden bg-[#F8FAFC]">
+
+            <!-- 100% Width Dark Hero Background Image Backdrop (Spans top of page behind Navbar down to ~40% of dashboard screen container) -->
+            <div class="absolute inset-x-0 top-0 w-full h-[85%] overflow-hidden pointer-events-none z-0">
+                <img src="{{ asset('images/hero_workers_bg.png') }}" alt="Skill Link NG Professional Workers" class="w-full h-full object-cover object-top opacity-35 mix-blend-luminosity" />
+                <!-- Dark Navy Overlay fading into light page background below -->
+                <div class="absolute inset-0 bg-gradient-to-b from-[#0F172B]/95 via-[#0F172B]/85 to-[#F8FAFC]"></div>
+            </div>
+        <header class="site-navbar" role="banner">
+
+            <!-- ① Hamburger icon (left) -->
+            <button
+                id="nav-hamburger-btn"
+                class="nav-hamburger"
+                :class="{ 'is-open': mobileMenuOpen }"
+                @click="mobileMenuOpen = !mobileMenuOpen"
+                aria-label="Toggle navigation menu"
+                :aria-expanded="mobileMenuOpen.toString()"
+            >
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <!-- ② Logo ALONE (centre, absolutely positioned, 44px big & visible) -->
+            <a href="/" class="nav-logo" aria-label="{{ config('app.name', 'Skill Link NG') }} home">
+                <img src="{{ asset('images/skilllingng_logo.png') }}" alt="{{ config('app.name', 'Skill Link NG') }} logo" />
+            </a>
+
+            <!-- ③ Right CTA: Dashboard (auth) or Sign up (guest) -->
+            @auth
+                <a href="{{ url('/dashboard') }}" class="nav-cta" style="background:#0f172b;" id="nav-dashboard-btn-mobile">
+                    Dashboard
+                </a>
+            @else
+                <a href="{{ Route::has('register') ? route('register') : url('/register') }}" class="nav-cta" id="nav-signup-btn-mobile">
+                    Sign up
+                </a>
+            @endauth
+
+        </header>
+
+        <!-- ══════════════════════════════════════════════
+             DRAWER OVERLAY  (mobile only)
+        ══════════════════════════════════════════════ -->
+        <div
+            x-cloak
+            x-show="mobileMenuOpen"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="drawer-overlay"
+            @click="mobileMenuOpen = false"
+            aria-hidden="true"
+        ></div>
+
+        <!-- ══════════════════════════════════════════════
+             DRAWER PANEL  (mobile only)
+        ══════════════════════════════════════════════ -->
+        <nav
+            id="mobile-drawer"
+            class="drawer-panel"
+            :class="{ 'is-open': mobileMenuOpen }"
+            aria-label="Mobile navigation"
+            aria-hidden="!mobileMenuOpen"
+            role="navigation"
+        >
+            <!-- Drawer header -->
+            <div class="drawer-header">
+                <a href="/" class="nav-logo" style="position:static;transform:none;" @click="mobileMenuOpen = false">
+                    <img src="{{ asset('images/skilllingng_logo.png') }}" alt="Skill Link NG" />
+                    <span class="nav-logo-text">Skill Link NG</span>
+                </a>
+                <button class="drawer-close" @click="mobileMenuOpen = false" aria-label="Close menu">✕</button>
+            </div>
+
+            <!-- Drawer nav links -->
+            <div class="drawer-nav">
+                <a href="/" @click="mobileMenuOpen = false">
+                    <span>Home</span>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+                </a>
+                <a href="#find-talent" @click="mobileMenuOpen = false" class="text-[#2563eb] font-bold">
+                    <span>📍 Find Talent Near You</span>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+                </a>
+                <a href="#how-it-works" @click="mobileMenuOpen = false">
+                    <span>How It Works</span>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+                </a>
+                <a href="#why-us" @click="mobileMenuOpen = false">
+                    <span>Why Choose Us</span>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+                </a>
+                <a href="#categories" @click="mobileMenuOpen = false">
+                    <span>Categories</span>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+                </a>
+                <a href="#featured-jobs" @click="mobileMenuOpen = false">
+                    <span>Featured Jobs</span>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+                </a>
+            </div>
+
+            <!-- Drawer footer: Log in + Sign up / Dashboard -->
+            <div class="drawer-footer">
+                @auth
+                    <a href="{{ url('/dashboard') }}" class="drawer-dashboard-btn" @click="mobileMenuOpen = false">
+                        Go to Dashboard
+                    </a>
+                @else
+                    <a href="{{ Route::has('login') ? route('login') : url('/login') }}" class="drawer-login-btn" @click="mobileMenuOpen = false">
+                        Log in
+                    </a>
+                    <a href="{{ Route::has('register') ? route('register') : url('/register') }}" class="drawer-signup-btn" @click="mobileMenuOpen = false">
+                        Sign up
+                    </a>
+                @endauth
+            </div>
+        </nav>
+
+        <!-- ══════════════════════════════════════════════
+             DESKTOP NAVBAR — Floating Glassmorphism Pill (White Background)
+        ══════════════════════════════════════════════ -->
+        <div class="desktop-nav-wrapper sticky top-4 z-50 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <header class="bg-white/95 backdrop-blur-2xl border border-slate-200/90 shadow-xl shadow-slate-950/10 rounded-full px-5 sm:px-7 py-3 flex items-center justify-between gap-4 transition-all duration-300">
+
+                <!-- Logo -->
                 <a href="/" class="flex items-center gap-3 group shrink-0">
-                    <img src="{{ asset('images/skilllingng_logo.png') }}" alt="{{ config('app.name', 'Skill Link NG') }}" class="w-10 h-10 object-contain rounded-full shrink-0" />
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-slate-900 font-extrabold text-base sm:text-lg tracking-tight leading-none block">Skill Link NG</span>
-                            <span class="hidden sm:inline-block px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600 tracking-wide uppercase">CSISS</span>
-                        </div>
-                        <span class="text-[10px] text-slate-500 font-medium tracking-wide block sm:inline-block">Powered by CSISS</span>
-                    </div>
+                    <img src="{{ asset('images/skilllingng_logo.png') }}" alt="{{ config('app.name', 'Skill Link NG') }}" class="w-40 h-10 object-contain rounded-full shrink-0" />
                 </a>
 
                 <!-- Nav Links -->
-                <nav class="hidden lg:flex items-center gap-7">
+                <nav class="flex items-center gap-6" aria-label="Desktop navigation">
                     <a href="#" class="text-xs font-bold text-[#0F172B]">Home</a>
+                    <a href="#find-talent" class="text-xs font-bold text-[#2563EB] hover:text-[#1d4ed8] transition-colors flex items-center gap-1">
+                        <span>Find Talent Near You</span>
+                    </a>
                     <a href="#how-it-works" class="text-xs font-semibold text-slate-600 hover:text-[#0F172B] transition-colors">How It Works</a>
                     <a href="#why-us" class="text-xs font-semibold text-slate-600 hover:text-[#0F172B] transition-colors">Why Choose Us</a>
                     <a href="#categories" class="text-xs font-semibold text-slate-600 hover:text-[#0F172B] transition-colors">Categories</a>
                     <a href="#featured-jobs" class="text-xs font-semibold text-slate-600 hover:text-[#0F172B] transition-colors">Featured Jobs</a>
-                    <a href="#testimonials" class="text-xs font-semibold text-slate-600 hover:text-[#0F172B] transition-colors">Reviews</a>
-                    <a href="#faq" class="text-xs font-semibold text-slate-600 hover:text-[#0F172B] transition-colors">FAQ</a>
                 </nav>
 
                 <!-- Action CTA Buttons -->
                 <div class="flex items-center gap-3 shrink-0">
                     @auth
-                        <a href="{{ url('/dashboard') }}" class="px-6 py-2.5 text-xs font-bold text-white bg-[#0F172B] hover:bg-slate-800 rounded-full shadow-lg shadow-slate-900/15 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2">
+                        <a href="{{ url('/dashboard') }}" id="nav-dashboard-btn-desktop" class="px-6 py-2.5 text-xs font-bold text-white bg-[#0F172B] hover:bg-slate-800 rounded-full shadow-lg shadow-slate-900/15 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2">
                             <span>Dashboard</span>
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </a>
                     @else
-                        <a href="{{ Route::has('login') ? route('login') : url('/login') }}" class="hidden sm:inline-block text-xs font-semibold text-slate-700 hover:text-[#0F172B] px-4 py-2 rounded-full hover:bg-slate-100 transition-colors">
+                        <a href="{{ Route::has('login') ? route('login') : url('/login') }}" class="text-xs font-semibold text-slate-700 hover:text-[#0F172B] px-4 py-2 rounded-full hover:bg-slate-100 transition-colors">
                             Sign In
                         </a>
-                        <a href="{{ Route::has('register') ? route('register') : url('/register') }}" class="px-6 py-2.5 text-xs font-bold text-white bg-[#0F172B] hover:bg-slate-800 rounded-full shadow-lg shadow-slate-900/15 hover:scale-105 active:scale-95 transition-all duration-200">
+                        <a href="{{ Route::has('register') ? route('register') : url('/register') }}" id="nav-signup-btn-desktop" class="px-6 py-2.5 text-xs font-bold text-white bg-[#0F172B] hover:bg-slate-800 rounded-full shadow-lg shadow-slate-900/15 hover:scale-105 active:scale-95 transition-all duration-200">
                             Get Started
                         </a>
                     @endauth
@@ -77,43 +423,45 @@
         </div>
 
         <!-- Main Content Area -->
-        <main class="space-y-28 sm:space-y-36 lg:space-y-44 pt-10 pb-32 overflow-hidden">
+        <main class="space-y-28 sm:space-y-36 lg:space-y-44 pt-6 pb-32 overflow-hidden">
 
-            <!-- Hero Section (Skill Marketplace Reference Structure with Soft Glow & Dashboard Screen Showcase) -->
-            <section class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-14 pb-12 text-center space-y-12">
-                
+            <!-- Hero Section Body -->
+            <section class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-14 pb-12 text-center space-y-12 z-10">
+
                 <!-- Ambient Soft Background Glow Orbs -->
-                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[48rem] h-[28rem] bg-gradient-to-b from-sky-200/40 via-indigo-100/30 to-transparent rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute top-40 right-10 w-80 h-80 bg-sky-200/20 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute top-60 left-10 w-80 h-80 bg-slate-300/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[48rem] h-[28rem] bg-gradient-to-b from-blue-500/20 via-sky-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute top-40 right-10 w-80 h-80 bg-blue-500/15 rounded-full blur-3xl pointer-events-none"></div>
 
                 <div class="relative z-10 space-y-6 max-w-4xl mx-auto">
                     
                     <!-- Pre-Header Text -->
-                    <span class="text-sky-600 text-xs font-extrabold uppercase tracking-widest block">
-                        Powered by CSISS — No. 1 Skill Link Platform
-                    </span>
+                    <div>
+                        <span class="inline-flex items-center gap-2 px-4.5 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-widest bg-[#2563EB]/20 border border-[#2563EB]/40 text-blue-300 shadow-sm">
+                            <span class="w-2 h-2 rounded-full bg-[#E8472A] animate-pulse"></span>
+                            Powered by CSISS
+                        </span>
+                    </div>
 
-                    <!-- Main Hero Title (Solid Crisp Text without Gradient) -->
-                    <h1 class="text-4xl sm:text-6xl xl:text-7xl font-black text-slate-900 tracking-tight leading-[1.12]">
-                        Find Your Dream Jobs<br />
-                        And plan your next future with us
+                      <!-- Main Hero Title (Crisp Light Text with Tasteful Blue & Coral Accents) -->
+                    <h1 class="text-4xl sm:text-6xl xl:text-7xl font-black text-white tracking-tight leading-[1.12]">
+                        Find Verified <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-300 to-[#2563EB]">Skilled Workers</span><br />
+                        & Proffesionals Near You
                     </h1>
 
                     <!-- Subtitle -->
-                    <p class="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto font-normal leading-relaxed">
-                        We help connecting parents, households, and businesses with certified academic tutors, technicians, and artisans near you.
+                    <p class="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto font-normal leading-relaxed">
+                        Connecting households, property owners, and businesses with CSISS-vetted skilled labour workers (electricians, plumbers, carpenters, technicians) and qualified academic tutors near you.
                     </p>
 
                     <!-- Hero Action Buttons -->
                     <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
-                        <a href="#featured-jobs" class="px-8 py-3.5 text-sm font-bold text-white bg-[#0F172B] hover:bg-slate-800 rounded-full shadow-xl shadow-slate-900/20 hover:shadow-slate-900/35 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2">
+                        <a href="#featured-jobs" class="px-8 py-3.5 text-sm font-bold text-white bg-[#2563EB] hover:bg-blue-600 rounded-full shadow-xl shadow-blue-500/25 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2">
                             <span>Explore All Jobs</span>
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </a>
 
-                        <a href="#how-it-works" class="px-7 py-3.5 text-sm font-bold text-slate-800 hover:text-[#0F172B] bg-white/90 hover:bg-white border border-slate-200/90 rounded-full shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2.5">
-                            <span class="w-6 h-6 rounded-full bg-slate-100 text-[#0F172B] flex items-center justify-center text-xs">▶</span>
+                        <a href="#how-it-works" class="px-7 py-3.5 text-sm font-bold text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md rounded-full shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2.5">
+                            <span class="w-6 h-6 rounded-full bg-white/20 text-white flex items-center justify-center text-xs">▶</span>
                             <span>How It Works</span>
                         </a>
                     </div>
@@ -180,16 +528,17 @@
                 </div>
 
             </section>
+        </div>
 
 
 
-            <!-- Section: How It Works (Skill Marketplace 3 Cards Layout) -->
+            <!-- Section: How It Works (Skill Marketplace 3 Cards Layout with Real Worker Photos) -->
             <section id="how-it-works" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 text-center space-y-14 sm:space-y-16 relative">
                 
                 <!-- Section Header with Pre-Header Pill Badge -->
                 <div class="space-y-3 max-w-2xl mx-auto">
                     <div>
-                        <span class="px-5 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200/90 text-[#0F172B] shadow-2xs inline-block">
+                        <span class="px-5 py-1.5 rounded-full text-xs font-extrabold bg-[#2563EB]/10 text-[#2563EB] border border-[#2563EB]/20 uppercase tracking-wider inline-block">
                             How it works
                         </span>
                     </div>
@@ -204,57 +553,18 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 text-center">
                     
                     <!-- Card 1: Create Profile -->
-                    <div class="bg-white border border-slate-200/90 rounded-[2rem] p-6 lg:p-7 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-[#0F172B]/30 transition-all duration-300 flex flex-col justify-between space-y-6 relative overflow-hidden group">
+                    <div class="bg-white border border-slate-200/90 rounded-[2rem] p-6 lg:p-7 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-[#2563EB]/40 transition-all duration-300 flex flex-col justify-between space-y-6 relative overflow-hidden group">
                         
-                        <!-- Subtle Deep Blue Accent Top Border -->
-                        <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#0F172B] via-slate-800 to-sky-600 opacity-80 rounded-t-[2rem]"></div>
+                        <!-- Royal Blue Accent Top Border -->
+                        <div class="absolute top-0 inset-x-0 h-1.5 bg-[#2563EB] rounded-t-[2rem]"></div>
 
-                        <!-- Top Visual Graphic Container -->
-                        <div class="h-60 bg-[#F8FAFC] rounded-2xl p-4 border border-slate-100 flex flex-col justify-between relative overflow-hidden">
-                            
-                            <!-- Floating User Avatars Cluster -->
-                            <div class="relative w-full h-full">
-                                <!-- Subtle Background Aura -->
-                                <div class="w-28 h-28 bg-sky-200/40 rounded-full blur-xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
-
-                                <!-- Center Avatar (Prominent) -->
-                                <div class="w-14 h-14 rounded-full border-4 border-white shadow-md absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 overflow-hidden">
-                                    <img src="{{ asset('images/avatars/zainab.png') }}" class="w-full h-full object-cover" />
-                                </div>
-
-                                <!-- Surrounding Avatars -->
-                                <div class="w-9 h-9 rounded-full border-2 border-white shadow-xs absolute top-2 left-1/2 -translate-x-1/2 overflow-hidden z-10">
-                                    <img src="{{ asset('images/avatars/babajide.png') }}" class="w-full h-full object-cover" />
-                                </div>
-                                <div class="w-8 h-8 rounded-full border-2 border-white shadow-xs absolute top-1/2 -translate-y-1/2 left-5 overflow-hidden z-10">
-                                    <img src="{{ asset('images/avatars/emeka.png') }}" class="w-full h-full object-cover" />
-                                </div>
-                                <div class="w-8 h-8 rounded-full border-2 border-white shadow-xs absolute top-1/2 -translate-y-1/2 right-5 overflow-hidden z-10">
-                                    <img src="{{ asset('images/avatars/nneka.png') }}" class="w-full h-full object-cover" />
-                                </div>
-                                <div class="w-7 h-7 rounded-full border-2 border-white opacity-40 absolute top-4 right-8 overflow-hidden">
-                                    <img src="{{ asset('images/avatars/funmi.png') }}" class="w-full h-full object-cover" />
-                                </div>
-                                <div class="w-7 h-7 rounded-full border-2 border-white opacity-40 absolute bottom-12 left-8 overflow-hidden">
-                                    <img src="{{ asset('images/avatars/babajide.png') }}" class="w-full h-full object-cover" />
-                                </div>
-                                <div class="w-7 h-7 rounded-full border-2 border-white opacity-40 absolute bottom-12 right-8 overflow-hidden">
-                                    <img src="{{ asset('images/avatars/zainab.png') }}" class="w-full h-full object-cover" />
-                                </div>
-                            </div>
-
-                            <!-- Bottom Floating Action Bar -->
-                            <div class="absolute bottom-3 inset-x-3 bg-white/95 backdrop-blur-md rounded-full px-3 py-1.5 shadow-sm border border-slate-200/80 flex items-center justify-between z-20">
-                                <div class="flex items-center gap-1.5">
-                                    <div class="flex -space-x-1.5">
-                                        <img src="{{ asset('images/avatars/funmi.png') }}" class="w-5 h-5 rounded-full object-cover border border-white" />
-                                        <img src="{{ asset('images/avatars/emeka.png') }}" class="w-5 h-5 rounded-full object-cover border border-white" />
-                                    </div>
-                                    <span class="text-[10px] font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded-full">+20</span>
-                                </div>
-
-                                <div class="bg-white hover:bg-slate-50 px-3.5 py-1 rounded-full text-xs font-semibold text-slate-800 border border-slate-300 shadow-2xs flex items-center gap-1 cursor-pointer">
-                                    <span class="text-[#0F172B] font-bold">+</span> Register Profile
+                        <!-- Top Visual Graphic Container (Real Tutor Photo) -->
+                        <div class="h-60 rounded-2xl border border-slate-100 relative overflow-hidden group-hover:scale-[1.02] transition-transform">
+                            <img src="{{ asset('images/tutor_photo.png') }}" alt="Academic Tutor" class="w-full h-full object-cover" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#0F172B]/80 via-transparent to-transparent flex items-end p-4">
+                                <div class="text-left text-white space-y-0.5">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#2563EB] text-white inline-block">Academic Tutor</span>
+                                    <h4 class="text-sm font-bold text-white">Teachers & Tutors</h4>
                                 </div>
                             </div>
                         </div>
@@ -269,43 +579,18 @@
                     </div>
 
                     <!-- Card 2: Search & Filter Talent -->
-                    <div class="bg-white border border-slate-200/90 rounded-[2rem] p-6 lg:p-7 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-[#0F172B]/30 transition-all duration-300 flex flex-col justify-between space-y-6 relative overflow-hidden group">
+                    <div class="bg-white border border-slate-200/90 rounded-[2rem] p-6 lg:p-7 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-[#E8472A]/40 transition-all duration-300 flex flex-col justify-between space-y-6 relative overflow-hidden group">
                         
-                        <!-- Subtle Deep Blue Accent Top Border -->
-                        <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-sky-600 via-[#0F172B] to-slate-800 opacity-80 rounded-t-[2rem]"></div>
+                        <!-- Coral Red Accent Top Border -->
+                        <div class="absolute top-0 inset-x-0 h-1.5 bg-[#E8472A] rounded-t-[2rem]"></div>
 
-                        <!-- Top Visual Graphic Container (Card Layering Effect) -->
-                        <div class="h-60 bg-[#F8FAFC] rounded-2xl p-4 border border-slate-100 flex items-center justify-center relative overflow-hidden">
-                            
-                            <!-- Layered Background Cards Sticking Out -->
-                            <div class="absolute left-3 top-1/2 -translate-y-1/2 w-32 h-44 bg-white/70 border border-slate-200/60 rounded-2xl shadow-2xs transform -rotate-6"></div>
-                            <div class="absolute right-3 top-1/2 -translate-y-1/2 w-32 h-44 bg-white/70 border border-slate-200/60 rounded-2xl shadow-2xs transform rotate-6"></div>
-
-                            <!-- Center Floating Modal Card -->
-                            <div class="relative z-10 bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xl w-52 text-left space-y-3 transform hover:scale-[1.02] transition-transform">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold text-slate-800">CSISS Verification</span>
-                                    <span class="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] text-slate-400 font-bold">•••</span>
-                                </div>
-                                <div class="space-y-2 pt-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-[#0F172B] font-bold text-xs">✓</span>
-                                        <div class="h-1.5 bg-slate-200/90 rounded-full w-28"></div>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-[#0F172B] font-bold text-xs">✓</span>
-                                        <div class="h-1.5 bg-slate-200/90 rounded-full w-20"></div>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-[#0F172B] font-bold text-xs">✓</span>
-                                        <div class="h-1.5 bg-slate-200/90 rounded-full w-24"></div>
-                                    </div>
-                                </div>
-
-                                <div class="pt-1">
-                                    <span class="w-full bg-[#0F172B] text-white hover:bg-slate-800 font-semibold text-xs py-2 rounded-full block text-center transition-colors cursor-pointer shadow-xs">
-                                        Browse Talent
-                                    </span>
+                        <!-- Top Visual Graphic Container (Real Artisan Photo) -->
+                        <div class="h-60 rounded-2xl border border-slate-100 relative overflow-hidden group-hover:scale-[1.02] transition-transform">
+                            <img src="{{ asset('images/artisan_photo.png') }}" alt="Solar Artisan Technician" class="w-full h-full object-cover" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#0F172B]/80 via-transparent to-transparent flex items-end p-4">
+                                <div class="text-left text-white space-y-0.5">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#E8472A] text-white inline-block">Certified Artisan</span>
+                                    <h4 class="text-sm font-bold text-white">Electrical & Plumbing Pros</h4>
                                 </div>
                             </div>
                         </div>
@@ -320,52 +605,18 @@
                     </div>
 
                     <!-- Card 3: Connect & Hire Safely -->
-                    <div class="bg-white border border-slate-200/90 rounded-[2rem] p-6 lg:p-7 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-[#0F172B]/30 transition-all duration-300 flex flex-col justify-between space-y-6 relative overflow-hidden group">
+                    <div class="bg-white border border-slate-200/90 rounded-[2rem] p-6 lg:p-7 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-[#0F172B]/40 transition-all duration-300 flex flex-col justify-between space-y-6 relative overflow-hidden group">
                         
-                        <!-- Subtle Deep Blue Accent Top Border -->
-                        <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-slate-800 via-[#0F172B] to-sky-600 opacity-80 rounded-t-[2rem]"></div>
+                        <!-- Navy Accent Top Border -->
+                        <div class="absolute top-0 inset-x-0 h-1.5 bg-[#0F172B] rounded-t-[2rem]"></div>
 
-                        <!-- Top Visual Graphic Container (Apply Card & Social Media Icons) -->
-                        <div class="h-60 bg-[#F8FAFC] rounded-2xl p-4 border border-slate-100 flex flex-col items-center justify-center relative overflow-hidden">
-                            
-                            <!-- Top Floating Brand Tag -->
-                            <div class="bg-white/95 backdrop-blur-sm border border-slate-200/80 rounded-full px-3.5 py-1 shadow-2xs flex items-center gap-2 mb-2 z-10">
-                                <div class="w-5 h-5 rounded-full bg-[#0F172B] text-white font-bold text-[9px] flex items-center justify-center">CS</div>
-                                <div class="text-left leading-tight">
-                                    <span class="text-xs font-bold text-slate-800 block">CSISS Guild</span>
-                                    <span class="text-[9px] text-slate-400 block font-normal">Verified Professional</span>
-                                </div>
-                            </div>
-
-                            <!-- Floating Social Brand Badges -->
-                            <div class="w-6 h-6 rounded-full bg-[#0F172B] text-white flex items-center justify-center font-bold text-[10px] shadow-xs absolute top-12 left-6">✓</div>
-                            <div class="w-6 h-6 rounded-full bg-sky-600 text-white flex items-center justify-center text-[10px] shadow-xs absolute top-28 left-4">📚</div>
-                            <div class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[9px] absolute bottom-6 left-3">⚡</div>
-                            <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] shadow-xs absolute top-14 right-6">🔧</div>
-                            <div class="w-6 h-6 rounded-full bg-[#0F172B] text-white flex items-center justify-center font-bold text-[9px] shadow-xs absolute top-28 right-4">★</div>
-                            <div class="w-5 h-5 rounded-full bg-sky-500 text-white flex items-center justify-center font-bold text-[9px] absolute bottom-8 right-3">🎓</div>
-
-                            <!-- Center Floating Modal Card with Deep Blue Top Border -->
-                            <div class="relative z-10 bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xl w-52 text-left space-y-3 overflow-hidden relative before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-gradient-to-r before:from-[#0F172B] via-sky-600 before:to-slate-800">
-                                <div class="space-y-2 pt-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-[#0F172B] font-bold text-xs">✓</span>
-                                        <div class="h-1.5 bg-slate-200/90 rounded-full w-28"></div>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-[#0F172B] font-bold text-xs">✓</span>
-                                        <div class="h-1.5 bg-slate-200/90 rounded-full w-20"></div>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-[#0F172B] font-bold text-xs">✓</span>
-                                        <div class="h-1.5 bg-slate-200/90 rounded-full w-24"></div>
-                                    </div>
-                                </div>
-
-                                <div class="pt-1">
-                                    <span class="w-full bg-[#0F172B] hover:bg-slate-800 text-white font-semibold text-xs py-2 rounded-full block text-center transition-colors cursor-pointer shadow-xs">
-                                        Message & Hire
-                                    </span>
+                        <!-- Top Visual Graphic Container (Real Workers Team Photo) -->
+                        <div class="h-60 rounded-2xl border border-slate-100 relative overflow-hidden group-hover:scale-[1.02] transition-transform">
+                            <img src="{{ asset('images/workers_team_photo.png') }}" alt="Vetted Nigerian Workers" class="w-full h-full object-cover" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#0F172B]/85 via-transparent to-transparent flex items-end p-4">
+                                <div class="text-left text-white space-y-0.5">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#0F172B] text-white border border-white/20 inline-block">CSISS Verified</span>
+                                    <h4 class="text-sm font-bold text-white">Trusted Guild Professionals</h4>
                                 </div>
                             </div>
                         </div>
@@ -374,7 +625,7 @@
                         <div class="space-y-2 text-center">
                             <h3 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Connect & Hire Safely</h3>
                             <p class="text-slate-500 text-xs sm:text-sm leading-relaxed font-normal">
-                                Message professionals directly, discuss home tutoring schedules or trade project details, and hire with CSISS background assurance.
+                                Message professionals directly, discuss home tutoring schedules or trade project details, and hire with background assurance.
                             </p>
                         </div>
                     </div>
@@ -392,8 +643,8 @@
                         
                         <!-- Pre-Header Pill Badge matching reference -->
                         <div>
-                            <span class="px-4 py-1.5 rounded-full text-xs font-bold bg-sky-50 text-[#0F172B] border border-sky-200/80 inline-block">
-                                Why Choose us
+                            <span class="px-4 py-1.5 rounded-full text-xs font-extrabold bg-[#E8472A]/10 text-[#E8472A] border border-[#E8472A]/20 inline-block uppercase tracking-wider">
+                                Why Choose Us
                             </span>
                         </div>
 
@@ -402,7 +653,7 @@
                         </h2>
                         
                         <p class="text-slate-500 text-sm sm:text-base leading-relaxed font-normal">
-                            Built specifically for Nigerian households, parents, and businesses seeking vetted academic tutors and trusted trade artisans.
+                            Built specifically for Nigerian households, property owners, parents, and businesses seeking vetted skilled labour workers, trade artisans, and academic tutors.
                         </p>
 
                         <!-- 3 Feature Items Stacked (Bold title + description) -->
@@ -410,40 +661,49 @@
                             
                             <!-- Item 1 -->
                             <div class="space-y-1">
-                                <h4 class="text-base sm:text-lg font-bold text-slate-900">CSISS Credential & Background Verification</h4>
-                                <p class="text-xs sm:text-sm text-slate-500 leading-relaxed font-normal">
-                                    Every academic tutor and artisan undergoes identity checking and CSISS qualification verification, giving parents and clients complete peace of mind for home tutoring and property repairs.
+                                <h4 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-[#2563EB]"></span>
+                                    CSISS Credential & Background Verification
+                                </h4>
+                                <p class="text-xs sm:text-sm text-slate-500 leading-relaxed font-normal pl-4">
+                                    Every trade artisan, technician, and academic tutor undergoes identity checking and CSISS qualification verification, giving clients complete peace of mind for property repairs and home tutoring.
                                 </p>
                             </div>
 
                             <!-- Item 2 -->
                             <div class="space-y-1">
-                                <h4 class="text-base sm:text-lg font-bold text-slate-900">Dual Academic Tutoring & Skilled Trades Focus</h4>
-                                <p class="text-xs sm:text-sm text-slate-500 leading-relaxed font-normal">
-                                    Whether you need a WAEC Physics tutor, an IGCSE Math teacher, a solar electrician, or a plumber, our platform specializes in both academic excellence and trade expertise on one single hub.
+                                <h4 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-[#E8472A]"></span>
+                                    Dual Skilled Trades & Academic Tutoring Focus
+                                </h4>
+                                <p class="text-xs sm:text-sm text-slate-500 leading-relaxed font-normal pl-4">
+                                    Whether you need a solar electrician, plumber, auto mechanic, carpenter, WAEC Physics tutor, or language instructor, our platform specializes in both skilled labour trades and academic excellence.
                                 </p>
                             </div>
 
                             <!-- Item 3 -->
                             <div class="space-y-1">
-                                <h4 class="text-base sm:text-lg font-bold text-slate-900">Direct Local Connections & Transparent Rates</h4>
-                                <p class="text-xs sm:text-sm text-slate-500 leading-relaxed font-normal">
-                                    Find top-rated talent in your immediate city (Lagos, Abuja, Port Harcourt, Ibadan, & more). Contact professionals directly with upfront rate expectations and verified community reviews.
+                                <h4 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-[#0F172B]"></span>
+                                    Direct Local Connections & Transparent Rates
+                                </h4>
+                                <p class="text-xs sm:text-sm text-slate-500 leading-relaxed font-normal pl-4">
+                                    Find top-rated artisans and tutors in your immediate city (Lagos, Abuja, Port Harcourt, Ibadan, Enugu, & more). Contact workers directly with transparent rate expectations and community reviews.
                                 </p>
                             </div>
 
                         </div>
                     </div>
 
-                    <!-- Right Column: 2x2 Floating Feature Cards Container with Soft Deep Blue Tinted Backdrop -->
-                    <div class="lg:col-span-6 bg-gradient-to-tr from-slate-100 via-sky-50 to-slate-100 p-6 sm:p-9 rounded-[2.5rem] border border-slate-200 shadow-inner">
+                    <!-- Right Column: 2x2 Floating Feature Cards Container with Soft Tinted Backdrop -->
+                    <div class="lg:col-span-6 bg-gradient-to-tr from-slate-100 via-blue-50/40 to-slate-100 p-6 sm:p-9 rounded-[2.5rem] border border-slate-200 shadow-inner">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             
                             <!-- Card 1 (Smart Matches) -->
                             <div class="bg-white rounded-3xl p-5 shadow-md shadow-slate-950/5 border border-slate-200/80 space-y-3">
                                 <div class="flex items-center justify-between">
                                     <h5 class="text-sm font-extrabold text-slate-900">CSISS Match</h5>
-                                    <div class="w-8 h-8 rounded-full bg-[#0F172B] text-white flex items-center justify-center font-bold text-[10px]">
+                                    <div class="w-8 h-8 rounded-full bg-[#2563EB] text-white flex items-center justify-center font-bold text-[10px]">
                                         95%
                                     </div>
                                 </div>
@@ -459,16 +719,16 @@
                                 <div class="bg-slate-50 rounded-2xl p-2.5 border border-slate-100 space-y-1.5">
                                     <div class="flex items-center justify-between">
                                         <span class="text-xs font-extrabold text-slate-900">WAEC Physics Tutor</span>
-                                        <span class="w-5 h-5 rounded-full bg-sky-100 text-sky-800 flex items-center justify-center text-[10px] font-bold">✓</span>
+                                        <span class="w-5 h-5 rounded-full bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center text-[10px] font-bold">✓</span>
                                     </div>
                                     <div class="flex items-center gap-1 text-[9px] font-semibold text-slate-500">
-                                        <span class="px-1.5 py-0.5 rounded bg-sky-50 text-sky-800">In-Person</span>
+                                        <span class="px-1.5 py-0.5 rounded bg-[#2563EB]/10 text-[#2563EB]">In-Person</span>
                                         <span class="px-1.5 py-0.5 rounded bg-slate-100">Online</span>
                                         <span class="px-1.5 py-0.5 rounded bg-slate-100">Lagos</span>
                                     </div>
                                 </div>
 
-                                <div class="text-[11px] font-extrabold text-slate-900 pt-1">
+                                <div class="text-[11px] font-extrabold text-[#2563EB] pt-1">
                                     95% <span class="text-slate-500 font-normal">Match Score</span>
                                 </div>
                             </div>
@@ -478,7 +738,7 @@
                                 <h5 class="text-sm font-extrabold text-slate-900">CSISS Verification</h5>
 
                                 <div class="bg-slate-50 rounded-2xl p-3 border border-slate-100 flex items-center gap-2">
-                                    <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold shrink-0">
+                                    <div class="w-8 h-8 rounded-lg bg-[#E8472A]/10 text-[#E8472A] flex items-center justify-center text-xs font-bold shrink-0">
                                         ✓
                                     </div>
                                     <div class="min-w-0">
@@ -488,12 +748,12 @@
                                 </div>
 
                                 <div class="pt-1">
-                                    <span class="w-full bg-[#0F172B] text-white font-bold text-xs py-2 px-4 rounded-full text-center block shadow-xs">
+                                    <span class="w-full bg-[#E8472A] text-white font-bold text-xs py-2 px-4 rounded-full text-center block shadow-xs">
                                         Verification Approved
                                     </span>
                                 </div>
 
-                                <span class="text-[10px] text-emerald-600 font-bold block text-center">
+                                <span class="text-[10px] text-[#E8472A] font-bold block text-center">
                                     ✓ 100% CSISS Credential Verified
                                 </span>
                             </div>
@@ -506,18 +766,18 @@
                                 <div class="py-2 space-y-2">
                                     <div class="flex items-center justify-between relative">
                                         <div class="absolute inset-x-2 top-1/2 -translate-y-1/2 h-1 bg-slate-100 z-0"></div>
-                                        <div class="absolute left-2 w-2/3 top-1/2 -translate-y-1/2 h-1 bg-[#0F172B] z-0"></div>
+                                        <div class="absolute left-2 w-2/3 top-1/2 -translate-y-1/2 h-1 bg-[#2563EB] z-0"></div>
 
-                                        <div class="w-4 h-4 rounded-full bg-[#0F172B] ring-2 ring-white z-10"></div>
-                                        <div class="w-4 h-4 rounded-full bg-[#0F172B] ring-2 ring-white z-10"></div>
-                                        <img src="{{ asset('images/avatars/funmi.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-[#0F172B] z-10" />
+                                        <div class="w-4 h-4 rounded-full bg-[#2563EB] ring-2 ring-white z-10"></div>
+                                        <div class="w-4 h-4 rounded-full bg-[#2563EB] ring-2 ring-white z-10"></div>
+                                        <img src="{{ asset('images/avatars/funmi.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-[#E8472A] z-10" />
                                         <div class="w-4 h-4 rounded-full bg-slate-200 ring-2 ring-white z-10"></div>
                                     </div>
 
                                     <div class="flex items-center justify-between text-[9px] font-bold text-slate-500 pt-1">
                                         <span>Search</span>
                                         <span>Inquire</span>
-                                        <span class="text-[#0F172B]">Connected</span>
+                                        <span class="text-[#2563EB]">Connected</span>
                                         <span>Hired</span>
                                     </div>
                                 </div>
@@ -526,12 +786,12 @@
                             <!-- Card 4 (Session Scheduled) -->
                             <div class="bg-white rounded-3xl p-5 shadow-md shadow-slate-950/5 border border-slate-200/80 space-y-3 sm:translate-y-3">
                                 <div class="flex items-center gap-2.5">
-                                    <div class="w-8 h-8 rounded-xl bg-sky-100 text-sky-800 flex items-center justify-center text-sm font-bold shrink-0">
+                                    <div class="w-8 h-8 rounded-xl bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center text-sm font-bold shrink-0">
                                         📅
                                     </div>
                                     <div>
                                         <h5 class="text-xs font-extrabold text-slate-900 block leading-tight">Session Scheduled</h5>
-                                        <span class="text-[10px] text-sky-700 font-semibold block">Tomorrow at 10:30 AM</span>
+                                        <span class="text-[10px] text-[#2563EB] font-semibold block">Tomorrow at 10:30 AM</span>
                                     </div>
                                 </div>
 
@@ -549,9 +809,24 @@
                 </div>
             </section>
 
-            <!-- Section: Location Selector & Public Discovery -->
-            <section id="discovery" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-16">
+            <!-- Section: Location Selector & Public Discovery (Find Talent Near You) -->
+            <section id="find-talent" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
                 
+                <!-- Section Header: Find Talent Near You -->
+                <div class="text-center space-y-3 max-w-2xl mx-auto">
+                    <div>
+                        <span class="px-4 py-1.5 rounded-full text-xs font-extrabold bg-[#2563EB]/10 text-[#2563EB] border border-[#2563EB]/20 uppercase tracking-wider inline-block">
+                            Location Search
+                        </span>
+                    </div>
+                    <h2 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+                        Find Talent Near You
+                    </h2>
+                    <p class="text-slate-500 text-sm sm:text-base font-normal leading-relaxed">
+                        Search and filter verified skilled labour workers, electricians, plumbers, technicians, artisans, and academic tutors by state, city, or neighborhood across Nigeria.
+                    </p>
+                </div>
+
                 <!-- Location Selector Bar -->
                 <x-location-selector :searchLocation="$searchLocation ?? []" :hasSelectedLocation="$hasSelectedLocation ?? false" />
 
@@ -559,7 +834,7 @@
                 <div class="space-y-8">
                     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/80 pb-5">
                         <div>
-                            <span class="text-sky-600 text-xs font-extrabold uppercase tracking-widest block">
+                            <span class="text-[#E8472A] text-xs font-extrabold uppercase tracking-widest block">
                                 VETTED HANDYMEN & ARTISANS
                             </span>
                             <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-1">
@@ -573,7 +848,7 @@
                                 Experienced electricians, plumbers, technicians, and artisans verified by CSISS.
                             </p>
                         </div>
-                        <a href="{{ route('talent.index', ['talent_type' => 'skilled_labour']) }}" class="px-5 py-2.5 rounded-full text-xs font-bold text-slate-800 hover:text-white bg-slate-100 hover:bg-[#0F172B] transition-all flex items-center gap-2 shrink-0 self-start md:self-auto">
+                        <a href="{{ route('talent.index', ['talent_type' => 'skilled_labour']) }}" class="px-5 py-2.5 rounded-full text-xs font-bold text-white bg-[#0F172B] hover:bg-[#2563EB] transition-all flex items-center gap-2 shrink-0 self-start md:self-auto shadow-sm">
                             <span>View all skilled workers</span>
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </a>
@@ -618,7 +893,7 @@
                 <div class="space-y-8 pt-4">
                     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/80 pb-5">
                         <div>
-                            <span class="text-sky-600 text-xs font-extrabold uppercase tracking-widest block">
+                            <span class="text-[#2563EB] text-xs font-extrabold uppercase tracking-widest block">
                                 ACADEMIC TUTORS & INSTRUCTORS
                             </span>
                             <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-1">
@@ -632,7 +907,7 @@
                                 Qualified home tutors, WAEC/JAMB educators, and private instructors.
                             </p>
                         </div>
-                        <a href="{{ route('talent.index', ['talent_type' => 'teacher']) }}" class="px-5 py-2.5 rounded-full text-xs font-bold text-slate-800 hover:text-white bg-slate-100 hover:bg-[#0F172B] transition-all flex items-center gap-2 shrink-0 self-start md:self-auto">
+                        <a href="{{ route('talent.index', ['talent_type' => 'teacher']) }}" class="px-5 py-2.5 rounded-full text-xs font-bold text-white bg-[#0F172B] hover:bg-[#2563EB] transition-all flex items-center gap-2 shrink-0 self-start md:self-auto shadow-sm">
                             <span>View all teachers</span>
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </a>
@@ -679,48 +954,48 @@
             <section id="categories" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 text-center space-y-14 sm:space-y-16 relative">
                 
                 <div class="space-y-2 max-w-2xl mx-auto">
-                    <span class="text-sky-600 text-xs font-extrabold uppercase tracking-widest block">
+                    <span class="text-[#E8472A] text-xs font-extrabold uppercase tracking-widest block">
                         EXPLORE CATEGORIES
                     </span>
                     <h2 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">Popular Service Categories</h2>
-                    <p class="text-slate-500 text-sm sm:text-base font-normal">Whatever the task, find experienced local artisans and academic tutors ready to help in your area.</p>
+                    <p class="text-slate-500 text-sm sm:text-base font-normal">Whatever the task or project, find experienced local skilled workers, trade artisans, handymen, and academic tutors ready to help in your area.</p>
                 </div>
 
                 <!-- 12-Card Category Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
 
                     <!-- 1. Academic Tutoring -->
-                    <a href="{{ url('/talent?category=Academic+Tutoring') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-100/70 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B] cursor-pointer">
+                    <a href="{{ url('/talent?category=Academic+Tutoring') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#2563EB]/40 cursor-pointer">
                         <div class="flex items-center">
-                            <div class="w-11 h-11 rounded-xl bg-slate-100 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
+                            <div class="w-11 h-11 rounded-xl bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#2563EB] group-hover:text-white transition-all mr-3.5 shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#0F172B] transition-colors">Academic Tutoring</h4>
+                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#2563EB] transition-colors">Academic Tutoring</h4>
                                 <span class="text-xs text-slate-500 font-medium">874 tutors</span>
                             </div>
                         </div>
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#0F172B] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#2563EB] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
 
                     <!-- 2. Exam Prep & Languages -->
-                    <a href="{{ url('/talent?category=Exam+Prep') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-100/70 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B] cursor-pointer">
+                    <a href="{{ url('/talent?category=Exam+Prep') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#E8472A]/40 cursor-pointer">
                         <div class="flex items-center">
-                            <div class="w-11 h-11 rounded-xl bg-slate-100 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
+                            <div class="w-11 h-11 rounded-xl bg-[#E8472A]/10 text-[#E8472A] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#E8472A] group-hover:text-white transition-all mr-3.5 shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#0F172B] transition-colors">Exam Prep & Languages</h4>
+                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#E8472A] transition-colors">Exam Prep & Languages</h4>
                                 <span class="text-xs text-slate-500 font-medium">620 tutors</span>
                             </div>
                         </div>
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#0F172B] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#E8472A] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
 
                     <!-- 3. STEM & Sciences -->
-                    <a href="{{ url('/talent?category=STEM') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-100/70 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B] cursor-pointer">
+                    <a href="{{ url('/talent?category=STEM') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B]/40 cursor-pointer">
                         <div class="flex items-center">
-                            <div class="w-11 h-11 rounded-xl bg-slate-100 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
+                            <div class="w-11 h-11 rounded-xl bg-[#0F172B]/10 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke-width="2"/><ellipse cx="12" cy="12" rx="7" ry="3" stroke-width="1.8" transform="rotate(30 12 12)"/><ellipse cx="12" cy="12" rx="7" ry="3" stroke-width="1.8" transform="rotate(-30 12 12)"/></svg>
                             </div>
                             <div>
@@ -732,37 +1007,37 @@
                     </a>
 
                     <!-- 4. Plumbing -->
-                    <a href="{{ url('/talent?category=Plumbing') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-100/70 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B] cursor-pointer">
+                    <a href="{{ url('/talent?category=Plumbing') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#2563EB]/40 cursor-pointer">
                         <div class="flex items-center">
-                            <div class="w-11 h-11 rounded-xl bg-slate-100 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
+                            <div class="w-11 h-11 rounded-xl bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#2563EB] group-hover:text-white transition-all mr-3.5 shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 011 1V4z"/></svg>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#0F172B] transition-colors">Plumbing</h4>
+                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#2563EB] transition-colors">Plumbing</h4>
                                 <span class="text-xs text-slate-500 font-medium">542 professionals</span>
                             </div>
                         </div>
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#0F172B] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#2563EB] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
 
                     <!-- 5. Electrical -->
-                    <a href="{{ url('/talent?category=Electrical') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-100/70 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B] cursor-pointer">
+                    <a href="{{ url('/talent?category=Electrical') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#E8472A]/40 cursor-pointer">
                         <div class="flex items-center">
-                            <div class="w-11 h-11 rounded-xl bg-slate-100 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
+                            <div class="w-11 h-11 rounded-xl bg-[#E8472A]/10 text-[#E8472A] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#E8472A] group-hover:text-white transition-all mr-3.5 shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#0F172B] transition-colors">Electrical</h4>
+                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#E8472A] transition-colors">Electrical</h4>
                                 <span class="text-xs text-slate-500 font-medium">389 professionals</span>
                             </div>
                         </div>
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#0F172B] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#E8472A] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
 
                     <!-- 6. Carpentry -->
-                    <a href="{{ url('/talent?category=Carpentry') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-100/70 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B] cursor-pointer">
+                    <a href="{{ url('/talent?category=Carpentry') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B]/40 cursor-pointer">
                         <div class="flex items-center">
-                            <div class="w-11 h-11 rounded-xl bg-slate-100 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
+                            <div class="w-11 h-11 rounded-xl bg-[#0F172B]/10 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                             </div>
                             <div>
@@ -774,37 +1049,37 @@
                     </a>
 
                     <!-- 7. Painting -->
-                    <a href="{{ url('/talent?category=Painting') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-100/70 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B] cursor-pointer">
+                    <a href="{{ url('/talent?category=Painting') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#2563EB]/40 cursor-pointer">
                         <div class="flex items-center">
-                            <div class="w-11 h-11 rounded-xl bg-slate-100 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
+                            <div class="w-11 h-11 rounded-xl bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#2563EB] group-hover:text-white transition-all mr-3.5 shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#0F172B] transition-colors">Painting</h4>
+                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#2563EB] transition-colors">Painting</h4>
                                 <span class="text-xs text-slate-500 font-medium">401 professionals</span>
                             </div>
                         </div>
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#0F172B] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#2563EB] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
 
                     <!-- 8. Cleaning -->
-                    <a href="{{ url('/talent?category=Cleaning') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-100/70 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B] cursor-pointer">
+                    <a href="{{ url('/talent?category=Cleaning') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#E8472A]/40 cursor-pointer">
                         <div class="flex items-center">
-                            <div class="w-11 h-11 rounded-xl bg-slate-100 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
+                            <div class="w-11 h-11 rounded-xl bg-[#E8472A]/10 text-[#E8472A] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#E8472A] group-hover:text-white transition-all mr-3.5 shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#0F172B] transition-colors">Cleaning</h4>
+                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#E8472A] transition-colors">Cleaning</h4>
                                 <span class="text-xs text-slate-500 font-medium">625 professionals</span>
                             </div>
                         </div>
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#0F172B] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#E8472A] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
 
                     <!-- 9. Photography -->
-                    <a href="{{ url('/talent?category=Photography') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-100/70 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B] cursor-pointer">
+                    <a href="{{ url('/talent?category=Photography') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B]/40 cursor-pointer">
                         <div class="flex items-center">
-                            <div class="w-11 h-11 rounded-xl bg-slate-100 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
+                            <div class="w-11 h-11 rounded-xl bg-[#0F172B]/10 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             </div>
                             <div>
@@ -816,37 +1091,37 @@
                     </a>
 
                     <!-- 10. Web Development -->
-                    <a href="{{ url('/talent?category=Web+Development') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-100/70 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B] cursor-pointer">
+                    <a href="{{ url('/talent?category=Web+Development') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#2563EB]/40 cursor-pointer">
                         <div class="flex items-center">
-                            <div class="w-11 h-11 rounded-xl bg-slate-100 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
+                            <div class="w-11 h-11 rounded-xl bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#2563EB] group-hover:text-white transition-all mr-3.5 shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#0F172B] transition-colors">Web Development</h4>
+                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#2563EB] transition-colors">Web Development</h4>
                                 <span class="text-xs text-slate-500 font-medium">488 professionals</span>
                             </div>
                         </div>
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#0F172B] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#2563EB] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
 
                     <!-- 11. Graphic Design -->
-                    <a href="{{ url('/talent?category=Graphic+Design') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-100/70 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B] cursor-pointer">
+                    <a href="{{ url('/talent?category=Graphic+Design') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#E8472A]/40 cursor-pointer">
                         <div class="flex items-center">
-                            <div class="w-11 h-11 rounded-xl bg-slate-100 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
+                            <div class="w-11 h-11 rounded-xl bg-[#E8472A]/10 text-[#E8472A] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#E8472A] group-hover:text-white transition-all mr-3.5 shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#0F172B] transition-colors">Graphic Design</h4>
+                                <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#E8472A] transition-colors">Graphic Design</h4>
                                 <span class="text-xs text-slate-500 font-medium">350 professionals</span>
                             </div>
                         </div>
-                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#0F172B] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-[#E8472A] group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
 
                     <!-- 12. Music & Instrument Tutors -->
-                    <a href="{{ url('/talent?category=Music') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-100/70 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B] cursor-pointer">
+                    <a href="{{ url('/talent?category=Music') }}" class="group flex items-center justify-between p-5 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-2xl transition-all duration-300 shadow-2xs hover:shadow-md hover:border-[#0F172B]/40 cursor-pointer">
                         <div class="flex items-center">
-                            <div class="w-11 h-11 rounded-xl bg-slate-100 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
+                            <div class="w-11 h-11 rounded-xl bg-[#0F172B]/10 text-[#0F172B] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#0F172B] group-hover:text-white transition-all mr-3.5 shrink-0">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 .895-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 .895-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
                             </div>
                             <div>
@@ -861,395 +1136,208 @@
 
             </section>
 
-            <!-- Section: Top Featured Jobs (Skill Marketplace Pixel-Perfect 6 Card Layout) -->
+            <!-- Section: Top Featured Jobs (Live from Database) -->
             <section id="featured-jobs" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 text-center space-y-14 sm:space-y-16 relative">
                 
-                <!-- Section Header with Pre-Header Pill Badge -->
+                <!-- Section Header -->
                 <div class="space-y-3 max-w-2xl mx-auto">
                     <div>
-                        <span class="px-5 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200/90 text-[#0F172B] shadow-2xs inline-block">
+                        <span class="px-5 py-1.5 rounded-full text-xs font-extrabold bg-[#E8472A]/10 text-[#E8472A] border border-[#E8472A]/20 inline-block uppercase tracking-wider">
                             Featured Jobs
                         </span>
                     </div>
-
                     <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight">Top Featured Jobs</h2>
                     <p class="text-slate-500 text-sm sm:text-base font-normal leading-relaxed max-w-xl mx-auto">
-                        Explore the best opportunities available today means discovering the most promising paths, industries, and careers that are growing right now.
+                        Explore the latest project requests and job posts — skilled labour workers (electricians, plumbers, carpenters, mechanics), trade artisans, and tutors welcome.
                     </p>
                 </div>
 
-                <!-- 6 Featured Job Cards Grid (Matching Reference Screenshot Layout) -->
+                <!-- 6 Featured Job Cards Grid (Dynamic from DB) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 text-left">
-                    
-                    <!-- Job Card 1 (Highlighted Active Card with Gradient Fill & Deep Blue CTA) -->
-                    <div class="bg-gradient-to-br from-sky-50/80 via-white to-slate-100 border-2 border-[#0F172B] rounded-[2rem] p-6 lg:p-7 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-5 relative overflow-hidden group">
-                        
-                        <!-- Top Row: Company Info & Bookmark -->
-                        <div class="flex items-start justify-between">
-                            <div class="space-y-0.5">
-                                <h4 class="text-sm font-bold text-slate-900 leading-tight">Dribbble</h4>
-                                <span class="text-xs text-slate-400 font-medium block">Northam Office</span>
+
+                    @forelse($featuredJobs as $index => $job)
+
+                        @php
+                            $isFirst    = $loop->first;
+                            $budgetText = null;
+                            if ($job->budget_min && $job->budget_max) {
+                                $budgetText = '₦' . number_format($job->budget_min) . ' – ₦' . number_format($job->budget_max);
+                            } elseif ($job->budget_min) {
+                                $budgetText = 'From ₦' . number_format($job->budget_min);
+                            } elseif ($job->budget_max) {
+                                $budgetText = 'Up to ₦' . number_format($job->budget_max);
+                            }
+
+                            // Generate a consistent avatar colour from the poster's name
+                            $avatarColors  = ['#0F172B','#0369A1','#15803D','#7C3AED','#B45309','#BE123C','#0891B2'];
+                            $colorIndex    = crc32($job->user->name ?? 'U') % count($avatarColors);
+                            $avatarBg      = $avatarColors[abs($colorIndex)];
+                            $initials      = strtoupper(substr($job->user->name ?? 'U', 0, 2));
+
+                            $isExpired     = $job->application_deadline && $job->application_deadline->isPast();
+                            $deadlineSoon  = $job->application_deadline && !$isExpired && $job->application_deadline->diffInDays(now()) <= 3;
+                        @endphp
+
+                        {{-- First card: highlighted (gradient + border) --}}
+                        @if($isFirst)
+                        <div class="bg-gradient-to-br from-sky-50/80 via-white to-slate-100 border-2 border-[#0F172B] rounded-[2rem] p-6 lg:p-7 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-5 relative overflow-hidden group">
+                        @else
+                        <div class="bg-white border border-slate-200/90 rounded-[2rem] p-6 lg:p-7 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.03)] hover:shadow-xl hover:border-slate-400 transition-all duration-300 flex flex-col justify-between space-y-5 relative overflow-hidden group">
+                        @endif
+
+                            {{-- New badge for very recent posts --}}
+                            @if($job->created_at->diffInHours(now()) <= 24)
+                                <span class="absolute top-4 right-4 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wide">New</span>
+                            @elseif($isExpired)
+                                <span class="absolute top-4 right-4 px-2.5 py-0.5 rounded-full bg-red-100 text-red-600 text-[10px] font-bold uppercase tracking-wide">Closed</span>
+                            @elseif($deadlineSoon)
+                                <span class="absolute top-4 right-4 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wide">Closing Soon</span>
+                            @endif
+
+                            <!-- Top Row: Poster avatar + info -->
+                            <div class="flex items-start gap-3">
+                                <div class="w-9 h-9 rounded-full text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm" style="background:{{ $avatarBg }}">
+                                    {{ $initials }}
+                                </div>
+                                <div class="min-w-0">
+                                    <h4 class="text-sm font-bold text-slate-900 leading-tight truncate">{{ $job->user->name ?? 'Anonymous' }}</h4>
+                                    <span class="text-xs text-slate-400 font-medium block truncate">{{ $job->location }}</span>
+                                </div>
                             </div>
-                            <button class="w-9 h-9 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-700 shadow-2xs hover:border-[#0F172B] transition-colors shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                            </button>
-                        </div>
 
-                        <!-- Job Title -->
-                        <div>
-                            <h3 class="text-xl font-bold text-slate-900 tracking-tight">Product Designer</h3>
-                        </div>
+                            <!-- Job Title -->
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-900 tracking-tight line-clamp-2">{{ $job->title }}</h3>
+                            </div>
 
-                        <!-- Tags Row (White Pill Badges) -->
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="px-3.5 py-1 rounded-full bg-white border border-slate-200/70 text-[11px] font-semibold text-[#0F172B] shadow-2xs">Full Time</span>
-                            <span class="px-3.5 py-1 rounded-full bg-white border border-slate-200/70 text-[11px] font-semibold text-[#0F172B] shadow-2xs">Remote</span>
-                            <span class="px-3.5 py-1 rounded-full bg-white border border-slate-200/70 text-[11px] font-semibold text-[#0F172B] shadow-2xs">Part Time</span>
-                        </div>
+                            <!-- Tags Row: Category + Type -->
+                            <div class="flex flex-wrap items-center gap-2">
+                                @if($job->category)
+                                    <span class="px-3.5 py-1 rounded-full bg-white border border-slate-200/70 text-[11px] font-semibold text-[#0F172B] shadow-2xs">{{ $job->category->name }}</span>
+                                @endif
+                                @if($job->opportunity_type)
+                                    <span class="px-3.5 py-1 rounded-full bg-slate-100 text-[11px] font-semibold text-slate-600">{{ ucfirst(str_replace('_', ' ', $job->opportunity_type)) }}</span>
+                                @endif
+                            </div>
 
-                        <!-- Bottom Row: Salary, Applicant Avatars, & Apply Button -->
-                        <div class="pt-2 flex items-end justify-between border-t border-slate-200">
-                            <div class="space-y-1.5">
-                                <div class="text-xs font-bold text-slate-900">$90K-$110K <span class="text-[10px] text-slate-500 font-normal">/ Year</span></div>
-                                <div class="flex items-center gap-1">
-                                    <div class="flex -space-x-2">
-                                        <img src="{{ asset('images/avatars/funmi.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
-                                        <img src="{{ asset('images/avatars/emeka.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
-                                        <img src="{{ asset('images/avatars/zainab.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
+                            <!-- Description snippet -->
+                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-2">{{ $job->description }}</p>
+
+                            <!-- Bottom Row: Budget, applicants count & Apply CTA -->
+                            <div class="pt-2 flex items-end justify-between border-t {{ $isFirst ? 'border-slate-200' : 'border-slate-100' }}">
+                                <div class="space-y-1">
+                                    @if($budgetText)
+                                        <div class="text-xs font-bold text-slate-900">{{ $budgetText }}</div>
+                                    @else
+                                        <div class="text-xs font-medium text-slate-400 italic">Budget negotiable</div>
+                                    @endif
+                                    <div class="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        {{ $job->connection_requests_count }} applicant{{ $job->connection_requests_count !== 1 ? 's' : '' }}
+                                        @if($job->application_deadline && !$isExpired)
+                                            &nbsp;·&nbsp; Closes {{ $job->application_deadline->diffForHumans() }}
+                                        @endif
                                     </div>
-                                    <span class="w-5 h-5 rounded-full bg-sky-100 text-sky-800 flex items-center justify-center text-[10px] font-bold">+</span>
                                 </div>
+
+                                @if($isFirst)
+                                    <a href="{{ url('/dashboard/my-jobs') }}" class="bg-gradient-to-r from-[#0F172B] to-[#1E293B] hover:from-[#1E293B] hover:to-[#0F172B] text-white rounded-full px-5 py-2 text-xs font-bold shadow-md hover:shadow-lg flex items-center gap-1.5 transition-all shrink-0">
+                                        <span>Apply</span>
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                    </a>
+                                @else
+                                    <a href="{{ url('/dashboard/my-jobs') }}" class="text-slate-900 font-bold text-xs hover:text-sky-600 flex items-center gap-1 transition-colors group-hover:translate-x-0.5 shrink-0">
+                                        <span>Apply</span>
+                                        <span>→</span>
+                                    </a>
+                                @endif
                             </div>
 
-                            <a href="{{ url('/dashboard/messages') }}" class="bg-gradient-to-r from-[#0F172B] to-[#1E293B] hover:from-[#1E293B] hover:to-[#0F172B] text-white rounded-full px-5 py-2 text-xs font-bold shadow-md hover:shadow-lg flex items-center gap-1.5 transition-all">
-                                <span>Apply</span>
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                            </a>
                         </div>
 
-                    </div>
+                    @empty
 
-                    <!-- Job Card 2 (Behance) -->
-                    <div class="bg-white border border-slate-200/90 rounded-[2rem] p-6 lg:p-7 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.03)] hover:shadow-xl hover:border-slate-400 transition-all duration-300 flex flex-col justify-between space-y-5 relative overflow-hidden group">
-                        
-                        <!-- Top Row: Company Logo, Info & Bookmark -->
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-full bg-[#1769FF] text-white font-bold text-xs flex items-center justify-center shrink-0">
-                                    Be
-                                </div>
-                                <div class="space-y-0.5">
-                                    <h4 class="text-sm font-bold text-slate-900 leading-tight">Behance</h4>
-                                    <span class="text-xs text-slate-400 font-medium block">Ronikal Office</span>
-                                </div>
+                        <!-- Empty State -->
+                        <div class="col-span-full bg-white border border-slate-200/80 rounded-3xl p-12 text-center space-y-4 shadow-sm">
+                            <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-3xl">💼</div>
+                            <div class="space-y-1">
+                                <h3 class="text-lg font-bold text-slate-900">No featured jobs right now</h3>
+                                <p class="text-sm text-slate-500 max-w-md mx-auto">Be the first to post an opportunity and connect with skilled talent across Nigeria.</p>
                             </div>
-                            <button class="w-9 h-9 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-400 hover:text-slate-700 shadow-2xs transition-colors shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                            </button>
+                            @auth
+                                <a href="{{ url('/dashboard') }}" class="inline-flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-[#0F172B] rounded-full hover:bg-slate-800 transition-colors">
+                                    Post an Opportunity
+                                </a>
+                            @else
+                                <a href="{{ Route::has('register') ? route('register') : url('/register') }}" class="inline-flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-[#0F172B] rounded-full hover:bg-slate-800 transition-colors">
+                                    Get Started Free
+                                </a>
+                            @endauth
                         </div>
 
-                        <!-- Job Title -->
-                        <div>
-                            <h3 class="text-xl font-bold text-slate-900 tracking-tight">Web Developer</h3>
-                        </div>
-
-                        <!-- Tags Row -->
-                        <div class="flex flex-wrap items-center gap-3 text-xs font-semibold text-[#0F172B]">
-                            <span>Full Time</span>
-                            <span>Remote</span>
-                            <span>Part Time</span>
-                        </div>
-
-                        <!-- Bottom Row -->
-                        <div class="pt-2 flex items-end justify-between border-t border-slate-100">
-                            <div class="space-y-1.5">
-                                <div class="text-xs font-bold text-slate-900">$80K-$90K <span class="text-[10px] text-slate-500 font-normal">/ Year</span></div>
-                                <div class="flex items-center gap-1">
-                                    <div class="flex -space-x-2">
-                                        <img src="{{ asset('images/avatars/babajide.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
-                                        <img src="{{ asset('images/avatars/nneka.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
-                                        <img src="{{ asset('images/avatars/funmi.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
-                                    </div>
-                                    <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold">+</span>
-                                </div>
-                            </div>
-
-                            <a href="{{ url('/dashboard/messages') }}" class="text-slate-900 font-bold text-xs hover:text-sky-600 flex items-center gap-1 transition-colors group-hover:translate-x-0.5">
-                                <span>Apply</span>
-                                <span>→</span>
-                            </a>
-                        </div>
-
-                    </div>
-
-                    <!-- Job Card 3 (Upwork) -->
-                    <div class="bg-white border border-slate-200/90 rounded-[2rem] p-6 lg:p-7 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.03)] hover:shadow-xl hover:border-slate-400 transition-all duration-300 flex flex-col justify-between space-y-5 relative overflow-hidden group">
-                        
-                        <!-- Top Row: Company Logo, Info & Bookmark -->
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-full bg-[#14A800] text-white font-bold text-xs flex items-center justify-center shrink-0">
-                                    up
-                                </div>
-                                <div class="space-y-0.5">
-                                    <h4 class="text-sm font-bold text-slate-900 leading-tight">Upwork</h4>
-                                    <span class="text-xs text-slate-400 font-medium block">Southam Office</span>
-                                </div>
-                            </div>
-                            <button class="w-9 h-9 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-400 hover:text-slate-700 shadow-2xs transition-colors shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                            </button>
-                        </div>
-
-                        <!-- Job Title -->
-                        <div>
-                            <h3 class="text-xl font-bold text-slate-900 tracking-tight">WordPress Developer</h3>
-                        </div>
-
-                        <!-- Tags Row -->
-                        <div class="flex flex-wrap items-center gap-3 text-xs font-semibold text-[#0F172B]">
-                            <span>Full Time</span>
-                            <span>Remote</span>
-                            <span>Part Time</span>
-                        </div>
-
-                        <!-- Bottom Row -->
-                        <div class="pt-2 flex items-end justify-between border-t border-slate-100">
-                            <div class="space-y-1.5">
-                                <div class="text-xs font-bold text-slate-900">$75K-$105K <span class="text-[10px] text-slate-500 font-normal">/ Year</span></div>
-                                <div class="flex items-center gap-1">
-                                    <div class="flex -space-x-2">
-                                        <img src="{{ asset('images/avatars/emeka.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
-                                        <img src="{{ asset('images/avatars/zainab.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
-                                        <img src="{{ asset('images/avatars/babajide.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
-                                    </div>
-                                    <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold">+</span>
-                                </div>
-                            </div>
-
-                            <a href="{{ url('/dashboard/messages') }}" class="text-slate-900 font-bold text-xs hover:text-sky-600 flex items-center gap-1 transition-colors group-hover:translate-x-0.5">
-                                <span>Apply</span>
-                                <span>→</span>
-                            </a>
-                        </div>
-
-                    </div>
-
-                    <!-- Job Card 4 (Dribbble - Sr. UI Designer) -->
-                    <div class="bg-white border border-slate-200/90 rounded-[2rem] p-6 lg:p-7 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.03)] hover:shadow-xl hover:border-slate-400 transition-all duration-300 flex flex-col justify-between space-y-5 relative overflow-hidden group">
-                        
-                        <!-- Top Row: Company Logo, Info & Bookmark -->
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-full bg-[#0A66C2] text-white font-bold text-xs flex items-center justify-center shrink-0">
-                                    in
-                                </div>
-                                <div class="space-y-0.5">
-                                    <h4 class="text-sm font-bold text-slate-900 leading-tight">Dribbble</h4>
-                                    <span class="text-xs text-slate-400 font-medium block">Northam Office</span>
-                                </div>
-                            </div>
-                            <button class="w-9 h-9 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-400 hover:text-slate-700 shadow-2xs transition-colors shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                            </button>
-                        </div>
-
-                        <!-- Job Title -->
-                        <div>
-                            <h3 class="text-xl font-bold text-slate-900 tracking-tight">Sr. UI Designer</h3>
-                        </div>
-
-                        <!-- Tags Row -->
-                        <div class="flex flex-wrap items-center gap-3 text-xs font-semibold text-[#0F172B]">
-                            <span>Full Time</span>
-                            <span>Remote</span>
-                            <span>Part Time</span>
-                        </div>
-
-                        <!-- Bottom Row -->
-                        <div class="pt-2 flex items-end justify-between border-t border-slate-100">
-                            <div class="space-y-1.5">
-                                <div class="text-xs font-bold text-slate-900">$70K-$100K <span class="text-[10px] text-slate-500 font-normal">/ Year</span></div>
-                                <div class="flex items-center gap-1">
-                                    <div class="flex -space-x-2">
-                                        <img src="{{ asset('images/avatars/funmi.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
-                                        <img src="{{ asset('images/avatars/babajide.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
-                                    </div>
-                                    <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold">+</span>
-                                </div>
-                            </div>
-
-                            <a href="{{ url('/dashboard/messages') }}" class="text-slate-900 font-bold text-xs hover:text-sky-600 flex items-center gap-1 transition-colors group-hover:translate-x-0.5">
-                                <span>Apply</span>
-                                <span>→</span>
-                            </a>
-                        </div>
-
-                    </div>
-
-                    <!-- Job Card 5 (Instagram) -->
-                    <div class="bg-white border border-slate-200/90 rounded-[2rem] p-6 lg:p-7 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.03)] hover:shadow-xl hover:border-slate-400 transition-all duration-300 flex flex-col justify-between space-y-5 relative overflow-hidden group">
-                        
-                        <!-- Top Row: Company Logo, Info & Bookmark -->
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-sky-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
-                                    📷
-                                </div>
-                                <div class="space-y-0.5">
-                                    <h4 class="text-sm font-bold text-slate-900 leading-tight">Instagram</h4>
-                                    <span class="text-xs text-slate-400 font-medium block">Southam Office</span>
-                                </div>
-                            </div>
-                            <button class="w-9 h-9 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-400 hover:text-slate-700 shadow-2xs transition-colors shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                            </button>
-                        </div>
-
-                        <!-- Job Title -->
-                        <div>
-                            <h3 class="text-xl font-bold text-slate-900 tracking-tight">Marketing Manager</h3>
-                        </div>
-
-                        <!-- Tags Row -->
-                        <div class="flex flex-wrap items-center gap-3 text-xs font-semibold text-[#0F172B]">
-                            <span>Full Time</span>
-                            <span>Remote</span>
-                            <span>Part Time</span>
-                        </div>
-
-                        <!-- Bottom Row -->
-                        <div class="pt-2 flex items-end justify-between border-t border-slate-100">
-                            <div class="space-y-1.5">
-                                <div class="text-xs font-bold text-slate-900">$60K-$80K <span class="text-[10px] text-slate-500 font-normal">/ Year</span></div>
-                                <div class="flex items-center gap-1">
-                                    <div class="flex -space-x-2">
-                                        <img src="{{ asset('images/avatars/zainab.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
-                                        <img src="{{ asset('images/avatars/nneka.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
-                                        <img src="{{ asset('images/avatars/emeka.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
-                                    </div>
-                                    <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold">+</span>
-                                </div>
-                            </div>
-
-                            <a href="{{ url('/dashboard/messages') }}" class="text-slate-900 font-bold text-xs hover:text-sky-600 flex items-center gap-1 transition-colors group-hover:translate-x-0.5">
-                                <span>Apply</span>
-                                <span>→</span>
-                            </a>
-                        </div>
-
-                    </div>
-
-                    <!-- Job Card 6 (Google) -->
-                    <div class="bg-white border border-slate-200/90 rounded-[2rem] p-6 lg:p-7 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.03)] hover:shadow-xl hover:border-slate-400 transition-all duration-300 flex flex-col justify-between space-y-5 relative overflow-hidden group">
-                        
-                        <!-- Top Row: Company Logo, Info & Bookmark -->
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-full bg-white border border-slate-200/80 text-red-500 font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                                    G
-                                </div>
-                                <div class="space-y-0.5">
-                                    <h4 class="text-sm font-bold text-slate-900 leading-tight">Google</h4>
-                                    <span class="text-xs text-slate-400 font-medium block">Northam Office</span>
-                                </div>
-                            </div>
-                            <button class="w-9 h-9 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-400 hover:text-slate-700 shadow-2xs transition-colors shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                            </button>
-                        </div>
-
-                        <!-- Job Title -->
-                        <div>
-                            <h3 class="text-xl font-bold text-slate-900 tracking-tight">Lead UI/UX Designer</h3>
-                        </div>
-
-                        <!-- Tags Row -->
-                        <div class="flex flex-wrap items-center gap-3 text-xs font-semibold text-[#0F172B]">
-                            <span>Full Time</span>
-                            <span>Remote</span>
-                            <span>Part Time</span>
-                        </div>
-
-                        <!-- Bottom Row -->
-                        <div class="pt-2 flex items-end justify-between border-t border-slate-100">
-                            <div class="space-y-1.5">
-                                <div class="text-xs font-bold text-slate-900">$90K-$110K <span class="text-[10px] text-slate-500 font-normal">/ Year</span></div>
-                                <div class="flex items-center gap-1">
-                                    <div class="flex -space-x-2">
-                                        <img src="{{ asset('images/avatars/funmi.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
-                                        <img src="{{ asset('images/avatars/babajide.png') }}" class="w-6 h-6 rounded-full object-cover ring-2 ring-white" />
-                                    </div>
-                                    <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold">+</span>
-                                </div>
-                            </div>
-
-                            <a href="{{ url('/dashboard/messages') }}" class="text-slate-900 font-bold text-xs hover:text-sky-600 flex items-center gap-1 transition-colors group-hover:translate-x-0.5">
-                                <span>Apply</span>
-                                <span>→</span>
-                            </a>
-                        </div>
-
-                    </div>
+                    @endforelse
 
                 </div>
 
-                <!-- Bottom Floating Deep Blue View More Button -->
+                <!-- Bottom View More Button -->
+                @if($featuredJobs->count() >= 6)
                 <div class="pt-4">
-                    <a href="{{ url('/talent') }}" class="inline-flex items-center justify-center px-9 py-3.5 text-sm font-bold text-white bg-[#0F172B] hover:bg-slate-800 rounded-full shadow-lg shadow-slate-900/25 hover:shadow-slate-900/40 hover:scale-105 active:scale-95 transition-all text-center mx-auto">
-                        View More
+                    <a href="{{ url('/dashboard/my-jobs') }}" class="inline-flex items-center justify-center px-9 py-3.5 text-sm font-bold text-white bg-[#2563EB] hover:bg-[#0F172B] rounded-full shadow-lg shadow-[#2563EB]/25 hover:shadow-slate-900/40 hover:scale-105 active:scale-95 transition-all text-center mx-auto">
+                        View All Jobs
                     </a>
                 </div>
+                @endif
 
             </section>
+
 
             <!-- Section: Built for Job Seekers & Employers (Dual Tinted Cards) -->
             <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     
                     <!-- Card 1: Job Seekers -->
-                    <div class="bg-[#EEF4FF] border border-blue-100 rounded-[2.5rem] p-8 sm:p-10 shadow-sm space-y-6 flex flex-col justify-between">
+                    <div class="bg-[#EEF4FF] border border-blue-200/80 rounded-[2.5rem] p-8 sm:p-10 shadow-sm space-y-6 flex flex-col justify-between">
                         <div class="space-y-3">
-                            <span class="text-sky-600 text-xs font-extrabold uppercase tracking-widest block">FOR TALENT & TUTORS</span>
-                            <h3 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Built for Job Seekers & Tutors</h3>
+                            <span class="text-[#2563EB] text-xs font-extrabold uppercase tracking-widest block">FOR SKILLED WORKERS & TUTORS</span>
+                            <h3 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Built for Skilled Workers, Artisans & Tutors</h3>
                             <p class="text-slate-600 text-sm leading-relaxed">
-                                Connect directly with parents and households looking for private tutors, electricians, carpenters, and artisans near you.
+                                Connect directly with clients, property owners, and households looking for skilled handymen, electricians, plumbers, carpenters, mechanics, and private tutors near you.
                             </p>
                         </div>
 
                         <!-- Card Visual Graphic -->
                         <div class="bg-white rounded-2xl p-4 shadow-sm border border-blue-100 flex items-center justify-between">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-[#0F172B] text-white flex items-center justify-center font-bold text-sm">
+                                <div class="w-10 h-10 rounded-xl bg-[#2563EB] text-white flex items-center justify-center font-bold text-sm">
                                     🔍
                                 </div>
                                 <div class="text-left">
-                                    <span class="text-xs font-bold text-slate-900 block">Search Opportunities</span>
+                                    <span class="text-xs font-bold text-slate-900 block">Search Work Opportunities</span>
                                     <span class="text-[10px] text-slate-500">100+ new jobs today</span>
                                 </div>
                             </div>
-                            <span class="text-xs font-bold text-sky-700 bg-sky-50 px-3 py-1 rounded-full">Active</span>
+                            <span class="text-xs font-bold text-[#2563EB] bg-[#2563EB]/10 px-3 py-1 rounded-full">Active</span>
                         </div>
 
-                        <a href="{{ Route::has('register') ? route('register') : url('/register') }}" class="inline-flex items-center justify-center px-7 py-3 text-xs font-bold text-white bg-[#0F172B] hover:bg-slate-800 rounded-full shadow-md transition-all self-start">
-                            Create Talent Profile →
+                        <a href="{{ Route::has('register') ? route('register') : url('/register') }}" class="inline-flex items-center justify-center px-7 py-3 text-xs font-bold text-white bg-[#2563EB] hover:bg-[#0F172B] rounded-full shadow-md transition-all self-start">
+                            Create Worker Profile →
                         </a>
                     </div>
 
                     <!-- Card 2: Employers -->
-                    <div class="bg-slate-100/80 border border-slate-200/90 rounded-[2.5rem] p-8 sm:p-10 shadow-sm space-y-6 flex flex-col justify-between">
+                    <div class="bg-amber-50/50 border border-amber-200/80 rounded-[2.5rem] p-8 sm:p-10 shadow-sm space-y-6 flex flex-col justify-between">
                         <div class="space-y-3">
-                            <span class="text-sky-600 text-xs font-extrabold uppercase tracking-widest block">FOR PARENTS & CLIENTS</span>
-                            <h3 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Built for Employers & Parents</h3>
+                            <span class="text-[#E8472A] text-xs font-extrabold uppercase tracking-widest block">FOR CLIENTS & PARENTS</span>
+                            <h3 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Built for Clients & Homeowners</h3>
                             <p class="text-slate-600 text-sm leading-relaxed">
-                                Post custom tutoring tasks or trade projects to receive bids from verified local professionals backed by CSISS standards.
+                                Post custom trade repair projects or tutoring tasks to receive bids from verified local artisans and teachers backed by CSISS credential standards.
                             </p>
                         </div>
 
                         <!-- Card Visual Graphic -->
-                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-amber-100 flex items-center justify-between">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-[#0F172B] text-white flex items-center justify-center font-bold text-sm">
+                                <div class="w-10 h-10 rounded-xl bg-[#E8472A] text-white flex items-center justify-center font-bold text-sm">
                                     📋
                                 </div>
                                 <div class="text-left">
@@ -1257,10 +1345,10 @@
                                     <span class="text-[10px] text-slate-500">Receive bids in 15 mins</span>
                                 </div>
                             </div>
-                            <span class="text-xs font-bold text-sky-800 bg-sky-100 px-3 py-1 rounded-full">Easy Post</span>
+                            <span class="text-xs font-bold text-[#E8472A] bg-[#E8472A]/10 px-3 py-1 rounded-full">Easy Post</span>
                         </div>
 
-                        <a href="{{ Route::has('register') ? route('register') : url('/register') }}" class="inline-flex items-center justify-center px-7 py-3 text-xs font-bold text-white bg-[#0F172B] hover:bg-slate-800 rounded-full shadow-md transition-all self-start">
+                        <a href="{{ Route::has('register') ? route('register') : url('/register') }}" class="inline-flex items-center justify-center px-7 py-3 text-xs font-bold text-white bg-[#E8472A] hover:bg-[#0F172B] rounded-full shadow-md transition-all self-start">
                             Post An Opportunity →
                         </a>
                     </div>
@@ -1272,7 +1360,7 @@
             <section id="testimonials" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 text-center space-y-14 sm:space-y-16">
                 
                 <div class="space-y-2 max-w-2xl mx-auto">
-                    <span class="text-sky-600 text-xs font-extrabold uppercase tracking-widest block">
+                    <span class="text-[#2563EB] text-xs font-extrabold uppercase tracking-widest block">
                         OUR REVIEWS
                     </span>
                     <h2 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">What Our Users Say</h2>
@@ -1286,7 +1374,7 @@
                     <div class="space-y-6 flex flex-col justify-between">
                         <!-- Review 1 -->
                         <div class="bg-white border border-slate-200/80 rounded-[2rem] p-6 shadow-xs space-y-3">
-                            <div class="flex items-center gap-1 text-amber-400">★★★★★</div>
+                            <div class="flex items-center gap-1 text-[#E8472A]">★★★★★</div>
                             <p class="text-slate-600 text-xs leading-relaxed font-normal">
                                 "I found a fantastic WAEC Physics tutor in Ikeja within an hour. The reviews felt genuine, communication was smooth, and my daughter's score improved."
                             </p>
@@ -1301,7 +1389,7 @@
 
                         <!-- Review 2 -->
                         <div class="bg-white border border-slate-200/80 rounded-[2rem] p-6 shadow-xs space-y-3">
-                            <div class="flex items-center gap-1 text-amber-400">★★★★★</div>
+                            <div class="flex items-center gap-1 text-[#E8472A]">★★★★★</div>
                             <p class="text-slate-600 text-xs leading-relaxed font-normal">
                                 "Hired a certified electrical technician for solar panel installation. Prompt, professional, and excellent quality."
                             </p>
@@ -1316,10 +1404,10 @@
                     </div>
 
                     <!-- Center Large Highlight Card (Matching Screenshot Featured Person Image) -->
-                    <div class="bg-gradient-to-b from-[#0F172B] via-slate-900 to-sky-950 text-white rounded-[2.5rem] p-8 shadow-xl flex flex-col justify-between relative overflow-hidden border border-slate-800 min-h-[380px]">
+                    <div class="bg-gradient-to-b from-[#0F172B] via-slate-900 to-slate-950 text-white rounded-[2.5rem] p-8 shadow-xl flex flex-col justify-between relative overflow-hidden border border-slate-800 min-h-[380px]">
                         <div class="space-y-3 relative z-10">
-                            <span class="px-3 py-1 rounded-full bg-white/10 text-sky-200 text-[10px] font-bold border border-white/20">FEATURED TUTOR STORY</span>
-                            <div class="flex items-center gap-1 text-amber-300 pt-2">★★★★★</div>
+                            <span class="px-3 py-1 rounded-full bg-[#2563EB] text-white text-[10px] font-extrabold uppercase tracking-wider inline-block">FEATURED TUTOR STORY</span>
+                            <div class="flex items-center gap-1 text-[#E8472A] pt-2">★★★★★</div>
                             <h4 class="text-xl font-black text-white leading-snug">
                                 "Skill Link NG helped me build a full-time tutoring practice safely."
                             </h4>
@@ -1329,7 +1417,7 @@
                         </div>
 
                         <div class="flex items-center gap-3 pt-4 border-t border-white/20 relative z-10">
-                            <img src="{{ asset('images/avatars/zainab.png') }}" class="w-10 h-10 rounded-full object-cover ring-2 ring-white" />
+                            <img src="{{ asset('images/avatars/zainab.png') }}" class="w-10 h-10 rounded-full object-cover ring-2 ring-[#2563EB]" />
                             <div>
                                 <h5 class="text-xs font-bold text-white">Zainab Ibrahim</h5>
                                 <span class="text-[11px] text-slate-300">Verified Math Tutor • Abuja</span>
@@ -1341,7 +1429,7 @@
                     <div class="space-y-6 flex flex-col justify-between">
                         <!-- Review 4 -->
                         <div class="bg-white border border-slate-200/80 rounded-[2rem] p-6 shadow-xs space-y-3">
-                            <div class="flex items-center gap-1 text-amber-400">★★★★★</div>
+                            <div class="flex items-center gap-1 text-[#E8472A]">★★★★★</div>
                             <p class="text-slate-600 text-xs leading-relaxed font-normal">
                                 "Great experience finding a private French tutor for my kids preparing for entrance exams."
                             </p>
@@ -1356,7 +1444,7 @@
 
                         <!-- Review 5 -->
                         <div class="bg-white border border-slate-200/80 rounded-[2rem] p-6 shadow-xs space-y-3">
-                            <div class="flex items-center gap-1 text-amber-400">★★★★★</div>
+                            <div class="flex items-center gap-1 text-[#E8472A]">★★★★★</div>
                             <p class="text-slate-600 text-xs leading-relaxed font-normal">
                                 "Listing my tailoring services brought me verified high-paying clients across Enugu. Highly recommended!"
                             </p>
@@ -1594,7 +1682,7 @@
 
                     <!-- Center Pill Badge -->
                     <div>
-                        <span class="px-5 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-[#0F172B] shadow-2xs inline-block">
+                        <span class="px-5 py-1.5 rounded-full text-xs font-extrabold bg-[#E8472A]/10 text-[#E8472A] border border-[#E8472A]/20 uppercase tracking-wider inline-block">
                             Let's Find your Dream Job
                         </span>
                     </div>
@@ -1613,7 +1701,7 @@
                     <div class="pt-2">
                         <div class="bg-white rounded-full p-1.5 pl-6 shadow-md border border-slate-200/80 flex items-center justify-between max-w-md w-full mx-auto">
                             <input type="email" placeholder="Enter Your email address" class="text-slate-500 placeholder-slate-400 text-xs sm:text-sm outline-none bg-transparent w-full pr-2 font-normal" />
-                            <a href="{{ Route::has('register') ? route('register') : url('/register') }}" class="bg-[#0F172B] hover:bg-slate-800 text-white px-6 py-2.5 rounded-full text-xs font-bold shadow-md hover:shadow-lg transition-all shrink-0">
+                            <a href="{{ Route::has('register') ? route('register') : url('/register') }}" class="bg-[#2563EB] hover:bg-[#0F172B] text-white px-6 py-2.5 rounded-full text-xs font-bold shadow-md hover:shadow-lg transition-all shrink-0">
                                 Get Started
                             </a>
                         </div>
@@ -1640,7 +1728,7 @@
                         </div>
 
                         <p class="text-xs text-slate-500 font-normal leading-relaxed max-w-xs">
-                            Your trusted partner in finding the perfect career opportunity.
+                            Your trusted platform connecting clients with verified skilled labour workers, trade artisans, and academic tutors across Nigeria.
                         </p>
 
                         <!-- Social Media Circle Badges -->

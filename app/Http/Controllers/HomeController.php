@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\OpportunityStatus;
 use App\Models\Category;
+use App\Models\Opportunity;
 use App\Models\Subject;
 use App\Services\ProfessionalDiscoveryService;
 use Illuminate\Http\Request;
@@ -57,6 +59,14 @@ class HomeController extends Controller
         ]);
         $professionals = $discoveryService->search($profFilters, 6)->items();
 
+        // Featured Jobs — 6 latest open opportunities for the home page
+        $featuredJobs = Opportunity::with(['category', 'user', 'connectionRequests'])
+            ->withCount('connectionRequests')
+            ->where('status', OpportunityStatus::Open)
+            ->latest()
+            ->take(6)
+            ->get();
+
         return view('index', compact(
             'categories',
             'tradeCategories',
@@ -67,7 +77,8 @@ class HomeController extends Controller
             'searchQuery',
             'selectedCategory',
             'searchLocation',
-            'hasSelectedLocation'
+            'hasSelectedLocation',
+            'featuredJobs'
         ));
     }
 }
