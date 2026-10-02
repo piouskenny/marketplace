@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/talent', [TalentController::class, 'index'])->name('talent.index');
+Route::get('/jobs', [OpportunityController::class, 'publicJobs'])->name('jobs.index');
 
 // Auth Routes
 Route::get('/login', [LoginController::class, 'showForm'])->name('login');
@@ -34,6 +35,7 @@ Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/talent', [DashboardController::class, 'talent'])->name('dashboard.talent');
+    Route::get('/dashboard/jobs', [OpportunityController::class, 'dashboardJobs'])->name('dashboard.jobs');
     Route::get('/dashboard/messages', [DashboardController::class, 'messages'])->name('dashboard.messages');
     Route::get('/dashboard/my-jobs', [OpportunityController::class, 'myJobs'])->name('dashboard.my-jobs');
     Route::post('/opportunities', [OpportunityController::class, 'store'])->name('opportunities.store');

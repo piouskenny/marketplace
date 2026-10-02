@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full scroll-smooth" x-data="{ searchQuery: '{{ $searchQuery ?? '' }}', selectedCategory: '{{ $selectedCategory ?? 'All' }}', mobileMenuOpen: false }" x-on:keydown.escape.window="mobileMenuOpen = false">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
         <title>{{ config('app.name', 'Skill Link NG') }} — Powered by CSISS | Find Skilled Talent & Tutors Near You</title>
 
@@ -455,16 +455,53 @@
 
                     <!-- Hero Action Buttons -->
                     <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
-                        <a href="#featured-jobs" class="px-8 py-3.5 text-sm font-bold text-white bg-[#2563EB] hover:bg-blue-600 rounded-full shadow-xl shadow-blue-500/25 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2">
-                            <span>Explore All Jobs</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        <a href="{{ route('jobs.index') }}" class="px-8 py-3.5 text-sm font-bold text-white bg-[#2563EB] hover:bg-blue-600 rounded-full shadow-xl shadow-blue-500/25 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2">
+                            <svg class="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            <span>Search for Jobs</span>
                         </a>
 
-                        <a href="#how-it-works" class="px-7 py-3.5 text-sm font-bold text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md rounded-full shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2.5">
-                            <span class="w-6 h-6 rounded-full bg-white/20 text-white flex items-center justify-center text-xs">▶</span>
-                            <span>How It Works</span>
+                        <a href="{{ route('talent.index') }}" class="px-7 py-3.5 text-sm font-bold text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md rounded-full shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-2.5">
+                            <svg class="w-4.5 h-4.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                            <span>Hire a Professional</span>
                         </a>
                     </div>
+
+                    <!-- Universal Job Search Field (Placed directly under the Hero Buttons) -->
+                    <form action="{{ route('jobs.index') }}" method="GET" class="max-w-3xl mx-auto pt-5 relative z-30">
+                        <div class="bg-white/95 backdrop-blur-xl p-2 sm:p-2.5 rounded-2xl sm:rounded-full shadow-2xl border border-slate-200/90 flex flex-col sm:flex-row items-center gap-2">
+                            
+                            <!-- Search Keyword Input -->
+                            <div class="relative flex-1 w-full flex items-center pl-3.5 pr-2">
+                                <svg class="w-5 h-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                <input 
+                                    type="text" 
+                                    name="query" 
+                                    placeholder="Search jobs, skills, or trades (e.g. Electrician, Maths Tutor)..." 
+                                    class="w-full bg-transparent text-slate-900 placeholder-slate-400 text-xs sm:text-sm font-medium px-3 py-2 outline-none border-none focus:ring-0"
+                                />
+                            </div>
+
+                            <!-- Divider (desktop) -->
+                            <div class="hidden sm:block w-px h-7 bg-slate-200"></div>
+
+                            <!-- Location Input -->
+                            <div class="relative w-full sm:w-44 flex items-center px-3">
+                                <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                <input 
+                                    type="text" 
+                                    name="location" 
+                                    placeholder="State / City" 
+                                    class="w-full bg-transparent text-slate-900 placeholder-slate-400 text-xs sm:text-sm font-medium px-2 py-2 outline-none border-none focus:ring-0"
+                                />
+                            </div>
+
+                            <!-- Search Action Button -->
+                            <button type="submit" class="w-full sm:w-auto bg-[#2563EB] hover:bg-blue-600 active:scale-95 text-white font-bold text-xs sm:text-sm px-6 py-3 rounded-xl sm:rounded-full shadow-lg shadow-blue-500/25 transition-all duration-200 flex items-center justify-center gap-2 shrink-0 cursor-pointer">
+                                <span>Search Jobs</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                            </button>
+                        </div>
+                    </form>
 
                 </div>
 
@@ -529,6 +566,70 @@
 
             </section>
         </div>
+
+        <!-- Quick Actions Grid Section: Search Jobs, Hire Professional, Hire Skilled Worker -->
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 relative z-20">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+                
+                <!-- Card 1: Search for Jobs -->
+                <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6 group hover:-translate-y-1">
+                    <div class="space-y-4">
+                        <div class="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#2563EB] group-hover:scale-110 transition-transform">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 group-hover:text-[#2563EB] transition-colors">
+                            Search for Job
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-600 font-normal leading-relaxed">
+                            Browse active job listings, short-term contracts, and daily tasks posted by verified clients across Nigeria.
+                        </p>
+                    </div>
+                    <a href="{{ route('jobs.index') }}" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-[#0F172B] hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-md transition-all">
+                        <span>Search Jobs</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
+                </div>
+
+                <!-- Card 2: Hire a Professional -->
+                <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6 group hover:-translate-y-1">
+                    <div class="space-y-4">
+                        <div class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
+                            Hire a Professional
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-600 font-normal leading-relaxed">
+                            Connect with certified academic tutors, consultants, software engineers, accountants, and industry experts.
+                        </p>
+                    </div>
+                    <a href="{{ route('talent.index', ['talent_type' => 'professional']) }}" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-[#2563EB] hover:bg-blue-600 text-white font-bold text-xs sm:text-sm shadow-md transition-all">
+                        <span>Hire a Professional</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
+                </div>
+
+                <!-- Card 3: Hire a Skilled Worker Near You -->
+                <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6 group hover:-translate-y-1">
+                    <div class="space-y-4">
+                        <div class="w-14 h-14 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center text-[#E8472A] group-hover:scale-110 transition-transform">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 group-hover:text-[#E8472A] transition-colors">
+                            Hire a Skilled Worker Near You
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-600 font-normal leading-relaxed">
+                            Find CSISS-vetted electricians, plumbers, carpenters, mechanics, and local trade technicians near you.
+                        </p>
+                    </div>
+                    <a href="{{ route('talent.index', ['talent_type' => 'skilled_labour']) }}" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-[#E8472A] hover:bg-orange-600 text-white font-bold text-xs sm:text-sm shadow-md transition-all">
+                        <span>Find Skilled Worker</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
+                </div>
+
+            </div>
+        </section>
 
 
 

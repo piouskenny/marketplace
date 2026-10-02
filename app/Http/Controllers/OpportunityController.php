@@ -154,4 +154,115 @@ class OpportunityController extends Controller
         return redirect()->to(url('/dashboard/my-jobs'))
             ->with('status', 'Opportunity posting "' . $title . '" has been deleted successfully.');
     }
+
+    /**
+     * Display public job search directory accessible by guests and authenticated users
+     */
+    public function publicJobs(Request $request)
+    {
+        $query = trim($request->input('query', $request->input('q', '')));
+        $categoryId = $request->input('category_id');
+        $opportunityType = $request->input('opportunity_type');
+        $location = trim($request->input('location', ''));
+
+        $opportunitiesQuery = Opportunity::with(['category', 'user', 'educationDetails.subject'])
+            ->withCount('connectionRequests')
+            ->where('status', OpportunityStatus::Open);
+
+        if (!empty($query)) {
+            $opportunitiesQuery->where(function ($q) use ($query) {
+                $q->where('title', 'like', "%{$query}%")
+                  ->orWhere('description', 'like', "%{$query}%")
+                  ->orWhere('location', 'like', "%{$query}%");
+            });
+        }
+
+        if (!empty($categoryId) && $categoryId !== 'all') {
+            $opportunitiesQuery->where('category_id', $categoryId);
+        }
+
+        if (!empty($opportunityType) && $opportunityType !== 'all') {
+            $opportunitiesQuery->where('opportunity_type', $opportunityType);
+        }
+
+        if (!empty($location)) {
+            $opportunitiesQuery->where('location', 'like', "%{$location}%");
+        }
+
+        $opportunities = $opportunitiesQuery->latest()->paginate(12)->withQueryString();
+        $categories = Category::orderBy('name')->get();
+
+        return view('jobs.index', compact(
+            'opportunities',
+            'categories',
+            'query',
+            'categoryId',
+            'opportunityType',
+            'location'
+        ));
+    }
+
+    /**
+     * Display authenticated user job search directory within dashboard
+     */
+    public function dashboardJobs(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $user->load(['professionalProfile']);
+
+        $query = trim($request->input('query', $request->input('q', '')));
+        $categoryId = $request->input('category_id');
+        $opportunityType = $request->input('opportunity_type');
+        $location = trim($request->input('location', ''));
+
+        $opportunitiesQuery = Opportunity::with(['category', 'user', 'educationDetails.subject'])
+            ->withCount('connectionRequests')
+            ->where('status', OpportunityStatus::Open);
+
+        if (!empty($query)) {
+            $opportunitiesQuery->where(function ($q) use ($query) {
+                $q->where('title', 'like', "%{$query}%")
+                  ->orWhere('description', 'like', "%{$query}%")
+                  ->orWhere('location', 'like', "%{$query}%");
+            });
+        }
+
+        if (!empty($categoryId) && $categoryId !== 'all') {
+            $opportunitiesQuery->where('category_id', $categoryId);
+        }
+
+        if (!empty($opportunityType) && $opportunityType !== 'all') {
+            $opportunitiesQuery->where('opportunity_type', $opportunityType);
+        }
+
+        if (!empty($location)) {
+            $opportunitiesQuery->where('location', 'like', "%{$location}%");
+        }
+
+        $opportunities = $opportunitiesQuery->latest()->paginate(12)->withQueryString();
+        $categories = Category::orderBy('name')->get();
+
+        // Track opportunity IDs user has already applied to
+        $appliedOpportunityIds = \App\Models\ConnectionRequest::where('initiator_id', $user->id)
+            ->whereNotNull('opportunity_id')
+            ->pluck('opportunity_id')
+            ->toArray();
+
+        $userNotifications = $user->notifications()->take(15)->get();
+        $unreadCount = $user->unreadNotifications()->count();
+
+        return view('dashboard.jobs', compact(
+            'user',
+            'opportunities',
+            'categories',
+            'query',
+            'categoryId',
+            'opportunityType',
+            'location',
+            'appliedOpportunityIds',
+            'userNotifications',
+            'unreadCount'
+        ));
+    }
 }
