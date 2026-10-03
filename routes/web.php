@@ -15,6 +15,7 @@ use App\Http\Controllers\TalentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::view('/how-to-signup', 'how-to-signup')->name('how-to-signup');
 Route::get('/talent', [TalentController::class, 'index'])->name('talent.index');
 Route::get('/jobs', [OpportunityController::class, 'publicJobs'])->name('jobs.index');
 

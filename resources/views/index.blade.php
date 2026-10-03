@@ -344,6 +344,10 @@
                     <span>Find Talent Near You</span>
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
                 </a>
+                <a href="{{ route('how-to-signup') }}" @click="mobileMenuOpen = false">
+                    <span>How to Sign Up</span>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+                </a>
                 <a href="#how-it-works" @click="mobileMenuOpen = false">
                     <span>How It Works</span>
                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
@@ -396,6 +400,7 @@
                     <a href="#find-talent" class="text-xs font-bold text-[#2563EB] hover:text-[#1d4ed8] transition-colors flex items-center gap-1">
                         <span>Find Talent Near You</span>
                     </a>
+                    <a href="{{ route('how-to-signup') }}" class="text-xs font-semibold text-slate-600 hover:text-[#0F172B] transition-colors">How to Sign Up</a>
                     <a href="#how-it-works" class="text-xs font-semibold text-slate-600 hover:text-[#0F172B] transition-colors">How It Works</a>
                     <a href="#why-us" class="text-xs font-semibold text-slate-600 hover:text-[#0F172B] transition-colors">Why Choose Us</a>
                     <a href="#categories" class="text-xs font-semibold text-slate-600 hover:text-[#0F172B] transition-colors">Categories</a>
@@ -633,6 +638,8 @@
 
 
 
+
+
             <!-- Section: How It Works (Skill Marketplace 3 Cards Layout with Real Worker Photos) -->
             <section id="how-it-works" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 text-center space-y-14 sm:space-y-16 relative">
                 
@@ -670,12 +677,20 @@
                             </div>
                         </div>
 
-                        <!-- Bottom Title & Description (Centered) -->
-                        <div class="space-y-2 text-center">
-                            <h3 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Create Your Profile</h3>
-                            <p class="text-slate-500 text-xs sm:text-sm leading-relaxed font-normal">
-                                Register as a client looking to hire, or list your skills as a tutor or artisan. Set your location, trade category, subjects, and rate expectations.
-                            </p>
+                        <!-- Bottom Title & Description (Centered) + Action Button -->
+                        <div class="space-y-4 text-center">
+                            <div class="space-y-2">
+                                <h3 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Create Your Profile</h3>
+                                <p class="text-slate-500 text-xs sm:text-sm leading-relaxed font-normal">
+                                    Register as a client looking to hire, or list your skills as a tutor or artisan. Set your location, trade category, subjects, and rate expectations.
+                                </p>
+                            </div>
+                            <div class="pt-1">
+                                <a href="{{ Route::has('register') ? route('register') : url('/register') }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#2563EB] hover:bg-blue-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/20 transition-all hover:scale-105">
+                                    <span>Create Profile</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                </a>
+                            </div>
                         </div>
                     </div>
 
@@ -696,12 +711,20 @@
                             </div>
                         </div>
 
-                        <!-- Bottom Title & Description (Centered) -->
-                        <div class="space-y-2 text-center">
-                            <h3 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Search & Filter Talent</h3>
-                            <p class="text-slate-500 text-xs sm:text-sm leading-relaxed font-normal">
-                                Explore verified academic tutors by subject (Math, WAEC, Coding) or skilled trade professionals (Plumbing, Electrical) near your neighborhood.
-                            </p>
+                        <!-- Bottom Title & Description (Centered) + Action Button -->
+                        <div class="space-y-4 text-center">
+                            <div class="space-y-2">
+                                <h3 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Search & Filter Talent</h3>
+                                <p class="text-slate-500 text-xs sm:text-sm leading-relaxed font-normal">
+                                    Explore verified academic tutors by subject (Math, WAEC, Coding) or skilled trade professionals (Plumbing, Electrical) near your neighborhood.
+                                </p>
+                            </div>
+                            <div class="pt-1">
+                                <a href="{{ route('talent.index') }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#E8472A] hover:bg-orange-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-orange-500/20 transition-all hover:scale-105">
+                                    <span>Browse Talent</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                </a>
+                            </div>
                         </div>
                     </div>
 
@@ -722,12 +745,20 @@
                             </div>
                         </div>
 
-                        <!-- Bottom Title & Description (Centered) -->
-                        <div class="space-y-2 text-center">
-                            <h3 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Connect & Hire Safely</h3>
-                            <p class="text-slate-500 text-xs sm:text-sm leading-relaxed font-normal">
-                                Message professionals directly, discuss home tutoring schedules or trade project details, and hire with background assurance.
-                            </p>
+                        <!-- Bottom Title & Description (Centered) + Action Button -->
+                        <div class="space-y-4 text-center">
+                            <div class="space-y-2">
+                                <h3 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Connect & Hire Safely</h3>
+                                <p class="text-slate-500 text-xs sm:text-sm leading-relaxed font-normal">
+                                    Message professionals directly, discuss home tutoring schedules or trade project details, and hire with background assurance.
+                                </p>
+                            </div>
+                            <div class="pt-1">
+                                <a href="{{ route('jobs.index') }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#0F172B] hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-md transition-all hover:scale-105">
+                                    <span>Explore Jobs</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                </a>
+                            </div>
                         </div>
                     </div>
 

@@ -1054,7 +1054,7 @@ SMS/push notifications can be added later.
 
 ---
 
-# 22. Suggested Database Tables
+# 22. Database Tables
 
 Core:
 
