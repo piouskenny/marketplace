@@ -95,9 +95,9 @@
                         <div class="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar pb-1">
                             @foreach([
                                 'All' => 'All Talent',
-                                'professional' => '💼 Professionals',
-                                'teacher' => '🎓 Teachers & Tutors',
-                                'skilled_labour' => '🛠️ Skilled Labour Workers'
+                                'professional' => '💼 Business & Professional Services',
+                                'teacher' => '🎓 Teaching & Education',
+                                'skilled_labour' => '🛠️ Skilled Trades & Services'
                             ] as $tSlug => $tLabel)
                                 <button type="submit" 
                                         name="talent_type" 

@@ -605,24 +605,24 @@
                             <div class="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100 flex items-start gap-3">
                                 <span class="w-7 h-7 rounded-xl bg-blue-100 text-[#2563EB] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">💼</span>
                                 <div>
-                                    <h4 class="text-xs sm:text-sm font-bold text-slate-900">Professional</h4>
-                                    <p class="text-[11px] sm:text-xs text-slate-500">Graphic designers, developers, accountants, photographers, consultants, event planners, etc.</p>
+                                    <h4 class="text-xs sm:text-sm font-bold text-slate-900">Business & Professional Services</h4>
+                                    <p class="text-[11px] sm:text-xs text-slate-500">Consulting, technology, design, marketing, finance and other professional services.</p>
                                 </div>
                             </div>
 
                             <div class="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-100 flex items-start gap-3">
                                 <span class="w-7 h-7 rounded-xl bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">🎓</span>
                                 <div>
-                                    <h4 class="text-xs sm:text-sm font-bold text-slate-900">Teacher</h4>
-                                    <p class="text-[11px] sm:text-xs text-slate-500">Mathematics tutors, English teachers, WAEC/JAMB/IELTS exam prep specialists, academic educators.</p>
+                                    <h4 class="text-xs sm:text-sm font-bold text-slate-900">Teaching & Education</h4>
+                                    <p class="text-[11px] sm:text-xs text-slate-500">Teaching, tutoring, training and other education services.</p>
                                 </div>
                             </div>
 
                             <div class="p-3.5 rounded-2xl bg-orange-50/60 border border-orange-100 flex items-start gap-3">
                                 <span class="w-7 h-7 rounded-xl bg-orange-100 text-[#E8472A] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">⚙️</span>
                                 <div>
-                                    <h4 class="text-xs sm:text-sm font-bold text-slate-900">Skilled Labour Worker</h4>
-                                    <p class="text-[11px] sm:text-xs text-slate-500">Carpenters, plumbers, electricians, painters, mechanics, tilers, AC technicians, trade workers.</p>
+                                    <h4 class="text-xs sm:text-sm font-bold text-slate-900">Skilled Trades & Services</h4>
+                                    <p class="text-[11px] sm:text-xs text-slate-500">Technical, artisan, craft and other skilled services.</p>
                                 </div>
                             </div>
                         </div>

@@ -11,18 +11,18 @@ enum TalentClassification: string
     public function label(): string
     {
         return match ($this) {
-            self::Professional  => 'Professional',
-            self::Teacher       => 'Teacher',
-            self::SkilledLabour => 'Skilled Labour Worker',
+            self::Professional  => 'Business & Professional Services',
+            self::Teacher       => 'Teaching & Education',
+            self::SkilledLabour => 'Skilled Trades & Services',
         };
     }
 
     public function description(): string
     {
         return match ($this) {
-            self::Professional  => 'Software developers, accountants, designers, consultants, photographers and other professional service providers.',
-            self::Teacher       => 'Mathematics tutors, English teachers, music instructors, WAEC/JAMB exam prep specialists and other educators.',
-            self::SkilledLabour => 'Carpenters, plumbers, electricians, painters, welders, mechanics, tilers and other skilled trade workers.',
+            self::Professional  => 'Consulting, technology, design, marketing, finance and other professional services.',
+            self::Teacher       => 'Teaching, tutoring, training and other education services.',
+            self::SkilledLabour => 'Technical, artisan, craft and other skilled services.',
         };
     }
 

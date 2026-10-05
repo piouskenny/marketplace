@@ -39,7 +39,7 @@
                 <!-- Badge + Heading -->
                 <div class="space-y-2">
                     <span class="text-xs font-extrabold text-amber-700 uppercase tracking-wider bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
-                        Skilled Labour Worker Profile
+                        Skilled Trades & Services Profile
                     </span>
                     <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
                         Tell us about your trade

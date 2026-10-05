@@ -28,4 +28,16 @@ class TalentType extends Model
                     ->withPivot('completed_at')
                     ->withTimestamps();
     }
+
+    public function getLabelAttribute($value): string
+    {
+        $enum = \App\Enums\TalentClassification::fromSlug($this->slug ?? '');
+        return $enum ? $enum->label() : ($value ?? '');
+    }
+
+    public function getDescriptionAttribute($value): string
+    {
+        $enum = \App\Enums\TalentClassification::fromSlug($this->slug ?? '');
+        return $enum ? $enum->description() : ($value ?? '');
+    }
 }

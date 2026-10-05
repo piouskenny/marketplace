@@ -132,7 +132,7 @@
                                 <h3 class="text-base font-semibold text-white">Complete your Skill Link NG profile</h3>
                             </div>
                             <p class="text-xs sm:text-sm text-slate-300">
-                                Do you offer a service? Select all that apply (Professional, Teacher, Skilled Labour Worker) or skip to stay as a hirer.
+                                Do you offer a service? Select all that apply (Business & Professional Services, Teaching & Education, Skilled Trades & Services) or skip to stay as a hirer.
                             </p>
                         </div>
                         <div class="flex items-center gap-3 shrink-0 self-stretch md:self-center">
@@ -199,7 +199,7 @@
                                     @if($hasIncompleteTalent)
                                         You have pending service classifications to complete so clients can find and hire you.
                                     @else
-                                        Select your service classifications (Professional, Teacher, Skilled Labour Worker) so clients and parents near you can connect.
+                                        Select your service classifications (Business & Professional Services, Teaching & Education, Skilled Trades & Services) so clients and parents near you can connect.
                                     @endif
                                 </p>
                             </div>

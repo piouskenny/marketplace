@@ -86,7 +86,7 @@
                                     I offer services, skills, or academic tutoring
                                 </h3>
                                 <p class="text-xs sm:text-sm text-slate-600 font-medium">
-                                    List as a Professional, Teacher, or Skilled Trade Worker — or all three.
+                                    List under Business & Professional Services, Teaching & Education, or Skilled Trades & Services — or all three.
                                 </p>
                             </div>
                         </div>

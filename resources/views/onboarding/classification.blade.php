@@ -46,7 +46,7 @@
                     <p class="text-sm text-slate-600 font-medium leading-relaxed">
                         Choose one or more categories that describe your work. You can hold multiple classifications
                         — for example, a software developer who also tutors mathematics can choose both
-                        <strong>Professional</strong> and <strong>Teacher</strong>.
+                        <strong>Business & Professional Services</strong> and <strong>Teaching & Education</strong>.
                     </p>
                 </div>
 
@@ -62,20 +62,20 @@
                     @php
                         $classificationConfig = [
                             'professional' => [
-                                'label'       => 'Professional',
-                                'description' => 'Graphic designers, developers, accountants, photographers, consultants, event planners, and other professional service providers.',
+                                'label'       => 'Business & Professional Services',
+                                'description' => 'Consulting, technology, design, marketing, finance and other professional services.',
                                 'color'       => 'blue',
                                 'icon'        => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>',
                             ],
                             'teacher' => [
-                                'label'       => 'Teacher',
-                                'description' => 'Mathematics tutors, English teachers, music instructors, WAEC/JAMB/IELTS exam prep specialists, and academic educators.',
+                                'label'       => 'Teaching & Education',
+                                'description' => 'Teaching, tutoring, training and other education services.',
                                 'color'       => 'emerald',
                                 'icon'        => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>',
                             ],
                             'skilled_labour' => [
-                                'label'       => 'Skilled Labour Worker',
-                                'description' => 'Carpenters, plumbers, electricians, painters, mechanics, welders, tilers, AC technicians, and other skilled trade workers.',
+                                'label'       => 'Skilled Trades & Services',
+                                'description' => 'Technical, artisan, craft and other skilled services.',
                                 'color'       => 'amber',
                                 'icon'        => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>',
                             ],
