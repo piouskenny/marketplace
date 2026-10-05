@@ -52,9 +52,13 @@ class UpdateEducationProfileAction
             ]
         );
 
-        // Sync subjects
-        if (isset($data['subject_ids']) && is_array($data['subject_ids'])) {
-            $educationProfile->subjects()->sync($data['subject_ids']);
+        // Sync subjects (pre-selected IDs and custom subjects)
+        $subjectIds = \App\Services\SkillAndSubjectResolver::resolveSubjectIds(
+            $data['subject_ids'] ?? null,
+            $data['custom_subjects'] ?? null
+        );
+        if (!empty($subjectIds) || isset($data['subject_ids']) || isset($data['custom_subjects'])) {
+            $educationProfile->subjects()->sync($subjectIds);
         }
 
         // Sync education levels

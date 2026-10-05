@@ -263,6 +263,42 @@
                         @enderror
                     </div>
 
+                    <!-- Skills Selection & Custom Skill Input -->
+                    <div>
+                        <label class="block text-sm font-extrabold text-slate-900 mb-1.5">
+                            Specialized Skills <span class="text-slate-500 text-xs font-normal">(Select existing or add your own below)</span>
+                        </label>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 max-h-48 overflow-y-auto mb-3">
+                            @foreach($skills as $sk)
+                                <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 hover:text-slate-900 cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        name="skills[]" 
+                                        value="{{ $sk->id }}"
+                                        {{ in_array($sk->id, old('skills', $prof?->skills->pluck('id')->toArray() ?? [])) ? 'checked' : '' }}
+                                        class="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500"
+                                    />
+                                    <span class="truncate">{{ $sk->name }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+
+                        <!-- Custom Skills Free Text Input -->
+                        <div>
+                            <label for="custom_skills" class="block text-xs font-bold text-slate-700 mb-1">
+                                + Add Custom Skill(s) <span class="text-slate-400 font-normal">(Comma separated if not listed above)</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="custom_skills" 
+                                name="custom_skills" 
+                                value="{{ old('custom_skills') }}"
+                                placeholder="e.g. Solar Inverter Setup, SAT Prep, Data Science"
+                                class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all"
+                            />
+                        </div>
+                    </div>
+
                     <!-- Submit Button -->
                     <div class="pt-2">
                         <button 

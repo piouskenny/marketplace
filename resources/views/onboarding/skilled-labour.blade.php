@@ -254,6 +254,19 @@
                                 </label>
                             @endforeach
                         </div>
+                        <div class="mt-3">
+                            <label for="custom_skills" class="block text-xs font-bold text-slate-700 mb-1">
+                                + Add Custom Trade Skill(s) <span class="text-slate-400 font-normal">(Comma separated if not in list above, e.g. Inverter Wiring, Generator Servicing)</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="custom_skills" 
+                                name="custom_skills" 
+                                value="{{ old('custom_skills') }}"
+                                placeholder="e.g. Inverter Setup, Solar Panel Mounting, Generator Servicing"
+                                class="w-full bg-slate-50 border-2 border-slate-300 focus:border-amber-500 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all"
+                            />
+                        </div>
                         @error('skills')
                             <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
                         @enderror

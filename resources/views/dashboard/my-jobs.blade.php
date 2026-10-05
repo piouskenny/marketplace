@@ -390,6 +390,7 @@
                                         <option value="{{ $sub->id }}">{{ $sub->name }}</option>
                                     @endforeach
                                 </select>
+                                <input type="text" name="custom_subject" placeholder="Or type custom subject..." class="w-full mt-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-slate-400 transition-all" />
                             </div>
 
                             <div class="space-y-1">

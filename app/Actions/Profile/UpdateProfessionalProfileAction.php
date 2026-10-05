@@ -52,9 +52,13 @@ class UpdateProfessionalProfileAction
             ]
         );
 
-        // Sync skills if provided
-        if (isset($data['skills']) && is_array($data['skills'])) {
-            $profile->skills()->sync($data['skills']);
+        // Sync skills (pre-selected IDs and custom skills)
+        $skillIds = \App\Services\SkillAndSubjectResolver::resolveSkillIds(
+            $data['skills'] ?? null,
+            $data['custom_skills'] ?? null
+        );
+        if (!empty($skillIds) || isset($data['skills']) || isset($data['custom_skills'])) {
+            $profile->skills()->sync($skillIds);
         }
 
         // Check if category is Education & Tutoring vertical

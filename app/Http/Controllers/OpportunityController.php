@@ -63,11 +63,17 @@ class OpportunityController extends Controller
             'status' => OpportunityStatus::Open,
         ]);
 
+        $subjectId = $validated['subject_id'] ?? null;
+        if (!$subjectId && !empty($request->input('custom_subject'))) {
+            $resolvedSubjects = \App\Services\SkillAndSubjectResolver::resolveSubjectIds(null, $request->input('custom_subject'));
+            $subjectId = $resolvedSubjects[0] ?? null;
+        }
+
         // Save education details if academic category or subject passed
-        if ($isAcademic || !empty($validated['subject_id'])) {
+        if ($isAcademic || !empty($subjectId)) {
             EducationOpportunityDetails::create([
                 'opportunity_id' => $opportunity->id,
-                'subject_id' => $validated['subject_id'] ?? null,
+                'subject_id' => $subjectId,
                 'education_level_id' => $validated['education_level_id'] ?? null,
                 'teaching_mode' => !empty($validated['teaching_mode']) ? TeachingMode::from($validated['teaching_mode']) : TeachingMode::Both,
                 'schedule_notes' => $validated['schedule_notes'] ?? null,

@@ -74,9 +74,13 @@ class UpdateSkilledLabourProfileAction
                 $baseProfile->update($baseUpdates);
             }
 
-            // Sync skills via the existing professional_profile_skill pivot
-            if (isset($data['skills']) && is_array($data['skills'])) {
-                $baseProfile->skills()->sync($data['skills']);
+            // Sync skills via the existing professional_profile_skill pivot (including custom skills)
+            $skillIds = \App\Services\SkillAndSubjectResolver::resolveSkillIds(
+                $data['skills'] ?? null,
+                $data['custom_skills'] ?? null
+            );
+            if (!empty($skillIds) || isset($data['skills']) || isset($data['custom_skills'])) {
+                $baseProfile->skills()->sync($skillIds);
             }
 
             // 3. Create/update the skilled labour specialisation record

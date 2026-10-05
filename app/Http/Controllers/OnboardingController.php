@@ -210,8 +210,9 @@ class OnboardingController extends Controller
             'location_landmark'      => 'nullable|string|max:500',
             'phone'                  => 'required|string|max:30',
             'skills'                 => 'nullable|array',
-            'skills.*'               => 'exists:skills,id',
+            'custom_skills'          => 'nullable|string|max:500',
         ]);
+        $validated['custom_skills'] = $request->input('custom_skills');
 
         $forClassification = $hasProfessional ? TalentClassification::Professional : null;
 
@@ -247,15 +248,21 @@ class OnboardingController extends Controller
         \App\Actions\Profile\SetUserTalentTypeAction $setTalentType
     ) {
         $validated = $request->validate([
-            'teaching_mode'  => 'required|in:physical,online,both',
-            'qualifications' => 'nullable|string|max:255',
-            'rate_min'       => 'nullable|numeric|min:0',
-            'rate_max'       => 'nullable|numeric|min:0',
-            'subject_ids'    => 'required|array|min:1',
-            'subject_ids.*'  => 'exists:subjects,id',
-            'level_ids'      => 'required|array|min:1',
-            'level_ids.*'    => 'exists:education_levels,id',
+            'teaching_mode'   => 'required|in:physical,online,both',
+            'qualifications'  => 'nullable|string|max:255',
+            'rate_min'        => 'nullable|numeric|min:0',
+            'rate_max'        => 'nullable|numeric|min:0',
+            'subject_ids'     => 'required_without:custom_subjects|nullable|array',
+            'custom_subjects' => 'nullable|string|max:500',
+            'level_ids'       => 'required|array|min:1',
+            'level_ids.*'     => 'exists:education_levels,id',
         ]);
+
+        if (empty($validated['subject_ids']) && empty(trim($request->input('custom_subjects', '')))) {
+            return redirect()->back()->withInput()->withErrors(['subject_ids' => 'Please select at least one subject or specify custom subjects.']);
+        }
+
+        $validated['custom_subjects'] = $request->input('custom_subjects');
 
         $user = $request->user();
         $action->execute($user, $validated);
@@ -305,8 +312,9 @@ class OnboardingController extends Controller
             'years_of_experience'    => 'nullable|integer|min:0|max:50',
             'phone'                  => 'nullable|string|max:30',
             'skills'                 => 'nullable|array',
-            'skills.*'               => 'exists:skills,id',
+            'custom_skills'          => 'nullable|string|max:500',
         ]);
+        $validated['custom_skills'] = $request->input('custom_skills');
 
         $validated['is_certified'] = $request->boolean('is_certified');
 

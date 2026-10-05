@@ -83,6 +83,7 @@ class ProfileController extends Controller
                         'bio' => 'nullable|string',
                         'years_of_experience' => 'nullable|integer|min:0',
                         'skills' => 'nullable|array',
+                        'custom_skills' => 'nullable|string|max:500',
                     ]);
 
                     $validatedPro['display_name'] = !empty($validatedPro['display_name']) ? $validatedPro['display_name'] : $user->name;
@@ -90,24 +91,27 @@ class ProfileController extends Controller
                     $validatedPro['years_of_experience'] = isset($validatedPro['years_of_experience']) ? (int)$validatedPro['years_of_experience'] : 1;
                     $validatedPro['location'] = $user->location;
                     $validatedPro['phone'] = $user->phone;
+                    $validatedPro['custom_skills'] = $request->input('custom_skills');
 
                     // Pass forClassification: null so editing settings NEVER automatically attaches Professional classification
                     $proAction->execute($user, $validatedPro, forClassification: null);
                 }
 
                 // 3. If education tutor form data is present
-                if ($request->has('subject_ids') || $request->has('level_ids') || $request->has('teaching_mode')) {
+                if ($request->has('subject_ids') || $request->has('custom_subjects') || $request->has('level_ids') || $request->has('teaching_mode')) {
                     $validatedEdu = $request->validate([
                         'teaching_mode' => 'nullable|in:physical,online,both',
                         'qualifications' => 'nullable|string|max:255',
                         'rate_min' => 'nullable|numeric|min:0',
                         'rate_max' => 'nullable|numeric|min:0',
                         'subject_ids' => 'nullable|array',
+                        'custom_subjects' => 'nullable|string|max:500',
                         'level_ids' => 'nullable|array',
                     ]);
 
                     $validatedEdu['teaching_mode'] = $validatedEdu['teaching_mode'] ?? 'both';
                     $validatedEdu['subject_ids'] = $validatedEdu['subject_ids'] ?? [];
+                    $validatedEdu['custom_subjects'] = $request->input('custom_subjects');
                     $validatedEdu['level_ids'] = $validatedEdu['level_ids'] ?? [];
 
                     $eduAction->execute($user, $validatedEdu);

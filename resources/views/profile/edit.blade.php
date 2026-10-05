@@ -213,6 +213,28 @@
                                 <label class="block text-xs font-semibold text-slate-700 mb-1">Service Biography / Summary</label>
                                 <textarea name="bio" rows="3" class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white rounded-xl p-3 text-sm font-medium outline-none transition-all">{{ old('bio', optional($user->professionalProfile)->bio) }}</textarea>
                             </div>
+
+                            <!-- Skills & Custom Skills -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-2">Specialized Skills & Tools</label>
+                                @php
+                                    $userSkillIds = optional($user->professionalProfile)->skills ? $user->professionalProfile->skills->pluck('id')->toArray() : [];
+                                @endphp
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-slate-50 border border-slate-200/80 rounded-xl p-3 max-h-40 overflow-y-auto mb-2">
+                                    @foreach($skills as $sk)
+                                        <label class="flex items-center gap-2 text-xs font-medium text-slate-800 cursor-pointer">
+                                            <input type="checkbox" name="skills[]" value="{{ $sk->id }}" {{ in_array($sk->id, $userSkillIds) ? 'checked' : '' }} class="accent-slate-900 rounded" />
+                                            <span class="truncate">{{ $sk->name }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                                <div>
+                                    <label for="custom_skills" class="block text-[11px] font-bold text-slate-600 mb-1">
+                                        + Add Custom Skill(s) <span class="text-slate-400 font-normal">(Comma separated if not listed above)</span>
+                                    </label>
+                                    <input type="text" id="custom_skills" name="custom_skills" value="{{ old('custom_skills') }}" placeholder="e.g. Solar Repair, CCTV Installation, SAT Prep" class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white rounded-xl px-3.5 py-2 text-xs font-medium outline-none transition-all" />
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Section 3: Academic Tutoring Specialization -->
@@ -221,7 +243,7 @@
 
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-2">Subjects Taught</label>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-slate-50 border border-slate-200/80 rounded-xl p-3">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-slate-50 border border-slate-200/80 rounded-xl p-3 mb-2">
                                     @php
                                         $eduProfile = $user->professionalProfile?->educationProfile;
                                         $selectedSubjects = $eduProfile && $eduProfile->subjects ? $eduProfile->subjects->pluck('id')->toArray() : [];
@@ -232,6 +254,13 @@
                                             <span>{{ $sub->name }}</span>
                                         </label>
                                     @endforeach
+                                </div>
+
+                                <div>
+                                    <label for="custom_subjects" class="block text-[11px] font-bold text-slate-600 mb-1">
+                                        + Add Custom Subject(s) <span class="text-slate-400 font-normal">(Comma separated if not listed above)</span>
+                                    </label>
+                                    <input type="text" id="custom_subjects" name="custom_subjects" value="{{ old('custom_subjects') }}" placeholder="e.g. Further Mathematics, Phonics, French" class="w-full bg-slate-50 border border-slate-200 focus:border-slate-800 focus:bg-white rounded-xl px-3.5 py-2 text-xs font-medium outline-none transition-all" />
                                 </div>
                             </div>
 

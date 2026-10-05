@@ -91,6 +91,21 @@
                                 </label>
                             @endforeach
                         </div>
+                        
+                        <!-- Custom Subjects Input -->
+                        <div class="mt-3">
+                            <label for="custom_subjects" class="block text-xs font-bold text-slate-700 mb-1">
+                                + Add Custom Subject(s) <span class="text-slate-400 font-normal">(Comma separated if not listed above, e.g., Further Maths, Phonics, Yoruba)</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="custom_subjects" 
+                                name="custom_subjects" 
+                                value="{{ old('custom_subjects') }}"
+                                placeholder="e.g. Further Mathematics, Phonics & Diction, French"
+                                class="w-full bg-slate-50 border-2 border-slate-300 focus:border-sky-600 focus:bg-white text-slate-900 text-sm font-medium rounded-2xl px-4 py-3 outline-none transition-all"
+                            />
+                        </div>
                         @error('subject_ids')
                             <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
                         @enderror
