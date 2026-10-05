@@ -36,8 +36,8 @@ return [
     ],
 
     'paystack' => [
-        'secret_key' => trim(env('PAYSTACK_SECRET_KEY', env('PAYSTACK_LIVE_SECRET_KEY', env('PAYSTACK_TEST_SECRET_KEY', '')))),
-        'public_key' => trim(env('PAYSTACK_PUBLIC_KEY', env('PAYSTACK_LIVE_PUBLIC_KEY', env('PAYSTACK_TEST_PUBLIC_KEY', '')))),
+        'secret_key' => trim(env('PAYSTACK_SECRET_KEY') ?: (env('PAYSTACK_LIVE_SECRET_KEY') ?: env('PAYSTACK_TEST_SECRET_KEY', ''))),
+        'public_key' => trim(env('PAYSTACK_PUBLIC_KEY') ?: (env('PAYSTACK_LIVE_PUBLIC_KEY') ?: env('PAYSTACK_TEST_PUBLIC_KEY', ''))),
         'base_url'   => trim(env('PAYSTACK_BASE_URL', 'https://api.paystack.co')),
     ],
 

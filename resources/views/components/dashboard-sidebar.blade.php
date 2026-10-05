@@ -6,6 +6,7 @@
         request()->is('dashboard/talent*') => 'talent',
         request()->is('dashboard/my-jobs*') => 'my-jobs',
         request()->is('dashboard/messages*') => 'messages',
+        request()->is('dashboard/history*') => 'history',
         request()->is('profile*') => 'settings',
         default => 'overview',
     };
@@ -150,6 +151,20 @@
                         </div>
                         @if($unreadMessagesCount > 0)
                             <span x-show="!sidebarCollapsed" class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-400 text-slate-900">{{ $unreadMessagesCount }}</span>
+                        @endif
+                    </a>
+
+                    <!-- History & Payments -->
+                    <a href="{{ url('/dashboard/history') }}" @click="sidebarOpen = false" 
+                       :class="sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'justify-between px-3 py-2'"
+                       class="flex items-center rounded-xl text-xs font-normal transition-colors {{ $activeItem === 'history' ? 'bg-[#0F172B] text-white shadow-xs' : 'text-[#000000] hover:bg-slate-100' }}"
+                       :title="sidebarCollapsed ? 'History & Payments' : ''">
+                        <div class="flex items-center gap-2.5">
+                            <svg class="w-4.5 h-4.5 {{ $activeItem === 'history' ? 'text-white' : 'text-[#000000]' }} shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+                            <span x-show="!sidebarCollapsed">History & Payments</span>
+                        </div>
+                        @if($activeItem === 'history')
+                            <span x-show="!sidebarCollapsed" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                         @endif
                     </a>
                 </nav>

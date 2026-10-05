@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\ConnectionController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\OpportunityController;
@@ -39,6 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/jobs', [OpportunityController::class, 'dashboardJobs'])->name('dashboard.jobs');
     Route::get('/dashboard/messages', [DashboardController::class, 'messages'])->name('dashboard.messages');
     Route::get('/dashboard/my-jobs', [OpportunityController::class, 'myJobs'])->name('dashboard.my-jobs');
+    Route::get('/dashboard/history', [HistoryController::class, 'index'])->name('dashboard.history');
     Route::post('/opportunities', [OpportunityController::class, 'store'])->name('opportunities.store');
     Route::delete('/opportunities/{opportunity}', [OpportunityController::class, 'destroy'])->name('opportunities.destroy');
     Route::post('/opportunities/{opportunity}/apply', [ConnectionController::class, 'apply'])->name('opportunities.apply');

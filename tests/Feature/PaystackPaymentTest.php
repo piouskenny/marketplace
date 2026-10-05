@@ -411,4 +411,16 @@ class PaystackPaymentTest extends TestCase
 
         $response->assertStatus(400);
     }
+
+    /** @test */
+    public function paystack_config_prioritizes_live_keys_when_configured()
+    {
+        $secretKey = config('services.paystack.secret_key');
+        $publicKey = config('services.paystack.public_key');
+
+        $this->assertNotEmpty($secretKey);
+        $this->assertNotEmpty($publicKey);
+        $this->assertStringStartsWith('sk_live_', $secretKey);
+        $this->assertStringStartsWith('pk_live_', $publicKey);
+    }
 }

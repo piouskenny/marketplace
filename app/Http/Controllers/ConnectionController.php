@@ -359,8 +359,8 @@ class ConnectionController extends Controller
         $reference = $request->query('reference') ?? $request->query('trxref');
 
         if (!$reference) {
-            return redirect()->to(url('/dashboard/messages'))
-                ->with('error', 'No payment reference provided.');
+            return redirect()->to(url('/dashboard/history?tab=payments'))
+                ->with('error', 'Payment attempt was cancelled or no transaction reference was returned. You can retry paying anytime from your Payment History.');
         }
 
         try {
@@ -376,8 +376,17 @@ class ConnectionController extends Controller
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Callback verification failed: ' . $e->getMessage(), ['reference' => $reference]);
 
-            return redirect()->to(url('/dashboard/messages'))
-                ->with('error', 'Payment verification failed: ' . $e->getMessage());
+            // Update existing payment status to Failed if present
+            $payment = \App\Models\Payment::where('reference', $reference)->first();
+            if ($payment && $payment->status !== \App\Enums\PaymentStatus::Successful) {
+                $payment->update([
+                    'status' => \App\Enums\PaymentStatus::Failed,
+                    'metadata' => array_merge($payment->metadata ?? [], ['error_message' => $e->getMessage()]),
+                ]);
+            }
+
+            return redirect()->to(url('/dashboard/history?tab=payments'))
+                ->with('error', 'Payment attempt failed: ' . $e->getMessage() . '. You can click "Retry Payment" anytime below to try paying again.');
         }
     }
 
